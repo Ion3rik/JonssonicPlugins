@@ -149,18 +149,19 @@ function(add_plugin target)
         target_compile_definitions(${target} PRIVATE JUCE_ASIO=0)
     endif()
 
+    if(APPLE)
+        target_link_options(${target} PRIVATE "-Wl,-ld_classic")
+    endif()
 
     target_link_libraries(${target}
         PRIVATE
             juce::juce_audio_utils
             juce::juce_dsp
         PUBLIC
-            ${xcode_15_linker}
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags)
 
 endfunction(add_plugin)
-
 
 # ============================================================
 # PLUGINS
