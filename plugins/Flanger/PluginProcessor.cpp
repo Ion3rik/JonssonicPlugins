@@ -1,60 +1,49 @@
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 #include "PluginEditor.h"
-#include "Parameters.h"
 
 
-MyAudioProcessor::MyAudioProcessor() :
-    paramManager(*this, ProjectInfo::projectName, Param::getParameterVector()) // Construct the parameter manager
+FlangerAudioProcessor::FlangerAudioProcessor()
     
 {
-    // Register parameter callbacks here
-    paramManager.registerParameterCallback(Param::ID::Gain,
-    [this](float newValue, bool force)
-    {
-        smoothedGain.setTargetGain(newValue);
-    });
 
 }
 
-MyAudioProcessor::~MyAudioProcessor()
+FlangerAudioProcessor::~FlangerAudioProcessor()
 {
 }
 
-void MyAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    smoothedGain.prepare(sampleRate, Param::Value::RampTimeS, Param::Range::GainDef);
+
 }
 
-void MyAudioProcessor::releaseResources()
+void FlangerAudioProcessor::releaseResources()
 {
 }
 
-void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 
     juce::ScopedNoDenormals noDenormals;
-    paramManager.updateParameters();
 
     const unsigned int numChannels{ static_cast<unsigned int>(buffer.getNumChannels()) };
     const unsigned int numSamples{ static_cast<unsigned int>(buffer.getNumSamples()) };
 
-    smoothedGain.applyGain(buffer, numSamples);
 
 }
 
-void MyAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
+void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
-    paramManager.getStateInformation(destData);
 
 }
 
-void MyAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void FlangerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    paramManager.setStateInformation(data, sizeInBytes);
+
 }
 
-bool MyAudioProcessor::acceptsMidi() const
+bool FlangerAudioProcessor::acceptsMidi() const
 {
     return true;
 }
@@ -63,22 +52,22 @@ bool MyAudioProcessor::acceptsMidi() const
 
 
 //==============================================================================
-const juce::String MyAudioProcessor::getName() const { return JucePlugin_Name; }
-bool MyAudioProcessor::producesMidi() const { return false; }
-bool MyAudioProcessor::isMidiEffect() const { return false; }
-double MyAudioProcessor::getTailLengthSeconds() const { return 0.0; }
-int MyAudioProcessor::getNumPrograms() { return 1; }
-int MyAudioProcessor::getCurrentProgram() { return 0; }
-void MyAudioProcessor::setCurrentProgram(int) { }
-const juce::String MyAudioProcessor::getProgramName(int) { return {}; }
-void MyAudioProcessor::changeProgramName(int, const juce::String&) { }
-bool MyAudioProcessor::hasEditor() const { return true; }
-juce::AudioProcessorEditor* MyAudioProcessor::createEditor() { return new MyAudioProcessorEditor(*this); }
+const juce::String FlangerAudioProcessor::getName() const { return JucePlugin_Name; }
+bool FlangerAudioProcessor::producesMidi() const { return false; }
+bool FlangerAudioProcessor::isMidiEffect() const { return false; }
+double FlangerAudioProcessor::getTailLengthSeconds() const { return 0.0; }
+int FlangerAudioProcessor::getNumPrograms() { return 1; }
+int FlangerAudioProcessor::getCurrentProgram() { return 0; }
+void FlangerAudioProcessor::setCurrentProgram(int) { }
+const juce::String FlangerAudioProcessor::getProgramName(int) { return {}; }
+void FlangerAudioProcessor::changeProgramName(int, const juce::String&) { }
+bool FlangerAudioProcessor::hasEditor() const { return true; }
+juce::AudioProcessorEditor* FlangerAudioProcessor::createEditor() { return new FlangerAudioProcessorEditor(*this); }
 //==============================================================================
 
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new MyAudioProcessor();
+    return new FlangerAudioProcessor();
 }

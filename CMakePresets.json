@@ -3,7 +3,7 @@
   "configurePresets": [
     {
       "name": "fetch-dsp",
-      "displayName": "Use FETCH DSP (safe default)",
+      "displayName": "[USER] Use FETCH DSP",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/fetch",
       "cacheVariables": {
@@ -14,7 +14,6 @@
     {
       "name": "local-dsp",
       "displayName": "[DEV ONLY] Use LOCAL DSP",
-      "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/local",
       "cacheVariables": {

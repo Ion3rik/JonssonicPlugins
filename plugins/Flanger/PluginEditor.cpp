@@ -1,28 +1,24 @@
 #include "PluginEditor.h"
 
-
-MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
-    : AudioProcessorEditor(p), audioProcessor(p),
-    genericParamEditor(audioProcessor.getParameterManager())
+FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& p)
+    : AudioProcessorEditor(p), audioProcessor(p)
     
 {
 
 }
 
-
-
-MyAudioProcessorEditor::~MyAudioProcessorEditor()
+FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
 {
     setLookAndFeel(nullptr); // Reset the look and feel to default
 }
 
 //==============================================================================
-void MyAudioProcessorEditor::paint(juce::Graphics& g)
+void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
-void MyAudioProcessorEditor::resized()
+void FlangerAudioProcessorEditor::resized()
 {
    
 }

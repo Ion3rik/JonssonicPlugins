@@ -11,18 +11,20 @@
 # General Project Setup
 # ============================================================
 
+cmake_policy(SET CMP0175 NEW)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1) # Suppress warnings from CMake modules
+
+
 cmake_minimum_required(VERSION 3.21)
 project(JonssonicPlugins VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
-
-
-set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64") # Universal Binary for macOS
 set(VST3_OUTPUT_DIR "${CMAKE_BINARY_DIR}/VST3") # Output directory for VST3 plugins
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0") # Minimum macOS version
 
 # MacOs specific settings
+set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64") # Universal Binary for macOS
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0") # Minimum macOS version
 if(APPLE)
     set(xcode_15_linker -Wl,-ld_classic)
 else()

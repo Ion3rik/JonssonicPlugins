@@ -3,18 +3,16 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-class MyAudioProcessorEditor : public juce::AudioProcessorEditor
+class FlangerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
-    MyAudioProcessorEditor(MyAudioProcessor&);
-    ~MyAudioProcessorEditor() override;
-
+    FlangerAudioProcessorEditor(FlangerAudioProcessor&);
+    ~FlangerAudioProcessorEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
-    MyAudioProcessor& audioProcessor;
-    mrta::GenericParameterEditor genericParamEditor;
+    FlangerAudioProcessor& audioProcessor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessorEditor)
 };
