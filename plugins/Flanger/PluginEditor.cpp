@@ -4,7 +4,7 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
     : AudioProcessorEditor(p), audioProcessor(p)
     
 {
-
+    setSize (400, 300);
 }
 
 FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()

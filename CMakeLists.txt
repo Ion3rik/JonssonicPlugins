@@ -11,11 +11,11 @@
 # General Project Setup
 # ============================================================
 
-cmake_policy(SET CMP0175 NEW)
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1) # Suppress warnings from CMake modules
-
-
 cmake_minimum_required(VERSION 3.21)
+cmake_policy(SET CMP0175 NEW)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
+
+
 project(JonssonicPlugins VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)

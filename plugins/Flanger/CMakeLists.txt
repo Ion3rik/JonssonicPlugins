@@ -16,3 +16,6 @@ add_plugin(Flanger
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
 )
+
+target_link_libraries(Flanger PRIVATE JonssonicDSP)
+target_include_directories(Flanger PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

@@ -4,7 +4,6 @@
 
 
 FlangerAudioProcessor::FlangerAudioProcessor()
-    
 {
 
 }
@@ -15,11 +14,13 @@ FlangerAudioProcessor::~FlangerAudioProcessor()
 
 void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-
+    auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
+    flanger.prepare(numChannels, sampleRate, 10.0f);
 }
 
 void FlangerAudioProcessor::releaseResources()
 {
+    flanger.clear();
 }
 
 void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -27,10 +28,24 @@ void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
     juce::ScopedNoDenormals noDenormals;
 
-    const unsigned int numChannels{ static_cast<unsigned int>(buffer.getNumChannels()) };
-    const unsigned int numSamples{ static_cast<unsigned int>(buffer.getNumSamples()) };
+    const int totalNumInputChannels = getTotalNumInputChannels();
+    const int totalNumOutputChannels = getTotalNumOutputChannels();
+    const int numSamples = buffer.getNumSamples();
 
+    // Copy first input channel to all output channels if there are fewer input channels
+    if (totalNumInputChannels > 0 && totalNumInputChannels < totalNumOutputChannels)
+    {
+        const float* firstChannelData = buffer.getReadPointer(0);
+        
+        for (int channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
+        {
+            buffer.copyFrom(channel, 0, firstChannelData, numSamples);
+        }
+    }
 
+    flanger.processBlock(buffer.getArrayOfReadPointers(),
+                         buffer.getArrayOfWritePointers(),
+                         static_cast<size_t>(numSamples));
 }
 
 void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

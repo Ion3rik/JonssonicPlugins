@@ -2,34 +2,62 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "fetch-dsp",
-      "displayName": "[USER] Use FETCH DSP",
+      "name": "fetch-dsp-debug",
+      "displayName": "[USER] Fetch DSP - Debug",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/fetch",
+      "binaryDir": "${sourceDir}/build/fetch-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "USE_LOCAL_DSP": "OFF"
       }
     },
     {
-      "name": "local-dsp",
-      "displayName": "[DEV ONLY] Use LOCAL DSP",
+      "name": "fetch-dsp-release",
+      "displayName": "[USER] Fetch DSP - Release",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/local",
+      "binaryDir": "${sourceDir}/build/fetch-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "USE_LOCAL_DSP": "OFF"
+      }
+    },
+    {
+      "name": "local-dsp-debug",
+      "displayName": "[DEV] Local DSP - Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/local-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "USE_LOCAL_DSP": "ON"
+      }
+    },
+    {
+      "name": "local-dsp-release",
+      "displayName": "[DEV] Local DSP - Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/local-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
         "USE_LOCAL_DSP": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "build-fetch",
-      "configurePreset": "fetch-dsp"
+      "name": "build-fetch-debug",
+      "configurePreset": "fetch-dsp-debug"
     },
     {
-      "name": "build-local",
-      "configurePreset": "local-dsp"
+      "name": "build-fetch-release",
+      "configurePreset": "fetch-dsp-release"
+    },
+    {
+      "name": "build-local-debug",
+      "configurePreset": "local-dsp-debug"
+    },
+    {
+      "name": "build-local-release",
+      "configurePreset": "local-dsp-release"
     }
   ]
 }

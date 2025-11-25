@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include <Jonssonic/effects/Flanger.h>
 
 
 class FlangerAudioProcessor : public juce::AudioProcessor
@@ -33,6 +34,7 @@ public:
     
 
 private:
+    Jonssonic::Flanger<float> flanger;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessor)
 };
