@@ -59,7 +59,7 @@ FlangerAudioProcessor::~FlangerAudioProcessor()
 void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
-    flanger.prepare(numChannels, sampleRate, 10.0f);
+    flanger.prepare(numChannels, sampleRate);
     fxBuffer.setSize(numChannels, samplesPerBlock);
     dryWetMixer.prepare(numChannels, sampleRate);
     
