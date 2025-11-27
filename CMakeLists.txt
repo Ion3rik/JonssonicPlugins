@@ -1,8 +1,7 @@
 # ============================================================
 # CMake Configuration for Jonssonic Audio Plugins
 # Author: Jon Fagerström
-# Updated: 21.11.2025
-# License: MIT
+# SPDX-License-Identifier: MIT
 # Description: This CMakeLists.txt sets up the build environment for Jonssonic audio plugins
 # using JUCE and the JonssonicDSP library. It supports building universal binaries for macOS,
 # Windows, and Linux (limited/unstested).
@@ -14,7 +13,6 @@
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0175 NEW)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
-
 
 project(JonssonicPlugins VERSION 0.1.0)
 
@@ -89,6 +87,11 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(juce)
+
+# ============================================================
+# Framework Library
+# ============================================================
+add_subdirectory(framework)
 
 # ============================================================
 # Helper Function to Add Plugins
@@ -166,17 +169,22 @@ function(add_plugin target)
 endfunction(add_plugin)
 
 # ============================================================
-# PLUGINS
+# PLUGINS (Only build when this is the top-level project)
 # ============================================================
+if(PROJECT_IS_TOP_LEVEL)
+    message(STATUS "Building example plugins...")
+    
+    # Scan all folders inside plugins/ and automatically add them as subdirectories
+    file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
 
-# Scan all folders inside plugins/ and automatically add them as subdirectories
-file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
-
-foreach(plugin_dir IN LISTS plugin_dirs)
-    if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
-        message(STATUS "Adding plugin directory: ${plugin_dir}")
-        add_subdirectory(plugins/${plugin_dir})
-    endif()
-endforeach()
+    foreach(plugin_dir IN LISTS plugin_dirs)
+        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
+            message(STATUS "Adding plugin directory: ${plugin_dir}")
+            add_subdirectory(plugins/${plugin_dir})
+        endif()
+    endforeach()
+else()
+    message(STATUS "Skipping example plugins (not top-level project)")
+endif()
 
 

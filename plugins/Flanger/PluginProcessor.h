@@ -2,6 +2,8 @@
 #include <JuceHeader.h>
 #include <Jonssonic/effects/Flanger.h>
 #include <Jonssonic/core/mixing/DryWetMixer.h>
+#include <parameters/ParameterManager.h>
+#include "Params.h"
 
 
 class FlangerAudioProcessor : public juce::AudioProcessor
@@ -33,11 +35,17 @@ public:
     void changeProgramName(int, const juce::String&) override;
     //==============================================================================
     
+    // Parameter access for editor
+    juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
 private:
+    // DSP objects
     Jonssonic::Flanger<float> flanger;
     juce::AudioBuffer<float> fxBuffer;
     Jonssonic::DryWetMixer<float> dryWetMixer;
+    
+    // Parameter management
+    Jonssonic::ParameterManager<FlangerParams::ID> parameterManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessor)
 };

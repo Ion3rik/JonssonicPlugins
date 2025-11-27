@@ -4,8 +4,34 @@
 
 
 FlangerAudioProcessor::FlangerAudioProcessor()
+    : parameterManager(FlangerParams::createParams(), *this)
 {
-
+    // Register callbacks for parameter changes
+    using ID = FlangerParams::ID;
+    
+    parameterManager.on(ID::Rate, [this](float value, bool skipSmoothing) {
+        flanger.setRate(value, skipSmoothing);
+    });
+    
+    parameterManager.on(ID::Depth, [this](float value, bool skipSmoothing) {
+        flanger.setDepth(value, skipSmoothing);
+    });
+    
+    parameterManager.on(ID::Spread, [this](float value, bool skipSmoothing) {
+        flanger.setSpread(value, skipSmoothing);
+    });
+    
+    parameterManager.on(ID::CenterDelay, [this](float value, bool skipSmoothing) {
+        flanger.setDelayMs(value, skipSmoothing);
+    });
+    
+    parameterManager.on(ID::Feedback, [this](float value, bool skipSmoothing) {
+        flanger.setFeedback(value, skipSmoothing);
+    });
+    
+    parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
+        dryWetMixer.setMix(value, skipSmoothing);
+    });
 }
 
 FlangerAudioProcessor::~FlangerAudioProcessor()
@@ -18,6 +44,9 @@ void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
     flanger.prepare(numChannels, sampleRate, 10.0f);
     fxBuffer.setSize(numChannels, samplesPerBlock);
     dryWetMixer.prepare(numChannels, sampleRate);
+    
+    // Initialize DSP with parameter defaults (skip smoothing for instant setup)
+    parameterManager.syncAll(true);
 }
 
 void FlangerAudioProcessor::releaseResources()
@@ -28,6 +57,8 @@ void FlangerAudioProcessor::releaseResources()
 
 void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+    // Update parameters from FIFO (GUI thread → Audio thread)
+    parameterManager.update();
 
     juce::ScopedNoDenormals noDenormals;
 
@@ -58,12 +89,12 @@ void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
 void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
-
+    parameterManager.saveState(destData);
 }
 
 void FlangerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-
+    parameterManager.loadState(data, sizeInBytes);
 }
 
 bool FlangerAudioProcessor::acceptsMidi() const
