@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include <Jonssonic/effects/Flanger.h>
+#include <Jonssonic/core/mixing/DryWetMixer.h>
 
 
 class FlangerAudioProcessor : public juce::AudioProcessor
@@ -35,6 +36,8 @@ public:
 
 private:
     Jonssonic::Flanger<float> flanger;
+    juce::AudioBuffer<float> fxBuffer;
+    Jonssonic::DryWetMixer<float> dryWetMixer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessor)
 };

@@ -16,11 +16,14 @@ void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     flanger.prepare(numChannels, sampleRate, 10.0f);
+    fxBuffer.setSize(numChannels, samplesPerBlock);
+    dryWetMixer.prepare(numChannels, sampleRate);
 }
 
 void FlangerAudioProcessor::releaseResources()
 {
     flanger.clear();
+    dryWetMixer.reset();
 }
 
 void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -32,20 +35,25 @@ void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     const int totalNumOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
 
-    // Copy first input channel to all output channels if there are fewer input channels
-    if (totalNumInputChannels > 0 && totalNumInputChannels < totalNumOutputChannels)
+    // Copy input to fxBuffer for processing
+    for (int channel = 0; channel < totalNumOutputChannels; ++channel)
     {
-        const float* firstChannelData = buffer.getReadPointer(0);
-        
-        for (int channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
-        {
-            buffer.copyFrom(channel, 0, firstChannelData, numSamples);
-        }
+        if (channel < totalNumInputChannels)
+            fxBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
+        else
+            fxBuffer.copyFrom(channel, 0, buffer, 0, 0, numSamples); // Duplicate first channel
     }
 
-    flanger.processBlock(buffer.getArrayOfReadPointers(),
-                         buffer.getArrayOfWritePointers(),
+    // Process wet signal in fxBuffer
+    flanger.processBlock(fxBuffer.getArrayOfReadPointers(),
+                         fxBuffer.getArrayOfWritePointers(),
                          static_cast<size_t>(numSamples));
+    
+    // Mix wet signal with dry (addFrom adds wet to existing dry signal)
+    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
+                             fxBuffer.getArrayOfReadPointers(), // wet input
+                             buffer.getArrayOfWritePointers(),  // output
+                             static_cast<size_t>(numSamples));  // number of samples
 }
 
 void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

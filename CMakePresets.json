@@ -18,7 +18,9 @@
       "binaryDir": "${sourceDir}/build/fetch-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "USE_LOCAL_DSP": "OFF"
+        "USE_LOCAL_DSP": "OFF",
+        "BUILD_TESTING": "OFF",
+        "BUILD_EXAMPLES": "OFF"
       }
     },
     {
@@ -38,7 +40,9 @@
       "binaryDir": "${sourceDir}/build/local-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "USE_LOCAL_DSP": "ON"
+        "USE_LOCAL_DSP": "ON",
+        "BUILD_TESTING": "OFF",
+        "BUILD_EXAMPLES": "OFF"
       }
     }
   ],
