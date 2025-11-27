@@ -2,6 +2,8 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include <gui/ControlPanel.h>
+#include <gui/ControlPanelConfig.h>
 
 class FlangerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -13,6 +15,8 @@ public:
 
 private:
     FlangerAudioProcessor& audioProcessor;
+    Jonssonic::ControlPanelConfig controlPanelConfig;
+    Jonssonic::ControlPanel controlPanel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessorEditor)
 };

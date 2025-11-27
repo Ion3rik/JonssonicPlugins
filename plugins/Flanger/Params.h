@@ -29,12 +29,12 @@ inline Jonssonic::ParameterSet<ID> createParams() {
     //                        ↓ id            ↓ name          ↓ min   ↓ max   ↓ def  ↓ unit ↓ skew
     params.add(FloatParam<ID>{ID::Rate,         "Rate",         0.1f,   10.0f,  1.0f,  "Hz",  0.3f});
     params.add(FloatParam<ID>{ID::Depth,        "Depth",        0.0f,   1.0f,   0.5f,  "",    1.0f});
-    params.add(FloatParam<ID>{ID::Spread,       "Spread",       0.0f,   1.0f,   0.5f,  "",    1.0f});
+    params.add(FloatParam<ID>{ID::Spread,       "Spread",       0.0f,   1.0f,   0.0f,  "",    1.0f});
     params.add(FloatParam<ID>{ID::CenterDelay,  "Center Delay", 0.5f,   5.0f,   2.0f,  "ms",  1.0f});
     params.add(FloatParam<ID>{ID::Feedback,     "Feedback",     -0.95f, 0.95f,  0.0f,  "",    1.0f});
-    params.add(FloatParam<ID>{ID::Mix,          "Mix",          0.0f,   1.0f,   0.5f,  "%",   1.0f});
+    params.add(FloatParam<ID>{ID::Mix,          "Mix",          0.0f,   1.0f,   1.0f,  "%",   1.0f});
     
     return params;
 }
 
-} // namespace Flanger
+} // namespace FlangerParams

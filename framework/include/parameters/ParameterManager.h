@@ -7,12 +7,15 @@
 #pragma once
 
 #include "Parameters.h"
+#include "ParameterIdUtils.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_data_structures/juce_data_structures.h>
 #include <functional>
 #include <unordered_map>
 #include <memory>
 #include <sstream>
+
+#include <vector>
 
 namespace Jonssonic {
 
@@ -33,7 +36,9 @@ namespace Jonssonic {
  *   paramManager.update();  // Pulls from FIFO, triggers callbacks
  */
 template<typename IDType>
-class ParameterManager {
+class ParameterManager : public juce::AudioProcessorValueTreeState::Listener {
+    // Store parameter IDs for listener management
+    std::vector<juce::String> registeredParamIDs;
 public:
     using Callback = std::function<void(float, bool)>;
     
@@ -44,6 +49,11 @@ public:
      */
     ParameterManager(const ParameterSet<IDType>& params, juce::AudioProcessor& processor);
     
+    /**
+     * @brief Destructor
+     */
+    ~ParameterManager();
+
     /**
      * @brief Register a callback for parameter changes
      * @param id Parameter ID
@@ -116,10 +126,13 @@ private:
     };
     
     void createAPVTS(const ParameterSet<IDType>& params, juce::AudioProcessor& processor);
+
+    // juce::AudioProcessorValueTreeState::Listener
+    void parameterChanged(const juce::String& parameterID, float newValue) override;
     std::unique_ptr<juce::RangedAudioParameter> createJuceParameter(
         const typename ParameterSet<IDType>::ParamVariant& param);
     
-    std::string idToString(IDType id) const;
+        // Removed idToString method as global Jonssonic::idToString should be used.
     
     std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;
     juce::AbstractFifo fifo{128};  // Lock-free FIFO for parameter changes
@@ -137,6 +150,40 @@ ParameterManager<IDType>::ParameterManager(const ParameterSet<IDType>& params,
                                            juce::AudioProcessor& processor) {
     fifoBuffer.resize(128);
     createAPVTS(params, processor);
+
+    // Register as listener for all parameters
+    for (auto* param : apvts->processor.getParameters()) {
+        if (auto* paramWithID = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
+            apvts->addParameterListener(paramWithID->paramID, this);
+            registeredParamIDs.push_back(paramWithID->paramID);
+        }
+    }
+}
+
+// Unregister listeners in destructor
+template<typename IDType>
+ParameterManager<IDType>::~ParameterManager() {
+    if (apvts) {
+        for (const auto& paramID : registeredParamIDs) {
+            apvts->removeParameterListener(paramID, this);
+        }
+    }
+}
+// Listener callback: push changes into FIFO for audio thread
+template<typename IDType>
+void ParameterManager<IDType>::parameterChanged(const juce::String& parameterID, float newValue) {
+    // Find enum ID from string
+    for (const auto& [id, param] : parameterMap) {
+        if (param->paramID == parameterID) {
+            int start1, size1, start2, size2;
+            fifo.prepareToWrite(1, start1, size1, start2, size2);
+            if (size1 > 0) {
+                fifoBuffer[static_cast<size_t>(start1)] = {id, newValue};
+                fifo.finishedWrite(1);
+            }
+            break;
+        }
+    }
 }
 
 template<typename IDType>
@@ -155,6 +202,7 @@ void ParameterManager<IDType>::update() {
     // Process first block
     for (int i = 0; i < size1; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start1 + i)];
+        DBG("[ParameterManager] update: id=" + Jonssonic::idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false);  // Real-time changes use smoothing
@@ -164,6 +212,7 @@ void ParameterManager<IDType>::update() {
     // Process second block (if wrapped)
     for (int i = 0; i < size2; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start2 + i)];
+        DBG("[ParameterManager] update: id=" + Jonssonic::idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false);  // Real-time changes use smoothing
@@ -257,7 +306,7 @@ void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params,
     // Now populate parameter map with actual pointers
     for (const auto& paramVariant : params.getAll()) {
         std::visit([this](auto&& param) {
-            auto* p = apvts->getParameter(idToString(param.id));
+            auto* p = apvts->getParameter(Jonssonic::idToString(param.id));
             if (p) {
                 parameterMap[param.id] = p;
             }
@@ -272,11 +321,12 @@ ParameterManager<IDType>::createJuceParameter(
     
     return std::visit([this](auto&& param) -> std::unique_ptr<juce::RangedAudioParameter> {
         using T = std::decay_t<decltype(param)>;
-        std::string idStr = idToString(param.id);
+        // Use juce::String everywhere for parameter IDs
+        const juce::String juceIdStr = Jonssonic::idToString(param.id);
         
         if constexpr (std::is_same_v<T, FloatParam<IDType>>) {
             return std::make_unique<juce::AudioParameterFloat>(
-                juce::ParameterID{idStr, 1},
+                juce::ParameterID{juceIdStr, 1},
                 param.name,
                 juce::NormalisableRange<float>(param.min, param.max, 0.01f, param.skew),
                 param.defaultValue,
@@ -285,7 +335,7 @@ ParameterManager<IDType>::createJuceParameter(
         }
         else if constexpr (std::is_same_v<T, IntParam<IDType>>) {
             return std::make_unique<juce::AudioParameterInt>(
-                juce::ParameterID{idStr, 1},
+                juce::ParameterID{juceIdStr, 1},
                 param.name,
                 param.min,
                 param.max,
@@ -295,7 +345,7 @@ ParameterManager<IDType>::createJuceParameter(
         }
         else if constexpr (std::is_same_v<T, BoolParam<IDType>>) {
             return std::make_unique<juce::AudioParameterBool>(
-                juce::ParameterID{idStr, 1},
+                juce::ParameterID{juceIdStr, 1},
                 param.name,
                 param.defaultValue
             );
@@ -306,7 +356,7 @@ ParameterManager<IDType>::createJuceParameter(
                 choices.add(choice);
             }
             return std::make_unique<juce::AudioParameterChoice>(
-                juce::ParameterID{idStr, 1},
+                juce::ParameterID{juceIdStr, 1},
                 param.name,
                 choices,
                 param.defaultIndex
@@ -315,11 +365,5 @@ ParameterManager<IDType>::createJuceParameter(
     }, paramVariant);
 }
 
-template<typename IDType>
-std::string ParameterManager<IDType>::idToString(IDType id) const {
-    std::ostringstream oss;
-    oss << "param_" << static_cast<int>(id);
-    return oss.str();
-}
 
 } // namespace Jonssonic

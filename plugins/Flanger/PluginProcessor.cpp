@@ -1,3 +1,4 @@
+#include <iostream>
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 #include "PluginEditor.h"
@@ -6,30 +7,47 @@
 FlangerAudioProcessor::FlangerAudioProcessor()
     : parameterManager(FlangerParams::createParams(), *this)
 {
+    // Print all APVTS parameter IDs at startup
+    auto& apvts = parameterManager.getAPVTS();
+    DBG("[DEBUG] APVTS parameter IDs at startup:");
+    for (auto* param : apvts.processor.getParameters()) {
+        if (auto* paramWithID = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
+            DBG("  " + paramWithID->paramID);
+        }
+    }
+
+    // ...existing code...
+
     // Register callbacks for parameter changes
     using ID = FlangerParams::ID;
     
     parameterManager.on(ID::Rate, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Rate changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setRate(value, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::Depth, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Depth changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setDepth(value, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::Spread, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Spread changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setSpread(value, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::CenterDelay, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] CenterDelay changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setDelayMs(value, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::Feedback, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Feedback changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setFeedback(value, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         dryWetMixer.setMix(value, skipSmoothing);
     });
 }
