@@ -55,16 +55,20 @@ struct IntParam {
 /**
  * @brief Boolean parameter specification
  * 
- * Defines a simple on/off toggle parameter.
+ * Defines a simple on/off toggle parameter, with customizable labels for true/false states.
  */
 template<typename IDType>
 struct BoolParam {
     IDType id;
     std::string name;
     bool defaultValue;
-    
-    BoolParam(IDType id, std::string name, bool def)
-        : id(id), name(std::move(name)), defaultValue(def) {}
+    std::string trueLabel;
+    std::string falseLabel;
+
+    BoolParam(IDType id, std::string name, bool def,
+              std::string trueLabel = "On", std::string falseLabel = "Off")
+        : id(id), name(std::move(name)), defaultValue(def),
+          trueLabel(std::move(trueLabel)), falseLabel(std::move(falseLabel)) {}
 };
 
 /**

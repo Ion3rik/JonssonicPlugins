@@ -13,7 +13,7 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
     addAndMakeVisible(controlPanel);
-    setSize (400, 300);
+    setSize (400, 250);
 }
 
 FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
