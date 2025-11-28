@@ -9,6 +9,7 @@
 #include "Parameters.h"
 #include "ParameterIdUtils.h"
 #include <juce_audio_processors/juce_audio_processors.h>
+
 #include <juce_data_structures/juce_data_structures.h>
 #include <functional>
 #include <unordered_map>
@@ -323,7 +324,7 @@ ParameterManager<IDType>::createJuceParameter(
         using T = std::decay_t<decltype(param)>;
         // Use juce::String everywhere for parameter IDs
         const juce::String juceIdStr = Jonssonic::idToString(param.id);
-        
+
         if constexpr (std::is_same_v<T, FloatParam<IDType>>) {
             return std::make_unique<juce::AudioParameterFloat>(
                 juce::ParameterID{juceIdStr, 1},

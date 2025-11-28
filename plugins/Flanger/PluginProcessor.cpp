@@ -28,27 +28,27 @@ FlangerAudioProcessor::FlangerAudioProcessor()
 
     parameterManager.on(ID::Depth, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Depth changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setDepth(value, skipSmoothing);
+        flanger.setDepth(value*0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::Spread, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Spread changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setSpread(value, skipSmoothing);
+        flanger.setSpread(value*0.01f, skipSmoothing);
     });
 
-    parameterManager.on(ID::CenterDelay, [this](float value, bool skipSmoothing) {
-        DBG("[DSP] CenterDelay changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+    parameterManager.on(ID::Delay, [this](float value, bool skipSmoothing) {
+        DBG("[DSP] Delay changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setDelayMs(value, skipSmoothing);
     });
 
     parameterManager.on(ID::Feedback, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Feedback changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setFeedback(value, skipSmoothing);
+        flanger.setFeedback(value*0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        dryWetMixer.setMix(value, skipSmoothing);
+        dryWetMixer.setMix(value*0.01f, skipSmoothing);
     });
 }
 
