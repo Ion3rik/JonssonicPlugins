@@ -81,6 +81,7 @@ private:
                 auto* slider = new juce::Slider();
                 slider->setSliderStyle(juce::Slider::RotaryVerticalDrag);
                 slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow : juce::Slider::NoTextBox, false, 60, 20);
+                slider->setTextValueSuffix(" " + floatParam->getLabel());
                 slider->setRange(floatParam->range.start, floatParam->range.end);
                 sliderAttachments.emplace_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *slider));
                 control.reset(slider);

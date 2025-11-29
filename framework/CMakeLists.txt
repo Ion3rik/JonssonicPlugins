@@ -37,6 +37,7 @@ target_include_directories(JonssonicFramework
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/resources/juce_binarydata_JonssonicResources/JuceLibraryCode>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )

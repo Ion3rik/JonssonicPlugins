@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
+#include <gui/CustomLookAndFeel.h>
 
 class TemplateAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -23,6 +24,8 @@ private:
 
     // Automatic control panel for parameters
     Jonssonic::ControlPanel controlPanel;
+
+    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TemplateAudioProcessorEditor)
 };

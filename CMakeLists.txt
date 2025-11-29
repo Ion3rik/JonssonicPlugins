@@ -94,6 +94,12 @@ FetchContent_MakeAvailable(juce)
 add_subdirectory(framework)
 
 # ============================================================
+# Resources
+# ============================================================
+add_subdirectory(resources)
+target_link_libraries(JonssonicFramework PRIVATE JonssonicResources)
+
+# ============================================================
 # Helper Function to Add Plugins
 # ============================================================
 function(add_plugin target)

@@ -12,6 +12,8 @@ TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcesso
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
     setSize (400, 250); // Set the size of the editor window in pixels
 }
@@ -19,7 +21,9 @@ TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcesso
 TemplateAudioProcessorEditor::~TemplateAudioProcessorEditor()
 {
     setLookAndFeel(nullptr); // Reset the look and feel to default
+    customLookAndFeel.reset();
 }
+#include <gui/CustomLookAndFeel.h>
 
 //==============================================================================
 void TemplateAudioProcessorEditor::paint(juce::Graphics& g)

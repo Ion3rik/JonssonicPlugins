@@ -12,19 +12,23 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel);
-    setSize (400, 250);
+    setSize (400, 300);
 }
 
 FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
 {
     setLookAndFeel(nullptr); // Reset the look and feel to default
+    customLookAndFeel.reset();
 }
+#include <gui/CustomLookAndFeel.h>
 
 //==============================================================================
 void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    CustomLookAndFeel::drawMainBackground(g, getWidth(), getHeight());
 }
 
 void FlangerAudioProcessorEditor::resized()
