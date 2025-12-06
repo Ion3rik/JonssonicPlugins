@@ -1,5 +1,5 @@
 # JonssonicPlugins
-A plugin development framework and collection of audio effects built with [JonssonicDSP](https://github.com/Ion3rik/JonssonicDSP), JUCE, and CMake. Includes a lightweight framework for rapid plugin development with automatic parameter management and GUI generation.
+A plugin development framework and collection of audio effects built with [JonssonicDSP](https://github.com/Ion3rik/JonssonicDSP), JUCE, and CMake. Includes a lightweight framework for rapid plugin development with automatic parameter management and GUI generation. 
 
 ## Framework
 

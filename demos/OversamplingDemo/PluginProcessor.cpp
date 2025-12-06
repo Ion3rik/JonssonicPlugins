@@ -2,7 +2,7 @@
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 #include "PluginEditor.h"
-#include <Jonssonic/utils/BufferUtils.h>
+#include <Jonssonic/utils/MathUtils.h>
 
 
 OversamplingDemoAudioProcessor::OversamplingDemoAudioProcessor()
@@ -24,22 +24,24 @@ for (auto* param : apvts.processor.getParameters()) {
     // Register callbacks for parameter changes
     using ID = OversamplingDemoParams::ID;
     
-    parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mix setter here
-        dryWetMixer.setMix(value * 0.01f); // We are converting from [0,100] to [0,1]
-        
-    });
-    parameterManager.on(ID::Enable, [this](bool value, bool skipSmoothing) {
-        DBG("[DEBUG] Enable changed: " + juce::String(value ? "true" : "false") + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP enable setter here 
-        
-    });
-    parameterManager.on(ID::Mode, [this](int value, bool skipSmoothing) {
-        DBG("[DEBUG] Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mode setter here
+    parameterManager.on(ID::Drive, [this](float value, bool skipSmoothing) {
+        float gainLinear = Jonssonic::dB2Mag(value);
+        distortion.setInputGain(gainLinear);
+        DBG("[DEBUG] Drive changed: " + juce::String(value) + " dB = " + juce::String(gainLinear) + " linear");
     });
 
+    parameterManager.on(ID::OutputGain, [this](float value, bool skipSmoothing) {
+        float gainLinear = Jonssonic::dB2Mag(value);
+        distortion.setOutputGain(gainLinear);
+        DBG("[DEBUG] Output Gain changed: " + juce::String(value) + " dB");
+    });
+    
+    // Map parameter index to actual oversampling factor
+    parameterManager.on(ID::OversamplingFactor, [this](int value, bool skipSmoothing) {
+        const int factors[] = {1, 2, 4, 8, 16};
+        currentOversamplingFactor = factors[value];
+        DBG("[DEBUG] Oversampling Factor changed: " + juce::String(currentOversamplingFactor) + "x");
+    });
 
 }
 
@@ -50,9 +52,12 @@ OversamplingDemoAudioProcessor::~OversamplingDemoAudioProcessor()
 void OversamplingDemoAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
-    // Prepare all DSP objects and buffers here
-    dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.setSize(static_cast<int>(numChannels), samplesPerBlock);
+    
+    // Prepare oversampled processor wrapper
+    oversampledProcessor.prepare(numChannels, static_cast<size_t>(samplesPerBlock));
+    
+    // Prepare distortion stage
+    distortion.prepare(numChannels, static_cast<float>(sampleRate));
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -61,41 +66,35 @@ void OversamplingDemoAudioProcessor::prepareToPlay(double sampleRate, int sample
 void OversamplingDemoAudioProcessor::releaseResources()
 {
     // Release DSP resources here
-    dryWetMixer.reset();
-    fxBuffer.setSize(0, 0);
+    oversampledProcessor.reset();
 }
 
 void OversamplingDemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     // Get audio buffer info
-    const int numInputChannels = getTotalNumInputChannels();
-    const int numOutputChannels = getTotalNumOutputChannels();
+    const int numChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
     
     // Early return if no audio to process
-    if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
+    if (numChannels == 0 || numSamples == 0)
         return;
+        
     // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
 
     // Handle denormals
     juce::ScopedNoDenormals noDenormals;
 
-    // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
-    // So we map the input channels to output channels accordingly
-    Jonssonic::mapChannels<float>(
-        buffer.getArrayOfReadPointers(), 
-        fxBuffer.getArrayOfWritePointers(), 
-        numInputChannels, 
-        numOutputChannels, 
-        numSamples);
-
-    
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
-                             fxBuffer.getArrayOfReadPointers(), // wet input
-                             buffer.getArrayOfWritePointers(),  // output
-                             static_cast<size_t>(numSamples));  // number of samples
+    // Process with current oversampling factor
+    oversampledProcessor.processBlock(
+        currentOversamplingFactor,
+        buffer.getArrayOfReadPointers(),
+        buffer.getArrayOfWritePointers(),
+        static_cast<size_t>(numSamples),
+        [this](const float* const* input, float* const* output, size_t samples) {
+            distortion.processBlock(input, output, samples);
+        }
+    );
 }
 
 void OversamplingDemoAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

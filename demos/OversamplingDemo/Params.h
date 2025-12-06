@@ -14,9 +14,9 @@ namespace OversamplingDemoParams {
 enum class ID {
     // Define your parameter IDs here
     // Example:
-    Mix,
-    Enable,
-    Mode
+    Drive,
+    OutputGain,
+    OversamplingFactor,
 };
 
 // Create parameter definitions
@@ -26,13 +26,11 @@ inline Jonssonic::ParameterSet<ID> createParams() {
     ParameterSet<ID> params;
     
     // Float parameter        ↓ id          ↓ name      ↓ min   ↓ max     ↓ def     ↓ unit  ↓ skew
-    params.add(FloatParam<ID>{ID::Mix,      "Mix",      0.0f,   100.0f,   50.0f,    "%",    1.0f});
-
-    // Bool parameter        ↓ id           ↓ name      ↓ def    ↓ true label   ↓ false label
-    params.add(BoolParam<ID>{ID::Enable,    "Enable",   false,    "On",         "Off"});
+    params.add(FloatParam<ID>{ID::Drive,      "Drive",      0.0f,   24.0f,  0.0f,    "dB",    1.0f});
+    params.add(FloatParam<ID>{ID::OutputGain, "Output Gain", -24.0f,  24.0f,   0.0f,    "dB",   1.0f});
 
     // Choice parameter       ↓ id          ↓ name      ↓ choices                       ↓ def idx
-    params.add(ChoiceParam<ID>{ID::Mode,    "Mode",     {"Mode1", "Mode2", "Mode3"},    0});
+    params.add(ChoiceParam<ID>{ID::OversamplingFactor,    "Oversampling Factor",     {"1x", "2x", "4x", "8x", "16x"},    0});
 
     return params;
 }

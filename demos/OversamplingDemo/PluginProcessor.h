@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
-#include <Jonssonic/core/mixing/DryWetMixer.h>
+#include <Jonssonic/core/oversampling/OversampledProcessor.h>
+#include <Jonssonic/core/nonlinear/DistortionStage.h>
 #include <parameters/ParameterManager.h>
 #include "Params.h"
 
@@ -38,9 +39,11 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
 private:
-    // DSP objects and buffers
-    juce::AudioBuffer<float> fxBuffer; // Buffer for effect processing
-    Jonssonic::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
+    // DSP objects
+    Jonssonic::OversampledProcessor<float> oversampledProcessor;
+    Jonssonic::HardDistortion<float> distortion;
+    
+    int currentOversamplingFactor = 1; // 1=None, 2=2x, 4=4x, 8=8x, 16=16x
     
     // Parameter manager
     Jonssonic::ParameterManager<OversamplingDemoParams::ID> parameterManager;
