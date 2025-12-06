@@ -189,8 +189,19 @@ if(PROJECT_IS_TOP_LEVEL)
             add_subdirectory(plugins/${plugin_dir})
         endif()
     endforeach()
+
+    # Scan all folders inside demos/ and automatically add them as subdirectories
+    file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
+
+    foreach(demo_dir IN LISTS demo_dirs)
+        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/demos/${demo_dir}")
+            message(STATUS "Adding demo directory: ${demo_dir}")
+            add_subdirectory(demos/${demo_dir})
+        endif()
+    endforeach()
 else()
     message(STATUS "Skipping example plugins (not top-level project)")
 endif()
+
 
 

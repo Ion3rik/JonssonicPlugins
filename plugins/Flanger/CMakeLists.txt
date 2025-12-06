@@ -2,8 +2,8 @@
 
 add_plugin(Flanger
     VERSION 0.1.0
-    PLUGIN_NAME "Jonssonic Flanger"
-    PROD_NAME "Jonssonic Flanger"
+    PLUGIN_NAME "Flanger"
+    PROD_NAME "Flanger"
     PROD_CODE FLGR
     SYNTH FALSE
 

@@ -1,9 +1,9 @@
-# Plugin-specific CMake for Template plugin
+# Plugin-specific CMake for OversamplingDemo plugin
 
-add_plugin(Template
+add_plugin(OversamplingDemo
     VERSION 0.1.0
-    PLUGIN_NAME "Template"
-    PROD_NAME "Template"
+    PLUGIN_NAME "OversamplingDemo"
+    PROD_NAME "OversamplingDemo"
     PROD_CODE TEMP
     SYNTH FALSE
 
@@ -17,9 +17,9 @@ add_plugin(Template
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
 )
 
-target_link_libraries(Template 
+target_link_libraries(OversamplingDemo 
     PRIVATE 
         JonssonicDSP
         JonssonicFramework
 )
-target_include_directories(Template PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)
+target_include_directories(OversamplingDemo PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)
