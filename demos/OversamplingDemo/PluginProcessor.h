@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include <Jonssonic/core/oversampling/OversampledProcessor.h>
-#include <Jonssonic/core/nonlinear/DistortionStage.h>
+#include <Jonssonic/core/nonlinear/WaveShaperProcessor.h>
 #include <parameters/ParameterManager.h>
 #include "Params.h"
 

@@ -37,6 +37,10 @@ def replace_template_names(content, plugin_name):
     # Replace TemplateParams → PluginNameParams
     content = content.replace("TemplateParams", f"{plugin_name}Params")
     
+    # Replace PROD_CODE TEMP with unique 4-character code based on plugin name
+    prod_code = plugin_name[:4].upper() if len(plugin_name) >= 4 else plugin_name.upper().ljust(4, 'X')
+    content = content.replace("PROD_CODE TEMP", f"PROD_CODE {prod_code}")
+    
     # Replace standalone "Template" with plugin name (for CMakeLists, comments, etc.)
     # Be careful with word boundaries to avoid replacing parts of words
     import re

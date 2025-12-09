@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include <gui/CustomLookAndFeel.h>
 
 TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p),
@@ -23,7 +24,6 @@ TemplateAudioProcessorEditor::~TemplateAudioProcessorEditor()
     setLookAndFeel(nullptr); // Reset the look and feel to default
     customLookAndFeel.reset();
 }
-#include <gui/CustomLookAndFeel.h>
 
 //==============================================================================
 void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
