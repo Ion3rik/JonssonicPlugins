@@ -37,6 +37,79 @@ public:
 
     void paint(juce::Graphics& g) override {
         g.fillAll(config.backgroundColor);
+        
+        // Draw title if set
+        if (config.title.isNotEmpty()) {
+            g.setColour(juce::Colours::white);
+            juce::Font titleFont(juce::FontOptions(config.fontName, config.titleHeight, juce::Font::bold));
+            g.setFont(titleFont);
+
+            int justificationFlags = 0;
+            switch (config.titleHorizontalPlacement) {
+                case ControlPanelConfig::HorizontalPlacement::Left:
+                    justificationFlags = juce::Justification::left;
+                    break;
+                case ControlPanelConfig::HorizontalPlacement::Center:
+                    justificationFlags = juce::Justification::centred;
+                    break;
+                case ControlPanelConfig::HorizontalPlacement::Right:
+                    justificationFlags = juce::Justification::right;
+                    break;
+            }
+            int titleY = 0;
+            switch (config.titleVerticalPlacement) {
+                case ControlPanelConfig::VerticalPlacement::Top:
+                    titleY = config.titleMarginY;
+                    break;
+                case ControlPanelConfig::VerticalPlacement::Center:
+                    titleY = (getHeight() - config.titleHeight) / 2 + config.titleMarginY;
+                    break;
+                case ControlPanelConfig::VerticalPlacement::Bottom:
+                    titleY = getHeight() - config.titleHeight - config.titleMarginY;
+                    break;
+            }
+            g.drawText(config.title, config.titleMarginX, titleY, getWidth() - config.titleMarginX * 2, config.titleHeight, justificationFlags);
+        }
+        
+        // Draw subtitle if set
+        if (config.subtitle.isNotEmpty()) {
+            g.setColour(juce::Colours::white.withAlpha(0.7f));
+            juce::Font subtitleFont(juce::FontOptions(config.fontName, config.subtitleHeight * 0.6f, juce::Font::plain));
+            g.setFont(subtitleFont);
+
+            int justificationFlags = 0;
+            switch (config.subtitleHorizontalPlacement) {
+                case ControlPanelConfig::HorizontalPlacement::Left:
+                    justificationFlags = juce::Justification::left;
+                    break;
+                case ControlPanelConfig::HorizontalPlacement::Center:
+                    justificationFlags = juce::Justification::centred;
+                    break;
+                case ControlPanelConfig::HorizontalPlacement::Right:
+                    justificationFlags = juce::Justification::right;
+                    break;
+            }
+            // Always top-align vertically
+            justificationFlags |= juce::Justification::top;
+            juce::Justification justification(justificationFlags);
+
+            int subtitleY = config.subtitleMarginY;
+            switch (config.subtitleVerticalPlacement) {
+                case ControlPanelConfig::VerticalPlacement::Top:
+                    subtitleY += config.subtitleMarginY;
+                    if (config.title.isNotEmpty() && config.titleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top)
+                        subtitleY += config.titleHeight;
+                    break;
+                case ControlPanelConfig::VerticalPlacement::Center:
+                    subtitleY = (getHeight() - config.subtitleHeight) / 2 + config.subtitleMarginY;
+                    break;
+                case ControlPanelConfig::VerticalPlacement::Bottom:
+                    subtitleY = getHeight() - config.subtitleHeight - config.subtitleMarginY;
+                    break;
+            }
+
+            g.drawText(config.subtitle, config.subtitleMarginX, subtitleY, getWidth() - config.subtitleMarginX * 2, config.subtitleHeight, justification);
+        }
     }
 
     void resized() override {
@@ -106,6 +179,7 @@ private:
                 auto* label = new juce::Label();
                 label->setText(param->getName(64), juce::dontSendNotification);
                 label->setJustificationType(juce::Justification::centred);
+                label->setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, config.fontStyle)));
                 // Attach for Left (true) or Above (false), never for Below/Right
                 if (config.labelPosition == ControlPanelConfig::LabelPosition::Left)
                     label->attachToComponent(control.get(), true);
@@ -124,10 +198,23 @@ private:
     void layoutControls() {
         int x = config.spacing;
         int y = config.spacing;
+        // Add top margin before title if present
+        if (config.title.isNotEmpty() && config.titleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top) {
+            y += config.titleMarginY; // top margin before title
+            y += config.titleHeight;
+            y += config.titleMarginY; // bottom margin after title
+        }
+        // Add top margin before subtitle if present
+        if (config.subtitle.isNotEmpty() && config.subtitleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top) {
+            y += config.subtitleMarginY; // top margin before subtitle
+            y += config.subtitleHeight;
+            y += config.subtitleMarginY; // bottom margin after subtitle
+        }
         int col = 0;
         int width = (getWidth() - (config.columns + 1) * config.spacing) / config.columns;
         int controlH = config.controlHeight;
         int labelH = config.labelHeight;
+        const int valueBoxHeight = config.showValueBoxes ? 20 : 0;
 
         for (size_t i = 0; i < ownedControls.size(); ++i) {
             auto* control = ownedControls[i].get();
@@ -135,28 +222,36 @@ private:
             int cx = x + col * (width + config.spacing);
             int cy = y;
 
+            label->setFont(juce::Font(juce::FontOptions(config.fontName, (float)labelH, config.fontStyle)));
+
+            // Treat label+control as a single unit
             if (config.labelPosition == ControlPanelConfig::LabelPosition::Above) {
-                // Label is attached, only set control bounds
+                label->setBounds(cx, cy, width, labelH);
                 control->setBounds(cx, cy + labelH, width, controlH);
+                // total height = labelH + controlH + valueBoxHeight
+                cy += labelH + controlH + valueBoxHeight;
             } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Below) {
                 control->setBounds(cx, cy, width, controlH);
                 label->setBounds(cx, cy + controlH, width, labelH);
+                cy += controlH + labelH + valueBoxHeight;
             } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Left) {
-                // Label is attached, only set control bounds
+                label->setBounds(cx, cy, labelH, controlH);
                 control->setBounds(cx + labelH, cy, width - labelH, controlH);
+                cy += controlH + valueBoxHeight;
             } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Right) {
                 control->setBounds(cx, cy, width - labelH, controlH);
                 label->setBounds(cx + width - labelH, cy, labelH, controlH);
+                cy += controlH + valueBoxHeight;
             }
 
             if (++col >= config.columns) {
                 col = 0;
-                y += controlH + labelH + config.spacing;
+                y += (config.labelPosition == ControlPanelConfig::LabelPosition::Above || config.labelPosition == ControlPanelConfig::LabelPosition::Below)
+                        ? (labelH + controlH + valueBoxHeight + config.spacing)
+                        : (controlH + valueBoxHeight + config.spacing);
             }
         }
     }
-
-    // Attachments must be kept alive
 };
 
 } // namespace Jonssonic

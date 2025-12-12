@@ -25,9 +25,7 @@ for (auto* param : apvts.processor.getParameters()) {
     using ID = DelayParams::ID;
     
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mix setter here
-        dryWetMixer.setMix(value * 0.01f); // We are converting from [0,100] to [0,1]
+        dryWetMixer.setMix(value * 0.01f);
         
     });
 
@@ -39,8 +37,8 @@ for (auto* param : apvts.processor.getParameters()) {
         delayEffect.setFeedback(value * 0.01f, skipSmoothing);
     });
 
-    parameterManager.on(ID::DampingHz, [this](float value, bool skipSmoothing) {
-        delayEffect.setDamping(value, skipSmoothing);
+    parameterManager.on(ID::Damping, [this](float value, bool skipSmoothing) {
+        delayEffect.setDamping(value * 0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::PingPong, [this](float value, bool skipSmoothing) {
@@ -61,6 +59,7 @@ DelayAudioProcessor::~DelayAudioProcessor()
 void DelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
+
     // Prepare all DSP objects and buffers here
     dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
     fxBuffer.setSize(static_cast<int>(numChannels), samplesPerBlock);

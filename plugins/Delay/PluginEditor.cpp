@@ -7,7 +7,12 @@ DelayAudioProcessorEditor::DelayAudioProcessorEditor(DelayAudioProcessor& p)
           Jonssonic::ControlPanelConfig c;
           c.columns = 3; // Number of columns in the control panel
           c.showValueBoxes = true; // Show value boxes for sliders
-          c.controlHeight = 100; // Height of each control in pixels
+          c.controlHeight = 80; // Height of each control in pixels
+          c.labelHeight = 20; // Height of labels in pixels
+          c.spacing = 10; // Spacing between controls in pixels
+          c.title = "JONSSONIC DELAY"; // Plugin title
+          c.titleHeight = 60; // Height of title area
+          c.fontName = "Avenir"; // Font name for labels and title
           // Optionally set other config fields here
           return c;
       }()),
@@ -16,7 +21,7 @@ DelayAudioProcessorEditor::DelayAudioProcessorEditor(DelayAudioProcessor& p)
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
-    setSize (400, 300); // Set the size of the editor window in pixels
+    setSize (400, 350); // Set the size of the editor window in pixels
 }
 
 DelayAudioProcessorEditor::~DelayAudioProcessorEditor()
@@ -28,7 +33,10 @@ DelayAudioProcessorEditor::~DelayAudioProcessorEditor()
 //==============================================================================
 void DelayAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+        laf->drawMainBackground(g, getWidth(), getHeight(), &controlPanelConfig);
+    else
+        g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
 void DelayAudioProcessorEditor::resized()

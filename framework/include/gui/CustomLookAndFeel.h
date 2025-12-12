@@ -13,27 +13,21 @@ public:
         // Load the knob strip from embedded binary data
         knobStrip = juce::ImageCache::getFromMemory(BinaryData::JonssonicRotarySlider_png, BinaryData::JonssonicRotarySlider_pngSize);
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
+        
+        // Load the logo from embedded binary data
+        logo = juce::ImageCache::getFromMemory(BinaryData::Jonssonic_logo_v2_png, BinaryData::Jonssonic_logo_v2_pngSize);
     }
+    
     // Unified main background for editors
-    static void drawMainBackground(juce::Graphics& g, int width, int height) {
+    void drawMainBackground(juce::Graphics& g, int width, int height, const Jonssonic::ControlPanelConfig* config = nullptr) {
         // Main diagonal gradient
         juce::ColourGradient grad(
             juce::Colour(0xff555555), 0, 0,
-            juce::Colour(0xff333333), width, height,
+            juce::Colour(0xff444444), width, height,
             false
         );
         g.setGradientFill(grad);
         float cornerRadius = 16.0f;
-        g.fillRoundedRectangle(0, 0, (float)width, (float)height, cornerRadius);
-
-        // Vignette (radial gradient, transparent center, dark edges)
-        juce::ColourGradient vignette(
-            juce::Colours::transparentBlack, width / 2.0f, height / 2.0f,
-            juce::Colour(0x22000000), width / 2.0f, 0.0f, true // much lower alpha
-        );
-        vignette.addColour(0.9, juce::Colour(0x22000000)); // fade out closer to edge
-        vignette.addColour(1.0, juce::Colour(0x44000000)); // outer edge, still subtle
-        g.setGradientFill(vignette);
         g.fillRoundedRectangle(0, 0, (float)width, (float)height, cornerRadius);
 
         // Noise overlay (simple random dots)
@@ -51,6 +45,50 @@ public:
         g.setOpacity(0.10f);
         g.drawImageAt(noise, 0, 0);
         g.setOpacity(1.0f);
+        
+        // Draw logo with configurable placement
+        if (logo.isValid() && config) {
+            const float logoOpacity = 1.0f;
+            int logoHeight = static_cast<int>(config->logoHeight);
+            
+            int logoWidth = logoHeight; // Always square for now
+
+                int logoX = config->logoMarginX;
+                int logoY = static_cast<int>(config->logoMarginY);
+
+            // Horizontal placement
+            switch (config->logoHorizontalPlacement) {
+                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Left:
+                        logoX = config->logoMarginX;
+                    break;
+                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Center:
+                        logoX = (width - logoWidth) / 2 + config->logoMarginX;
+                    break;
+                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Right:
+                        logoX = width - logoWidth - config->logoMarginX;
+                    break;
+            }
+
+            // Vertical placement
+            switch (config->logoVerticalPlacement) {
+                case Jonssonic::ControlPanelConfig::VerticalPlacement::Top:
+                        logoY = config->logoMarginY;
+                    break;
+                case Jonssonic::ControlPanelConfig::VerticalPlacement::Center:
+                        logoY = (height - logoHeight) / 2 + config->logoMarginY;
+                    break;
+                case Jonssonic::ControlPanelConfig::VerticalPlacement::Bottom:
+                        logoY = height - logoHeight - config->logoMarginY;
+                    break;
+            }
+
+            g.setOpacity(logoOpacity);
+            // Draw logo with exact dimensions, ignoring aspect ratio
+            g.drawImage(logo, 
+                       (float)logoX, (float)logoY, (float)logoWidth, (float)logoHeight,
+                       0, 0, logo.getWidth(), logo.getHeight(), false);
+            g.setOpacity(1.0f);
+        }
     }
 
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPosProportional,
@@ -59,7 +97,7 @@ public:
         if (knobStrip.isValid() && numFrames > 0) {
             const int frameSize = knobStrip.getWidth();
             const int frame = juce::jlimit(0, numFrames - 1, static_cast<int>(std::round(sliderPosProportional * (numFrames - 1))));
-            const float scale = 0.8f;
+            const float scale = 1.0f;
             const int baseSize = std::min(width, height);
             const int size = static_cast<int>(baseSize * scale);
             const int cx = x + (width - size) / 2;
@@ -88,7 +126,7 @@ public:
         g.setColour (label.findColour (juce::Label::outlineColourId));
         g.drawRoundedRectangle (area, 6.0f, 1.0f);
 
-        // Text
+        // Text with font from label's property (set by ControlPanel)
         g.setColour (label.findColour (juce::Label::textColourId));
         g.setFont (label.getFont());
         g.drawFittedText (text, label.getLocalBounds(), label.getJustificationType(), 1);
@@ -97,4 +135,5 @@ public:
 private:
     juce::Image knobStrip;
     int numFrames = 0;
+    juce::Image logo;
 };

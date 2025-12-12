@@ -3,5 +3,6 @@
 juce_add_binary_data(JonssonicResources
     SOURCES
         knobs/JonssonicRotarySlider.png
+        logos/Jonssonic_logo_v2.png
         # Add more resources as needed
 )
