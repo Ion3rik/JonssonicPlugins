@@ -15,7 +15,7 @@ public:
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
         
         // Load the logo from embedded binary data
-        logo = juce::ImageCache::getFromMemory(BinaryData::Jonssonic_logo_v2_png, BinaryData::Jonssonic_logo_v2_pngSize);
+        logo = juce::ImageCache::getFromMemory(BinaryData::Jonssonic_logo_png, BinaryData::Jonssonic_logo_pngSize);
     }
     
     // Unified main background for editors
