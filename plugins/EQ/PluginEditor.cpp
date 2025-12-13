@@ -1,7 +1,7 @@
 #include "PluginEditor.h"
 #include <gui/CustomLookAndFeel.h>
 
-TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcessor& p)
+EQAudioProcessorEditor::EQAudioProcessorEditor(EQAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p),
       controlPanelConfig([]{
         Jonssonic::ControlPanelConfig c;
@@ -11,8 +11,7 @@ TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcesso
         c.labelHeight = 20; // Height of labels in pixels
         c.spacing = 10; // Spacing between controls in pixels
         c.title = "JONSSONIC"; // Plugin title
-        c.subtitle = "TEMPLATE"; // Plugin subtitle
-        // Optionally set other config fields here
+        c.subtitle = "EQ"; // Plugin subtitle
           return c;
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
@@ -23,14 +22,14 @@ TemplateAudioProcessorEditor::TemplateAudioProcessorEditor(TemplateAudioProcesso
     setSize (400, 350); // Set the size of the editor window in pixels
 }
 
-TemplateAudioProcessorEditor::~TemplateAudioProcessorEditor()
+EQAudioProcessorEditor::~EQAudioProcessorEditor()
 {
     setLookAndFeel(nullptr); // Reset the look and feel to default
     customLookAndFeel.reset();
 }
 
 //==============================================================================
-void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
+void EQAudioProcessorEditor::paint(juce::Graphics& g)
 {
     if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawMainBackground(g, getWidth(), getHeight(), &controlPanelConfig);
@@ -38,7 +37,7 @@ void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
-void TemplateAudioProcessorEditor::resized()
+void EQAudioProcessorEditor::resized()
 {
     controlPanel.setBounds(getLocalBounds()); // Make the control panel fill the entire editor area
 }
