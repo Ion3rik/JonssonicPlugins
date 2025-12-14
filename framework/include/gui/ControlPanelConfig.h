@@ -45,15 +45,11 @@ struct ControlPanelConfig
     /** Height of the subtitle area in pixels. */
     int subtitleHeight;
 
-    /** Label position relative to controls. */
-    enum class LabelPosition { Above, Below, Left, Right };
     /** Vertical placement for title, subtitle, and logo. */
     enum class VerticalPlacement { Top, Center, Bottom };
     /** Horizontal placement for title, subtitle, and logo. */
     enum class HorizontalPlacement { Left, Center, Right };
 
-    /** Label position for parameter labels. */
-    LabelPosition labelPosition;
 
     /** Title vertical placement (Top, Center, Bottom). */
     VerticalPlacement titleVerticalPlacement;
@@ -103,7 +99,6 @@ struct ControlPanelConfig
           titleHeight(40),
           subtitle("PLUGIN"),
           subtitleHeight(30),
-          labelPosition(LabelPosition::Above),
           titleVerticalPlacement(VerticalPlacement::Top),
           titleHorizontalPlacement(HorizontalPlacement::Left),
           subtitleVerticalPlacement(VerticalPlacement::Bottom),

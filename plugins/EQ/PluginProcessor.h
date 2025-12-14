@@ -1,6 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
-#include <Jonssonic/core/mixing/DryWetMixer.h>
+#include <Jonssonic/effects/Equalizer.h>
 #include <parameters/ParameterManager.h>
 #include "Params.h"
 
@@ -39,6 +39,7 @@ public:
 
 private:
     // DSP objects and buffers
+    Jonssonic::Equalizer<float> equalizer;
 
     
     // Parameter manager

@@ -9,9 +9,10 @@ EQAudioProcessorEditor::EQAudioProcessorEditor(EQAudioProcessor& p)
         c.showValueBoxes = true; // Show value boxes for sliders
         c.controlHeight = 80; // Height of each control in pixels
         c.labelHeight = 20; // Height of labels in pixels
-        c.spacing = 10; // Spacing between controls in pixels
+        c.spacing = 0; // Spacing between controls in pixels
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "EQ"; // Plugin subtitle
+        c.subtitleHeight = 40; // Height of subtitle in pixels
           return c;
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
@@ -19,7 +20,7 @@ EQAudioProcessorEditor::EQAudioProcessorEditor(EQAudioProcessor& p)
     customLookAndFeel = std::make_unique<CustomLookAndFeel>();
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
-    setSize (400, 350); // Set the size of the editor window in pixels
+    setSize (400, 360); // Set the size of the editor window in pixels
 }
 
 EQAudioProcessorEditor::~EQAudioProcessorEditor()

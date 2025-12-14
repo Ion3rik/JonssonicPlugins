@@ -180,11 +180,8 @@ private:
                 label->setText(param->getName(64), juce::dontSendNotification);
                 label->setJustificationType(juce::Justification::centred);
                 label->setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, config.fontStyle)));
-                // Attach for Left (true) or Above (false), never for Below/Right
-                if (config.labelPosition == ControlPanelConfig::LabelPosition::Left)
-                    label->attachToComponent(control.get(), true);
-                else if (config.labelPosition == ControlPanelConfig::LabelPosition::Above)
-                    label->attachToComponent(control.get(), false);
+                // Attach label to control for accessibility, but layout is handled manually
+                label->attachToComponent(control.get(), false);
                 labels.push_back(label);
                 addAndMakeVisible(label);
 
@@ -224,31 +221,29 @@ private:
 
             label->setFont(juce::Font(juce::FontOptions(config.fontName, (float)labelH, config.fontStyle)));
 
-            // Treat label+control as a single unit
-            if (config.labelPosition == ControlPanelConfig::LabelPosition::Above) {
+            // For toggle buttons, place checkbox left and label right in the same row
+            if (dynamic_cast<juce::ToggleButton*>(control)) {
+                int toggleW = 24; // fixed checkbox width
+                int toggleH = 24; // fixed checkbox height
+                int labelW = width - toggleW - 8; // 8px gap between checkbox and label
+                int toggleX = cx + (width - toggleW - labelW); // center the pair
+                int labelX = toggleX + toggleW + 8;
+                int rowH = std::max(labelH, toggleH);
+                int rowY = cy; // position below where the label would be (for consistency with sliders)
+                control->setBounds(toggleX, rowY, toggleW, toggleH);
+                label->setBounds(labelX, rowY, labelW, rowH);
+                label->setJustificationType(juce::Justification::centredLeft);
+
+            } else {
+                // For all other controls, label above
                 label->setBounds(cx, cy, width, labelH);
                 control->setBounds(cx, cy + labelH, width, controlH);
-                // total height = labelH + controlH + valueBoxHeight
                 cy += labelH + controlH + valueBoxHeight;
-            } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Below) {
-                control->setBounds(cx, cy, width, controlH);
-                label->setBounds(cx, cy + controlH, width, labelH);
-                cy += controlH + labelH + valueBoxHeight;
-            } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Left) {
-                label->setBounds(cx, cy, labelH, controlH);
-                control->setBounds(cx + labelH, cy, width - labelH, controlH);
-                cy += controlH + valueBoxHeight;
-            } else if (config.labelPosition == ControlPanelConfig::LabelPosition::Right) {
-                control->setBounds(cx, cy, width - labelH, controlH);
-                label->setBounds(cx + width - labelH, cy, labelH, controlH);
-                cy += controlH + valueBoxHeight;
             }
 
             if (++col >= config.columns) {
                 col = 0;
-                y += (config.labelPosition == ControlPanelConfig::LabelPosition::Above || config.labelPosition == ControlPanelConfig::LabelPosition::Below)
-                        ? (labelH + controlH + valueBoxHeight + config.spacing)
-                        : (controlH + valueBoxHeight + config.spacing);
+                y += (labelH + controlH + valueBoxHeight + config.spacing);
             }
         }
     }

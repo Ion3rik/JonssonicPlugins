@@ -19,7 +19,8 @@ enum class ID {
     HighMidGain,
     HighShelfGain,
     LowMidFreq,
-    HighMidFreq
+    HighMidFreq,
+    SoftClipperEnabled
 };
 
 // Create parameter definitions
@@ -33,8 +34,11 @@ inline Jonssonic::ParameterSet<ID> createParams() {
     params.add(FloatParam<ID>{ID::LowMidGain,      "Low Mid Gain",      -15.0f,  15.0f,     0.0f,     "dB",    1.0f});
     params.add(FloatParam<ID>{ID::HighMidGain,     "High Mid Gain",     -15.0f,  15.0f,     0.0f,     "dB",    1.0f});
     params.add(FloatParam<ID>{ID::HighShelfGain,   "High Shelf Gain",   -15.0f,  15.0f,     0.0f,     "dB",    1.0f});
-    params.add(FloatParam<ID>{ID::LowMidFreq,      "Low Mid Freq",      50.0f,   2000.0f,   500.0f,   "Hz",    0.7f});  
-    params.add(FloatParam<ID>{ID::HighMidFreq,     "High Mid Freq",     500.0f,  8000.0f,   2000.0f,  "Hz",    0.7f});
+    params.add(FloatParam<ID>{ID::LowMidFreq,      "Low Mid Freq",      50.0f,   3000.0f,   500.0f,   "Hz",    0.7f});  
+    params.add(FloatParam<ID>{ID::HighMidFreq,     "High Mid Freq",     300.0f,  8000.0f,   4000.0f,  "Hz",    0.7f});
+
+    // Boolean parameter      ↓ id                  ↓ name                   ↓ default 
+    params.add(BoolParam<ID>{ID::SoftClipperEnabled, "Saturate", false});
     return params;
 }
 
