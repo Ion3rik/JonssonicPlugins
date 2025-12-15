@@ -64,7 +64,7 @@ for (auto* param : apvts.processor.getParameters()) {
         // Update soft clipper enabled state
         if(equalizer.isPrepared()){
             equalizer.setSoftClipper(value >= 0.5f);
-            this->setLatencySamples(equalizer.getLatencySamples()); // Update plugin latency based on oversampling
+            this->setLatencySamples(equalizer.getLatencySamples()); // Update plugin latency (non-linear EQ uses oversampling which adds latency)
         }
     });
 }
