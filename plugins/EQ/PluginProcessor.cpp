@@ -62,8 +62,10 @@ for (auto* param : apvts.processor.getParameters()) {
 
     parameterManager.on(ID::SoftClipperEnabled, [this](float value, bool /*skipSmoothing*/) {
         // Update soft clipper enabled state
-        if(equalizer.isPrepared())
+        if(equalizer.isPrepared()){
             equalizer.setSoftClipper(value >= 0.5f);
+            this->setLatencySamples(equalizer.getLatencySamples()); // Update plugin latency based on oversampling
+        }
     });
 }
 
@@ -75,7 +77,7 @@ void EQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
-    equalizer.prepare(numChannels, static_cast<float>(sampleRate));
+    equalizer.prepare(numChannels, static_cast<size_t>(samplesPerBlock), static_cast<float>(sampleRate));
 
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)

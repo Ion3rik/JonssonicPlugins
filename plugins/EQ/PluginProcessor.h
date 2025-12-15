@@ -32,6 +32,7 @@ public:
     void setCurrentProgram(int) override;
     const juce::String getProgramName(int) override;
     void changeProgramName(int, const juce::String&) override;
+
     //==============================================================================
     
     // Parameter access for editor
