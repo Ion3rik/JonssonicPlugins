@@ -75,24 +75,30 @@ void FlangerAudioProcessor::releaseResources()
 
 void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    // Update parameters from FIFO (GUI thread → Audio thread)
+    // Get audio buffer info
+    const int numInputChannels = getTotalNumInputChannels();
+    const int numOutputChannels = getTotalNumOutputChannels();
+    const int numSamples = buffer.getNumSamples();
+    
+    // Early return if no audio to process
+    if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
+        return;
+        
+    // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
 
+    // Handle denormals
     juce::ScopedNoDenormals noDenormals;
 
-    const int totalNumInputChannels = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
-    const int numSamples = buffer.getNumSamples();
-
-    // Copy input to fxBuffer for processing
-    for (int channel = 0; channel < totalNumOutputChannels; ++channel)
-    {
-        if (channel < totalNumInputChannels)
-            fxBuffer.copyFrom(channel, 0, buffer, channel, 0, numSamples);
-        else
-            fxBuffer.copyFrom(channel, 0, buffer, 0, 0, numSamples); // Duplicate first channel
-    }
-
+    // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
+    // So we map the input channels to output channels accordingly
+    Jonssonic::mapChannels<float>(
+        buffer.getArrayOfReadPointers(), 
+        buffer.getArrayOfWritePointers(), 
+        numInputChannels, 
+        numOutputChannels, 
+        numSamples);
+        
     // Process wet signal in fxBuffer
     flanger.processBlock(fxBuffer.getArrayOfReadPointers(),
                          fxBuffer.getArrayOfWritePointers(),

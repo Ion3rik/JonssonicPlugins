@@ -24,33 +24,33 @@ for (auto* param : apvts.processor.getParameters()) {
     // Register callbacks for parameter changes
     using ID = ReverbParams::ID;
 
-    parameterManager.on(ID::ReverbTime,[this](float newValue, bool skipSmoothing) {
-        // Update your DSP object's reverb time here
-        // e.g., reverb.setReverbTime(newValue);
-    });
-
-    parameterManager.on(ID::Size,[this](float newValue, bool skipSmoothing) {
-        // Update your DSP object's size here
-        // e.g., reverb.setSize(newValue);
-    });
-
     parameterManager.on(ID::PreDelay,[this](float newValue, bool skipSmoothing) {
-        // Update your DSP object's pre-delay here
-        // e.g., reverb.setPreDelay(newValue);
+        // Update Pre-Delay
+        reverb.setPreDelayTimeMs(newValue, skipSmoothing);
+    });
+
+    parameterManager.on(ID::ReverbTimeLow,[this](float newValue, bool skipSmoothing) {
+        // Update Reverb Time Low
+        reverb.setReverbTimeLowS(newValue, skipSmoothing);
+    });
+
+    parameterManager.on(ID::ReverbTimeHigh,[this](float newValue, bool skipSmoothing) {
+        // Update Reverb Time High
+        reverb.setReverbTimeHighS(newValue, skipSmoothing);
     });
 
     parameterManager.on(ID::LowCut,[this](float newValue, bool skipSmoothing) {
-        // Update your DSP object's low cut here
-        // e.g., reverb.setLowCut(newValue);
+        // Update Low Cut
+        reverb.setLowCutFreqHz(newValue);
     });
 
-    parameterManager.on(ID::Damping,[this](float newValue, bool skipSmoothing) {
-        // Update your DSP object's damping here
-        // e.g., reverb.setDamping(newValue);
+    parameterManager.on(ID::Size,[this](float newValue, bool skipSmoothing) {
+        // Update Size
+        reverb.setSize(newValue * 0.01, skipSmoothing);
     });
-    
+
     parameterManager.on(ID::Mix,[this](float newValue, bool skipSmoothing) {
-        dryWetMixer.setMix(newValue / 100.0f); // Convert percentage to [0.0, 1.0]
+        dryWetMixer.setMix(newValue * 0.01, skipSmoothing); // Convert percentage to [0.0, 1.0]
     });
 
 
@@ -64,6 +64,7 @@ void ReverbAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
+    reverb.prepare(numChannels, static_cast<float>(sampleRate));
     dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
     fxBuffer.setSize(static_cast<int>(numChannels), samplesPerBlock);
     
@@ -74,6 +75,7 @@ void ReverbAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 void ReverbAudioProcessor::releaseResources()
 {
     // Release DSP resources here
+    reverb.reset();
     dryWetMixer.reset();
     fxBuffer.setSize(0, 0);
 }
@@ -102,9 +104,13 @@ void ReverbAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         numInputChannels, 
         numOutputChannels, 
         numSamples);
-
     
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
+    // Process Reverb
+    reverb.processBlock(fxBuffer.getArrayOfReadPointers(), // input
+                       fxBuffer.getArrayOfWritePointers(), // output
+                       static_cast<size_t>(numSamples));   // number of samples
+    
+    // Process Dry/Wet
     dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
                              fxBuffer.getArrayOfReadPointers(), // wet input
                              buffer.getArrayOfWritePointers(),  // output

@@ -101,6 +101,7 @@ void EQAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     // Early return if no audio to process
     if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
         return;
+        
     // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
 
