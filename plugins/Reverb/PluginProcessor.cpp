@@ -39,14 +39,14 @@ for (auto* param : apvts.processor.getParameters()) {
         reverb.setReverbTimeHighS(newValue, skipSmoothing);
     });
 
+    parameterManager.on(ID::Diffusion,[this](float newValue, bool skipSmoothing) {
+        // Update Diffusion
+        reverb.setDiffusion(newValue * 0.01, skipSmoothing);
+    });
+
     parameterManager.on(ID::LowCut,[this](float newValue, bool skipSmoothing) {
         // Update Low Cut
         reverb.setLowCutFreqHz(newValue);
-    });
-
-    parameterManager.on(ID::Size,[this](float newValue, bool skipSmoothing) {
-        // Update Size
-        reverb.setSize(newValue * 0.01, skipSmoothing);
     });
 
     parameterManager.on(ID::Mix,[this](float newValue, bool skipSmoothing) {
