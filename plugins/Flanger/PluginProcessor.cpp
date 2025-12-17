@@ -2,6 +2,7 @@
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 #include "PluginEditor.h"
+#include <Jonssonic/utils/BufferUtils.h>
 
 
 FlangerAudioProcessor::FlangerAudioProcessor()
