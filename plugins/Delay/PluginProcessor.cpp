@@ -74,7 +74,7 @@ void DelayAudioProcessor::releaseResources()
     // Release DSP resources here
     dryWetMixer.reset();
     fxBuffer.setSize(0, 0);
-    delayEffect.clear();
+    delayEffect.reset();
 }
 
 void DelayAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)

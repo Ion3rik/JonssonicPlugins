@@ -87,7 +87,7 @@ void EQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 void EQAudioProcessor::releaseResources()
 {
     // Release DSP resources here
-    equalizer.clear();
+    equalizer.reset();
 
 }
 

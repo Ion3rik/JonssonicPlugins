@@ -69,7 +69,7 @@ void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 
 void FlangerAudioProcessor::releaseResources()
 {
-    flanger.clear();
+    flanger.reset();
     dryWetMixer.reset();
 }
 

@@ -180,15 +180,45 @@ endfunction(add_plugin)
 if(PROJECT_IS_TOP_LEVEL)
     message(STATUS "Building example plugins...")
     
-    # Scan all folders inside plugins/ and automatically add them as subdirectories
-    file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
 
+    # Scan all folders inside plugins/ and automatically add them as subdirectories, filtering out hidden files and folders starting with underscore
+    file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
+    set(valid_plugin_dirs "")
     foreach(plugin_dir IN LISTS plugin_dirs)
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
-            message(STATUS "Adding plugin directory: ${plugin_dir}")
-            add_subdirectory(plugins/${plugin_dir})
+            # Only skip if the name starts with a dot or underscore
+            string(SUBSTRING "${plugin_dir}" 0 1 first_char)
+            if(NOT first_char STREQUAL "." AND NOT first_char STREQUAL "_")
+                message(STATUS "Adding plugin directory: ${plugin_dir}")
+                add_subdirectory(plugins/${plugin_dir})
+                list(APPEND valid_plugin_dirs "${plugin_dir}")
+            endif()
         endif()
     endforeach()
+
+    # Collect plugin targets for each format only from valid_plugin_dirs
+    set(ALL_PLUGIN_TARGETS "")
+    set(ALL_PLUGIN_AU_TARGETS "")
+    set(ALL_PLUGIN_STANDALONE_TARGETS "")
+    set(ALL_PLUGIN_VST3_TARGETS "")
+
+    foreach(plugin_dir IN LISTS valid_plugin_dirs)
+        string(REPLACE " " "" plugin_target_base "${plugin_dir}")
+        list(APPEND ALL_PLUGIN_TARGETS "${plugin_target_base}_AU" "${plugin_target_base}_Standalone" "${plugin_target_base}_VST3")
+        list(APPEND ALL_PLUGIN_AU_TARGETS "${plugin_target_base}_AU")
+        list(APPEND ALL_PLUGIN_STANDALONE_TARGETS "${plugin_target_base}_Standalone")
+        list(APPEND ALL_PLUGIN_VST3_TARGETS "${plugin_target_base}_VST3")
+    endforeach()
+
+    # Add custom targets for all plugins and each format
+    add_custom_target(all_plugins_All_Formats DEPENDS ${ALL_PLUGIN_TARGETS})
+    add_custom_target(all_plugins_AU DEPENDS ${ALL_PLUGIN_AU_TARGETS})
+    add_custom_target(all_plugins_Standalone DEPENDS ${ALL_PLUGIN_STANDALONE_TARGETS})
+    add_custom_target(all_plugins_VST3 DEPENDS ${ALL_PLUGIN_VST3_TARGETS})
+
+    # ============================================================
+    # DEMOS (Only build when this is the top-level project)
+    # ============================================================
 
     # Scan all folders inside demos/ and automatically add them as subdirectories
     file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
@@ -200,7 +230,7 @@ if(PROJECT_IS_TOP_LEVEL)
         endif()
     endforeach()
 else()
-    message(STATUS "Skipping example plugins (not top-level project)")
+    message(STATUS "Skipping example plugins and demos (not top-level project)")
 endif()
 
 
