@@ -1,5 +1,6 @@
 #pragma once
-#include <JuceHeader.h>
+
+#include <MinimalJuceHeader.h>
 #include <Jonssonic/core/common/AudioBuffer.h>
 #include <Jonssonic/core/mixing/DryWetMixer.h>
 #include <parameters/ParameterManager.h>

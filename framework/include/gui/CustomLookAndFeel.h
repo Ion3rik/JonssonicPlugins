@@ -9,8 +9,11 @@
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    CustomLookAndFeel() {
-        // Load the knob strip from embedded binary data
+    CustomLookAndFeel(const Jonssonic::ControlPanelConfig* config) {
+        // save pointer to config
+        this->config = config;
+
+        // Load the default knob strip from embedded binary data
         knobStrip = juce::ImageCache::getFromMemory(BinaryData::JonssonicRotarySlider_png, BinaryData::JonssonicRotarySlider_pngSize);
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
         
@@ -19,11 +22,13 @@ public:
     }
     
     // Unified main background for editors
-    void drawMainBackground(juce::Graphics& g, int width, int height, const Jonssonic::ControlPanelConfig* config = nullptr) {
-        // Main diagonal gradient
+    void drawMainBackground(juce::Graphics& g, int width, int height) {
+        // Main diagonal gradient using base colour from config (or fallback)
+        juce::Colour base = config ? config->gradientBaseColour : juce::Colours::darkgrey;
+        juce::Colour base2 = base.darker(0.25f);
         juce::ColourGradient grad(
-            juce::Colour(0xff555555), 0, 0,
-            juce::Colour(0xff444444), width, height,
+            base, 0, 0,
+            base2, width, height,
             false
         );
         g.setGradientFill(grad);
@@ -133,6 +138,7 @@ public:
     }
 
 private:
+    const Jonssonic::ControlPanelConfig* config = nullptr;
     juce::Image knobStrip;
     int numFrames = 0;
     juce::Image logo;

@@ -8,10 +8,11 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
         c.showValueBoxes = true; // Show value boxes for sliders
         c.controlHeight = 80; // Height of each control in pixels
         c.labelHeight = 20; // Height of labels in pixels
-        c.spacing = 10; // Spacing between controls in pixels
+        c.spacing = 0; // Spacing between controls in pixels
 
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "FLANGER"; // Plugin subtitle
+        c.gradientBaseColour = juce::Colour(0xff5b2a4a);
         
       
         // Optionally set other config fields here
@@ -20,7 +21,7 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel);
     setSize (400, 350);
@@ -37,7 +38,7 @@ FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
 void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
 {
     if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
-        laf->drawMainBackground(g, getWidth(), getHeight(), &controlPanelConfig);
+        laf->drawMainBackground(g, getWidth(), getHeight());
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }

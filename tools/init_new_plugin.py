@@ -40,7 +40,13 @@ def replace_template_names(content, plugin_name):
     # Replace PROD_CODE TEMP with unique 4-character code based on plugin name
     prod_code = plugin_name[:4].upper() if len(plugin_name) >= 4 else plugin_name.upper().ljust(4, 'X')
     content = content.replace("PROD_CODE TEMP", f"PROD_CODE {prod_code}")
+
+    # Replace c.subtitle = "TEMPLATE"; with plugin name in uppercase
+    content = content.replace('c.subtitle = "TEMPLATE";', f'c.subtitle = "{plugin_name.upper()}";')
     
+    # Replace TemplateResources and TemplateBinaryData for plugin-specific resources
+    content = content.replace("TemplateResources", f"{plugin_name}Resources")
+    content = content.replace("TemplateBinaryData", f"{plugin_name}BinaryData")
     # Replace standalone "Template" with plugin name (for CMakeLists, comments, etc.)
     # Be careful with word boundaries to avoid replacing parts of words
     import re
@@ -74,14 +80,20 @@ def copy_and_transform_template(plugin_name, target_dir):
         "PluginProcessor.h",
         "PluginProcessor.cpp",
         "PluginEditor.h",
-        "PluginEditor.cpp"
+        "PluginEditor.cpp",
+        "resources/CMakeLists.txt"
     ]
     
     print(f"Creating plugin '{plugin_name}' in '{target_dir}/{plugin_name}/'...")
     
     for file_name in template_files:
-        source_file = template_dir / file_name
-        target_file = plugin_dir / file_name
+        if file_name == "resources/CMakeLists.txt":
+            source_file = template_dir / "resources" / "CMakeLists.txt"
+            target_file = plugin_dir / "resources" / "CMakeLists.txt"
+            target_file.parent.mkdir(parents=True, exist_ok=True)
+        else:
+            source_file = template_dir / file_name
+            target_file = plugin_dir / file_name
         
         if not source_file.exists():
             print(f"Warning: Template file '{file_name}' not found, skipping...")

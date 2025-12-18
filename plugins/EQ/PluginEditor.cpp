@@ -13,14 +13,15 @@ EQAudioProcessorEditor::EQAudioProcessorEditor(EQAudioProcessor& p)
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "EQ"; // Plugin subtitle
         c.subtitleHeight = 40; // Height of subtitle in pixels
+        c.gradientBaseColour = juce::Colour(0xff2a5b3d); 
           return c;
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
-    setSize (400, 360); // Set the size of the editor window in pixels
+    setSize (400, 350); // Set the size of the editor window in pixels
 }
 
 EQAudioProcessorEditor::~EQAudioProcessorEditor()
@@ -33,7 +34,7 @@ EQAudioProcessorEditor::~EQAudioProcessorEditor()
 void EQAudioProcessorEditor::paint(juce::Graphics& g)
 {
     if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
-        laf->drawMainBackground(g, getWidth(), getHeight(), &controlPanelConfig);
+        laf->drawMainBackground(g, getWidth(), getHeight());
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }

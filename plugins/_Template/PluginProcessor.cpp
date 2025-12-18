@@ -1,6 +1,5 @@
 #include <iostream>
 #include "PluginProcessor.h"
-#include <JuceHeader.h>
 #include "PluginEditor.h"
 #include <Jonssonic/utils/BufferUtils.h>
 
@@ -52,7 +51,7 @@ void TemplateAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
     dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.resizeSize(numChannels, static_cast<size_t>(samplesPerBlock));
+    fxBuffer.resize(numChannels, static_cast<size_t>(samplesPerBlock));
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -62,7 +61,7 @@ void TemplateAudioProcessor::releaseResources()
 {
     // Release DSP resources here
     dryWetMixer.reset();
-    fxBuffer.resizeSize(0, 0);
+    fxBuffer.resize(0, 0);
 }
 
 void TemplateAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)

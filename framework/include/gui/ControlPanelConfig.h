@@ -3,7 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <JuceHeader.h>
+
+#include <juce_graphics/juce_graphics.h> 
+#include <juce_core/juce_core.h>         
+
 
 namespace Jonssonic {
 
@@ -81,6 +84,8 @@ struct ControlPanelConfig
 
     /** Panel background color. */
     juce::Colour backgroundColor;
+    /** Base colour for background gradient. */
+    juce::Colour gradientBaseColour;
     /** Font name for labels and title. */
     juce::String fontName;
     /** Font style for labels/title (juce::Font::plain, bold, italic). */
@@ -89,33 +94,34 @@ struct ControlPanelConfig
     /**
      * @brief Default constructor initializes all fields to sensible defaults.
      */
-    ControlPanelConfig()
-        : columns(3),
-          showValueBoxes(true),
-          controlHeight(100),
-          labelHeight(20),
-          spacing(10),
-          title("JONSSONIC"),
-          titleHeight(40),
-          subtitle("PLUGIN"),
-          subtitleHeight(30),
-          titleVerticalPlacement(VerticalPlacement::Top),
-          titleHorizontalPlacement(HorizontalPlacement::Left),
-          subtitleVerticalPlacement(VerticalPlacement::Bottom),
-          subtitleHorizontalPlacement(HorizontalPlacement::Right),
-          titleMarginX(60),
-          titleMarginY(15),
-          subtitleMarginX(20),
-          subtitleMarginY(0),
-          logoVerticalPlacement(VerticalPlacement::Top),
-          logoHorizontalPlacement(HorizontalPlacement::Left),
-          logoMarginX(15),
-          logoMarginY(15),
-          logoHeight(40),
-          backgroundColor(juce::Colours::transparentBlack),
-          fontName("Avenir"),
-          fontStyle(juce::Font::plain)
-    {}
+        ControlPanelConfig()
+                : columns(3),
+                    showValueBoxes(true),
+                    controlHeight(100),
+                    labelHeight(20),
+                    spacing(10),
+                    title("JONSSONIC"),
+                    titleHeight(40),
+                    subtitle("PLUGIN"),
+                    subtitleHeight(40),
+                    titleVerticalPlacement(VerticalPlacement::Top),
+                    titleHorizontalPlacement(HorizontalPlacement::Left),
+                    subtitleVerticalPlacement(VerticalPlacement::Bottom),
+                    subtitleHorizontalPlacement(HorizontalPlacement::Right),
+                    titleMarginX(60),
+                    titleMarginY(15),
+                    subtitleMarginX(20),
+                    subtitleMarginY(0),
+                    logoVerticalPlacement(VerticalPlacement::Top),
+                    logoHorizontalPlacement(HorizontalPlacement::Left),
+                    logoMarginX(15),
+                    logoMarginY(15),
+                    logoHeight(40),
+                    backgroundColor(juce::Colours::transparentBlack),
+                    gradientBaseColour(juce::Colours::darkgrey),
+                    fontName("Avenir"),
+                    fontStyle(juce::Font::plain)
+        {}
 };
 
 } // namespace Jonssonic

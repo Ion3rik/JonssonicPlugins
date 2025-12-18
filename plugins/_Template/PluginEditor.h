@@ -1,6 +1,6 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include <MinimalJuceHeader.h>
 #include "PluginProcessor.h"
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
