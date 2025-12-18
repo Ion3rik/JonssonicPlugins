@@ -52,7 +52,7 @@ void TemplateAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
     dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.setSize(static_cast<int>(numChannels), samplesPerBlock);
+    fxBuffer.resizeSize(numChannels, static_cast<size_t>(samplesPerBlock));
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -62,7 +62,7 @@ void TemplateAudioProcessor::releaseResources()
 {
     // Release DSP resources here
     dryWetMixer.reset();
-    fxBuffer.setSize(0, 0);
+    fxBuffer.resizeSize(0, 0);
 }
 
 void TemplateAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -84,17 +84,17 @@ void TemplateAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce
     // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
     // So we map the input channels to output channels accordingly
     Jonssonic::mapChannels<float>(
-        buffer.getArrayOfReadPointers(), 
-        fxBuffer.getArrayOfWritePointers(), 
+        buffer.getArrayOfReadPointers(),    // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
+        fxBuffer.writePtrs(),               // Jonssonic::AudioBuffer<float> uses writePtrs() for non-const access
         numInputChannels, 
         numOutputChannels, 
         numSamples);
 
     
     // DSP processing here (this template includes only a dry/wet mixer as an example)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
-                             fxBuffer.getArrayOfReadPointers(), // wet input
-                             buffer.getArrayOfWritePointers(),  // output
+    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry buffer
+                             fxBuffer.readPtrs(),               // wet buffer
+                             buffer.getArrayOfWritePointers(),  // final output
                              static_cast<size_t>(numSamples));  // number of samples
 }
 

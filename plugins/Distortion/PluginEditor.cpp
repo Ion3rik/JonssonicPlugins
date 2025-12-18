@@ -9,7 +9,7 @@ DistortionAudioProcessorEditor::DistortionAudioProcessorEditor(DistortionAudioPr
         c.showValueBoxes = true; // Show value boxes for sliders
         c.controlHeight = 80; // Height of each control in pixels
         c.labelHeight = 20; // Height of labels in pixels
-        c.spacing = 10; // Spacing between controls in pixels
+        c.spacing = 0; // Spacing between controls in pixels
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "DISTORTION"; // Plugin subtitle
         // Optionally set other config fields here

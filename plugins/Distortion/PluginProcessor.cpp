@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "PluginEditor.h"
 #include <Jonssonic/utils/BufferUtils.h>
+#include <Jonssonic/utils/MathUtils.h>
 
 
 DistortionAudioProcessor::DistortionAudioProcessor()
@@ -24,22 +25,42 @@ for (auto* param : apvts.processor.getParameters()) {
     // Register callbacks for parameter changes
     using ID = DistortionParams::ID;
     
-    parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mix setter here
-        dryWetMixer.setMix(value * 0.01f); // We are converting from [0,100] to [0,1]
-        
-    });
-    parameterManager.on(ID::Enable, [this](bool value, bool skipSmoothing) {
-        DBG("[DEBUG] Enable changed: " + juce::String(value ? "true" : "false") + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP enable setter here 
-        
-    });
-    parameterManager.on(ID::Mode, [this](int value, bool skipSmoothing) {
-        DBG("[DEBUG] Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mode setter here
+    parameterManager.on(ID::Drive, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Drive changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setDriveDb(value, skipSmoothing);
     });
 
+    parameterManager.on(ID::Asymmetry, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Asymmetry changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setAsymmetry(value * 0.01f, skipSmoothing);
+        
+    });
+
+    parameterManager.on(ID::Shape, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Shape changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setShape(value * 0.01f, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Tone, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Tone changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setToneFrequency(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setMix(value * 0.01f, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Output, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Output changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        distortion.setOutputGainDb(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Oversampling, [this](float enabled, bool /*skipSmoothing*/) {
+        bool isEnabled = (enabled >= 0.5f);
+        DBG("[DEBUG] Oversampling changed: " + juce::String(isEnabled ? "true" : "false"));
+        distortion.setOversamplingEnabled(isEnabled);
+    });
 
 }
 
@@ -51,8 +72,8 @@ void DistortionAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
-    dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.setSize(static_cast<int>(numChannels), samplesPerBlock);
+    distortion.prepare(numChannels, static_cast<size_t>(samplesPerBlock), static_cast<float>(sampleRate));
+    fxBuffer.resize(numChannels, static_cast<size_t>(samplesPerBlock));
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -61,8 +82,8 @@ void DistortionAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 void DistortionAudioProcessor::releaseResources()
 {
     // Release DSP resources here
-    dryWetMixer.reset();
-    fxBuffer.setSize(0, 0);
+    distortion.reset();
+    fxBuffer.clear();
 }
 
 void DistortionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -75,6 +96,7 @@ void DistortionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     // Early return if no audio to process
     if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
         return;
+    
     // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
 
@@ -85,17 +107,19 @@ void DistortionAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     // So we map the input channels to output channels accordingly
     Jonssonic::mapChannels<float>(
         buffer.getArrayOfReadPointers(), 
-        fxBuffer.getArrayOfWritePointers(), 
-        numInputChannels, 
-        numOutputChannels, 
-        numSamples);
+        buffer.getArrayOfWritePointers(),  
+        static_cast<size_t>(numInputChannels), 
+        static_cast<size_t>(numOutputChannels), 
+        static_cast<size_t>(numSamples));
+
+    // Process distortion effect (dry/wet mixing and output gain applied inside)
+    distortion.processBlock(buffer.getArrayOfReadPointers(),  
+                            buffer.getArrayOfWritePointers(),  
+                            static_cast<size_t>(numSamples));
+
+
 
     
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
-                             fxBuffer.getArrayOfReadPointers(), // wet input
-                             buffer.getArrayOfWritePointers(),  // output
-                             static_cast<size_t>(numSamples));  // number of samples
 }
 
 void DistortionAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

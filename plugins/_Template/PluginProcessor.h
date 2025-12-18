@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include <Jonssonic/core/common/AudioBuffer.h>
 #include <Jonssonic/core/mixing/DryWetMixer.h>
 #include <parameters/ParameterManager.h>
 #include "Params.h"
@@ -39,7 +40,7 @@ public:
 
 private:
     // DSP objects and buffers
-    juce::AudioBuffer<float> fxBuffer; // Buffer for effect processing
+    Jonssonic::AudioBuffer<float> fxBuffer; // Buffer for effect processing
     Jonssonic::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
     
     // Parameter manager

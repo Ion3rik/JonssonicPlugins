@@ -61,7 +61,7 @@ void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     flanger.prepare(numChannels, sampleRate);
-    fxBuffer.setSize(numChannels, samplesPerBlock);
+    fxBuffer.resize(numChannels, samplesPerBlock);
     dryWetMixer.prepare(numChannels, sampleRate);
     
     // Initialize DSP with parameter defaults (skip smoothing for instant setup)
@@ -72,6 +72,7 @@ void FlangerAudioProcessor::releaseResources()
 {
     flanger.reset();
     dryWetMixer.reset();
+    fxBuffer.resize(0, 0); // Free buffer memory
 }
 
 void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -94,21 +95,21 @@ void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
     // So we map the input channels to output channels accordingly
     Jonssonic::mapChannels<float>(
-        buffer.getArrayOfReadPointers(), 
-        buffer.getArrayOfWritePointers(), 
+        buffer.getArrayOfReadPointers(),    // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
+        fxBuffer.writePtrs(),               // Jonssonic::AudioBuffer<float> uses writePtrs() for non-const access
         numInputChannels, 
         numOutputChannels, 
         numSamples);
         
     // Process wet signal in fxBuffer
-    flanger.processBlock(fxBuffer.getArrayOfReadPointers(),
-                         fxBuffer.getArrayOfWritePointers(),
+    flanger.processBlock(fxBuffer.readPtrs(),
+                         fxBuffer.writePtrs(),
                          static_cast<size_t>(numSamples));
     
     // Mix wet signal with dry (addFrom adds wet to existing dry signal)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry input
-                             fxBuffer.getArrayOfReadPointers(), // wet input
-                             buffer.getArrayOfWritePointers(),  // output
+    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry buffer
+                             fxBuffer.readPtrs(),               // wet buffer
+                             buffer.getArrayOfWritePointers(),  // final output
                              static_cast<size_t>(numSamples));  // number of samples
 }
 
