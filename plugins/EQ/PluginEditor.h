@@ -4,7 +4,7 @@
 #include "PluginProcessor.h"
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
-#include <gui/CustomLookAndFeel.h>
+#include "PluginLookAndFeel.h"
 
 class EQAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -25,7 +25,7 @@ private:
     // Automatic control panel for parameters
     Jonssonic::ControlPanel controlPanel;
 
-    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
+    std::unique_ptr<Jonssonic::EQLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EQAudioProcessorEditor)
 };

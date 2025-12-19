@@ -1,16 +1,17 @@
 #pragma once
-#include <JuceHeader.h>
+
+#include <MinimalJuceHeader.h>
+#include <Jonssonic/core/common/AudioBuffer.h>
 #include <Jonssonic/core/mixing/DryWetMixer.h>
-#include <Jonssonic/effects/Reverb.h>
 #include <parameters/ParameterManager.h>
 #include "Params.h"
 
 
-class ReverbAudioProcessor : public juce::AudioProcessor
+class CompressorAudioProcessor : public juce::AudioProcessor
 {
 public:
-    ReverbAudioProcessor();
-    ~ReverbAudioProcessor() override;
+    CompressorAudioProcessor();
+    ~CompressorAudioProcessor() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
@@ -40,12 +41,11 @@ public:
 
 private:
     // DSP objects and buffers
-    Jonssonic::Reverb<float> reverb; // Reverb DSP object
-    juce::AudioBuffer<float> fxBuffer; // Buffer for effect processing
+    Jonssonic::AudioBuffer<float> fxBuffer; // Buffer for effect processing
     Jonssonic::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
     
     // Parameter manager
-    Jonssonic::ParameterManager<ReverbParams::ID> parameterManager;
+    Jonssonic::ParameterManager<CompressorParams::ID> parameterManager;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ReverbAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessor)
 };

@@ -7,18 +7,14 @@ EQAudioProcessorEditor::EQAudioProcessorEditor(EQAudioProcessor& p)
         Jonssonic::ControlPanelConfig c;
         c.columns = 3; // Number of columns in the control panel
         c.showValueBoxes = true; // Show value boxes for sliders
-        c.controlHeight = 80; // Height of each control in pixels
-        c.labelHeight = 20; // Height of labels in pixels
-        c.spacing = 0; // Spacing between controls in pixels
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "EQ"; // Plugin subtitle
-        c.subtitleHeight = 40; // Height of subtitle in pixels
-        c.gradientBaseColour = juce::Colour(0xff2a5b3d); 
+        c.gradientBaseColour = juce::Colour(0xff2a5b3d).brighter(0.1f); 
           return c;
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<CustomLookAndFeel>(&controlPanelConfig);
+    customLookAndFeel = std::make_unique<Jonssonic::EQLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
     setSize (400, 350); // Set the size of the editor window in pixels

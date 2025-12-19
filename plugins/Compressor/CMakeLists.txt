@@ -1,10 +1,12 @@
-# Plugin-specific CMake for Flanger
 
-add_plugin(Flanger
+# Plugin-specific CMake for Compressor plugin
+
+# Add Compressor Plugin target with runtime resource copying
+add_plugin(Compressor
     VERSION 0.1.0
-    PLUGIN_NAME "Flanger"
-    PROD_NAME "Flanger"
-    PROD_CODE FLGR
+    PLUGIN_NAME "Compressor"
+    PROD_NAME "Compressor"
+    PROD_CODE COMP
     SYNTH FALSE
 
     SOURCES
@@ -15,15 +17,17 @@ add_plugin(Flanger
 
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
+
     RESOURCES
         logos/Jonssonic_logo.png
         knobs/JonssonicRotarySlider.png
-        knobs/JonssonicRotarySlider_Flanger.png
+        knobs/JonssonicRotarySlider_Compressor.png
+        
 )
 
-target_link_libraries(Flanger 
+# Link Jonssonic DSP and Framework libraries
+target_link_libraries(Compressor 
     PRIVATE 
         JonssonicDSP
         JonssonicFramework
 )
-target_include_directories(Flanger PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

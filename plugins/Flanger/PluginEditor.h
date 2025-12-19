@@ -4,7 +4,7 @@
 #include "PluginProcessor.h"
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
-#include <gui/CustomLookAndFeel.h>
+#include "PluginLookAndFeel.h"
 
 class FlangerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -19,7 +19,7 @@ private:
     Jonssonic::ControlPanelConfig controlPanelConfig;
     Jonssonic::ControlPanel controlPanel;
 
-    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
+    std::unique_ptr<Jonssonic::FlangerLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FlangerAudioProcessorEditor)
 };

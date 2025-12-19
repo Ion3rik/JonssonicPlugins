@@ -91,13 +91,10 @@ FetchContent_MakeAvailable(juce)
 # ============================================================
 # Framework Library
 # ============================================================
-add_subdirectory(framework)
 
-# ============================================================
-# Resources
-# ============================================================
-add_subdirectory(resources)
-target_link_libraries(JonssonicFramework PRIVATE JonssonicResources)
+
+
+add_subdirectory(framework)
 
 # ============================================================
 # Helper Function to Add Plugins
@@ -105,7 +102,7 @@ target_link_libraries(JonssonicFramework PRIVATE JonssonicResources)
 function(add_plugin target)
     # parse input args
     set(one_value_args TARGET VERSION PLUGIN_NAME PROD_NAME PROD_CODE SYNTH)
-    set(multi_value_args SOURCES INCLUDE_DIRS)
+    set(multi_value_args SOURCES INCLUDE_DIRS RESOURCES)
     cmake_parse_arguments(AP "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     message(STATUS "Adding JUCE plugin target: ${target}")
@@ -114,6 +111,9 @@ function(add_plugin target)
     message(STATUS "  PROD_NAME: ${AP_PROD_NAME}")
     message(STATUS "  PROD_CODE: ${AP_PROD_CODE}")
     message(STATUS "  SYNTH: ${AP_SYNTH}")
+    if(AP_RESOURCES)
+        message(STATUS "  RESOURCES: ${AP_RESOURCES}")
+    endif()
 
     # Add juce plugin target
     juce_add_plugin(${target}
@@ -167,11 +167,40 @@ function(add_plugin target)
     target_link_libraries(${target}
         PRIVATE
             juce::juce_audio_utils
-            juce::juce_dsp
+            juce::juce_audio_devices
+            juce::juce_core
+            juce::juce_audio_processors
+            juce::juce_gui_basics
+            juce::juce_graphics
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags)
 
+    # ===================== Resource Copy Logic =====================
+    if(AP_RESOURCES AND APPLE)
+        set(_formats Standalone AU VST3)
+        foreach(_fmt IN LISTS _formats)
+            set(_real_target "${target}_${_fmt}")
+            if(TARGET ${_real_target})
+                foreach(_res IN LISTS AP_RESOURCES)
+                    get_filename_component(_res_dir "${_res}" DIRECTORY)
+                    if(_res_dir)
+                        add_custom_command(TARGET ${_real_target} POST_BUILD
+                            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
+                            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
+                            COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
+                            VERBATIM)
+                    else()
+                        add_custom_command(TARGET ${_real_target} POST_BUILD
+                            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
+                            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
+                            COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
+                            VERBATIM)
+                    endif()
+                endforeach()
+            endif()
+        endforeach()
+    endif()
 endfunction(add_plugin)
 
 # ============================================================

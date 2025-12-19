@@ -1,45 +1,42 @@
 #include "PluginEditor.h"
+#include <gui/CustomLookAndFeel.h>
 
-FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& p)
+CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p),
       controlPanelConfig([]{
         Jonssonic::ControlPanelConfig c;
         c.columns = 3; // Number of columns in the control panel
         c.showValueBoxes = true; // Show value boxes for sliders
         c.title = "JONSSONIC"; // Plugin title
-        c.subtitle = "FLANGER"; // Plugin subtitle
-        c.gradientBaseColour = juce::Colour(0xff5b2a4a).brighter(0.1f);
-        
-      
+        c.subtitle = "COMPRESSOR"; // Plugin subtitle
+        c.gradientBaseColour = juce::Colour(0xffb36a1d).darker(0.2f);
         // Optionally set other config fields here
-
           return c;
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<Jonssonic::FlangerLookAndFeel>(&controlPanelConfig);
+    customLookAndFeel = std::make_unique<Jonssonic::CompressorLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
-    addAndMakeVisible(controlPanel);
-    setSize (400, 350);
+    addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
+    setSize (400, 350); // Set the size of the editor window in pixels
 }
 
-FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
+CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
 {
     setLookAndFeel(nullptr); // Reset the look and feel to default
     customLookAndFeel.reset();
 }
-#include <gui/CustomLookAndFeel.h>
 
 //==============================================================================
-void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
+void CompressorAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    if (auto* laf = dynamic_cast<Jonssonic::FlangerLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawMainBackground(g, getWidth(), getHeight());
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
-void FlangerAudioProcessorEditor::resized()
+void CompressorAudioProcessorEditor::resized()
 {
-    controlPanel.setBounds(getLocalBounds());
+    controlPanel.setBounds(getLocalBounds()); // Make the control panel fill the entire editor area
 }

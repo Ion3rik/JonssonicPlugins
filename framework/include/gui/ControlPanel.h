@@ -73,8 +73,8 @@ public:
         
         // Draw subtitle if set
         if (config.subtitle.isNotEmpty()) {
-            g.setColour(juce::Colours::white.withAlpha(0.7f));
-            juce::Font subtitleFont(juce::FontOptions(config.fontName, config.subtitleHeight * 0.6f, juce::Font::plain));
+            g.setColour(juce::Colours::white.withAlpha(1.0f));
+            juce::Font subtitleFont(juce::FontOptions(config.fontName, config.subtitleHeight, juce::Font::plain));
             g.setFont(subtitleFont);
 
             int justificationFlags = 0;

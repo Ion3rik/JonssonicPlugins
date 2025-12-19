@@ -44,9 +44,12 @@ def replace_template_names(content, plugin_name):
     # Replace c.subtitle = "TEMPLATE"; with plugin name in uppercase
     content = content.replace('c.subtitle = "TEMPLATE";', f'c.subtitle = "{plugin_name.upper()}";')
     
-    # Replace TemplateResources and TemplateBinaryData for plugin-specific resources
+    # Replace TemplateResources and TemplateBinaryData for plugin-specific resources and plugin CMakeLists.txt
     content = content.replace("TemplateResources", f"{plugin_name}Resources")
     content = content.replace("TemplateBinaryData", f"{plugin_name}BinaryData")
+    # Also replace Template in add_subdirectory/resources/target_link_libraries in plugin CMakeLists.txt
+    content = content.replace('target_link_libraries(Template', f'target_link_libraries({plugin_name}')
+    content = content.replace('add_subdirectory(resources)', 'add_subdirectory(resources)')  # for clarity, but not strictly needed
     # Replace standalone "Template" with plugin name (for CMakeLists, comments, etc.)
     # Be careful with word boundaries to avoid replacing parts of words
     import re
@@ -81,6 +84,7 @@ def copy_and_transform_template(plugin_name, target_dir):
         "PluginProcessor.cpp",
         "PluginEditor.h",
         "PluginEditor.cpp",
+        "PluginLookAndFeel.h",
         "resources/CMakeLists.txt"
     ]
     

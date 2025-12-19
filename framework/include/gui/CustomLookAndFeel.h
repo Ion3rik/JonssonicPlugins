@@ -5,7 +5,6 @@
 #pragma once
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "BinaryData.h"
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 public:
@@ -13,19 +12,27 @@ public:
         // save pointer to config
         this->config = config;
 
-        // Load the default knob strip from embedded binary data
-        knobStrip = juce::ImageCache::getFromMemory(BinaryData::JonssonicRotarySlider_png, BinaryData::JonssonicRotarySlider_pngSize);
+        // Load the default knob strip from the plugin bundle's Resources folder at runtime
+        juce::File knobFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile)
+            .getChildFile("Contents/Resources/knobs/JonssonicRotarySlider.png");
+        if (knobFile.existsAsFile()) {
+            knobStrip = juce::ImageFileFormat::loadFrom(knobFile);
+        }
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
-        
-        // Load the logo from embedded binary data
-        logo = juce::ImageCache::getFromMemory(BinaryData::Jonssonic_logo_png, BinaryData::Jonssonic_logo_pngSize);
+
+        // Load the logo from the plugin bundle's Resources folder at runtime
+        juce::File logoFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile)
+            .getChildFile("Contents/Resources/logos/Jonssonic_logo.png");
+        if (logoFile.existsAsFile()) {
+            logo = juce::ImageFileFormat::loadFrom(logoFile);
+        }
     }
     
     // Unified main background for editors
     void drawMainBackground(juce::Graphics& g, int width, int height) {
         // Main diagonal gradient using base colour from config (or fallback)
         juce::Colour base = config ? config->gradientBaseColour : juce::Colours::darkgrey;
-        juce::Colour base2 = base.darker(0.25f);
+        juce::Colour base2 = base.darker(0.3f);
         juce::ColourGradient grad(
             base, 0, 0,
             base2, width, height,
@@ -135,6 +142,11 @@ public:
         g.setColour (label.findColour (juce::Label::textColourId));
         g.setFont (label.getFont());
         g.drawFittedText (text, label.getLocalBounds(), label.getJustificationType(), 1);
+    }
+
+    void setKnobStrip(const juce::Image& image) {
+        knobStrip = image;
+        numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
     }
 
 private:

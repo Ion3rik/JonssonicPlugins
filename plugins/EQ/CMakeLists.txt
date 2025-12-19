@@ -15,6 +15,10 @@ add_plugin(EQ
 
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
+    RESOURCES
+        logos/Jonssonic_logo.png
+        knobs/JonssonicRotarySlider.png
+        knobs/JonssonicRotarySlider_EQ.png
 )
 
 target_link_libraries(EQ 
