@@ -5,6 +5,7 @@
 #pragma once
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "../utils/ResourceUtils.h"
 
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 public:
@@ -13,16 +14,14 @@ public:
         this->config = config;
 
         // Load the default knob strip from the plugin bundle's Resources folder at runtime
-        juce::File knobFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile)
-            .getChildFile("Contents/Resources/knobs/JonssonicRotarySlider.png");
+        juce::File knobFile = getResourceFile("knobs/JonssonicRotarySlider.png");
         if (knobFile.existsAsFile()) {
             knobStrip = juce::ImageFileFormat::loadFrom(knobFile);
         }
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
 
         // Load the logo from the plugin bundle's Resources folder at runtime
-        juce::File logoFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile)
-            .getChildFile("Contents/Resources/logos/Jonssonic_logo.png");
+        juce::File logoFile = getResourceFile("logos/Jonssonic_logo.png");
         if (logoFile.existsAsFile()) {
             logo = juce::ImageFileFormat::loadFrom(logoFile);
         }
@@ -39,8 +38,7 @@ public:
             false
         );
         g.setGradientFill(grad);
-        float cornerRadius = 16.0f;
-        g.fillRoundedRectangle(0, 0, (float)width, (float)height, cornerRadius);
+        g.fillRect(juce::Rectangle<float>(0.0f, 0.0f, (float)width, (float)height));
 
         // Noise overlay (simple random dots)
         juce::Image noise(juce::Image::ARGB, width, height, true);
@@ -54,7 +52,7 @@ public:
             ng.setColour(c);
             ng.fillRect(nx, ny, 1, 1);
         }
-        g.setOpacity(0.10f);
+        g.setOpacity(0.20f);
         g.drawImageAt(noise, 0, 0);
         g.setOpacity(1.0f);
         

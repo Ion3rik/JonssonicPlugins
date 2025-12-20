@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gui/CustomLookAndFeel.h>
+#include "utils/ResourceUtils.h"
 
 /**
  * @brief Look and Feel class for the Template plugin.
@@ -16,8 +17,7 @@ public:
         : CustomLookAndFeel(config)
     {
         // Override the knob strip with the plugin-specific one from the bundle's Resources folder at runtime
-        juce::File knobFile = juce::File::getSpecialLocation(juce::File::currentApplicationFile)
-            .getChildFile("Contents/Resources/knobs/JonssonicRotarySlider_Template.png");
+        juce::File knobFile = getResourceFile("knobs/JonssonicRotarySlider_Template.png");
         if (knobFile.existsAsFile()) {
             setKnobStrip(juce::ImageFileFormat::loadFrom(knobFile));
         }

@@ -2,8 +2,8 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "fetch-dsp-debug",
-      "displayName": "[USER] Fetch DSP - Debug",
+      "name": "mac-fetch-dsp-debug",
+      "displayName": "[MAC] Fetch DSP - Debug",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/fetch-debug",
       "cacheVariables": {
@@ -12,8 +12,8 @@
       }
     },
     {
-      "name": "fetch-dsp-release",
-      "displayName": "[USER] Fetch DSP - Release",
+      "name": "mac-fetch-dsp-release",
+      "displayName": "[MAC] Fetch DSP - Release",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/fetch-release",
       "cacheVariables": {
@@ -24,8 +24,8 @@
       }
     },
     {
-      "name": "local-dsp-debug",
-      "displayName": "[DEV] Local DSP - Debug",
+      "name": "mac-local-dsp-debug",
+      "displayName": "[MAC] Local DSP - Debug",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/local-debug",
       "cacheVariables": {
@@ -34,9 +34,53 @@
       }
     },
     {
-      "name": "local-dsp-release",
-      "displayName": "[DEV] Local DSP - Release",
+      "name": "mac-local-dsp-release",
+      "displayName": "[MAC] Local DSP - Release",
       "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/local-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "USE_LOCAL_DSP": "ON",
+        "BUILD_TESTING": "OFF",
+        "BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "win-fetch-dsp-debug",
+      "displayName": "[WIN] Fetch DSP - Debug",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/fetch-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "USE_LOCAL_DSP": "OFF"
+      }
+    },
+    {
+      "name": "win-fetch-dsp-release",
+      "displayName": "[WIN] Fetch DSP - Release",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/fetch-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "USE_LOCAL_DSP": "OFF",
+        "BUILD_TESTING": "OFF",
+        "BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "win-local-dsp-debug",
+      "displayName": "[WIN] Local DSP - Debug",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/local-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "USE_LOCAL_DSP": "ON"
+      }
+    },
+    {
+      "name": "win-local-dsp-release",
+      "displayName": "[WIN] Local DSP - Release",
+      "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/local-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
@@ -48,20 +92,36 @@
   ],
   "buildPresets": [
     {
-      "name": "build-fetch-debug",
-      "configurePreset": "fetch-dsp-debug"
+      "name": "mac-build-fetch-debug",
+      "configurePreset": "mac-fetch-dsp-debug"
     },
     {
-      "name": "build-fetch-release",
-      "configurePreset": "fetch-dsp-release"
+      "name": "mac-build-fetch-release",
+      "configurePreset": "mac-fetch-dsp-release"
     },
     {
-      "name": "build-local-debug",
-      "configurePreset": "local-dsp-debug"
+      "name": "mac-build-local-debug",
+      "configurePreset": "mac-local-dsp-debug"
     },
     {
-      "name": "build-local-release",
-      "configurePreset": "local-dsp-release"
+      "name": "mac-build-local-release",
+      "configurePreset": "mac-local-dsp-release"
+    },
+    {
+      "name": "win-build-fetch-debug",
+      "configurePreset": "win-fetch-dsp-debug"
+    },
+    {
+      "name": "win-build-fetch-release",
+      "configurePreset": "win-fetch-dsp-release"
+    },
+    {
+      "name": "win-build-local-debug",
+      "configurePreset": "win-local-dsp-debug"
+    },
+    {
+      "name": "win-build-local-release",
+      "configurePreset": "win-local-dsp-release"
     }
   ]
 }

@@ -21,6 +21,6 @@ Builds/
 .cache/
 
 # Local submodules
-external/JonssonicDSP/
+external/
 .gitmodules
 
