@@ -8,7 +8,7 @@ FlangerAudioProcessorEditor::FlangerAudioProcessorEditor(FlangerAudioProcessor& 
         c.showValueBoxes = true; // Show value boxes for sliders
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "FLANGER"; // Plugin subtitle
-        c.gradientBaseColour = juce::Colour(0xff5b2a4a).brighter(0.1f);
+        c.gradientBaseColour = juce::Colour(0xff7b255b).brighter(0.1f);
         
       
         // Optionally set other config fields here
