@@ -158,7 +158,19 @@ private:
                 slider->setRange(floatParam->range.start, floatParam->range.end);
                 sliderAttachments.emplace_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *slider));
                 control.reset(slider);
-            } else if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param)) {
+            } 
+
+            else if (auto* intParam = dynamic_cast<juce::AudioParameterInt*>(param)) {
+                DBG("[ControlPanel] Attaching Slider to paramID: " + paramID);
+                auto* slider = new juce::Slider();
+                slider->setSliderStyle(juce::Slider::RotaryVerticalDrag);
+                slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow : juce::Slider::NoTextBox, false, 60, 20);
+                slider->setTextValueSuffix(" " + intParam->getLabel());
+                slider->setRange(intParam->getNormalisableRange().start, intParam->getNormalisableRange().end, 1);
+                sliderAttachments.emplace_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *slider));
+                control.reset(slider);
+            }
+            else if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param)) {
                 DBG("[ControlPanel] Attaching ComboBox to paramID: " + paramID);
                 auto* combo = new juce::ComboBox();
                 for (int i = 0; i < choiceParam->choices.size(); ++i)

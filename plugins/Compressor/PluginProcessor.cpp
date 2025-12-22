@@ -23,20 +23,48 @@ for (auto* param : apvts.processor.getParameters()) {
     // Register callbacks for parameter changes
     using ID = CompressorParams::ID;
     
+    parameterManager.on(ID::Threshold, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Threshold changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP threshold setter here
+        compressor.setThreshold(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Attack, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Attack changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP attack setter here
+        compressor.setAttack(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Release, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Release changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP release setter here
+        compressor.setRelease(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Ratio, [this](int value, bool skipSmoothing) {
+        DBG("[DEBUG] Ratio changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP ratio setter here
+        compressor.setRatio(static_cast<float>(value), skipSmoothing);
+    });
+
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
         DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         // Call your DSP mix setter here
-        dryWetMixer.setMix(value * 0.01f); // We are converting from [0,100] to [0,1]
+        compressor.setMix(value * 0.01, skipSmoothing);
+
         
     });
-    parameterManager.on(ID::Enable, [this](bool value, bool skipSmoothing) {
-        DBG("[DEBUG] Enable changed: " + juce::String(value ? "true" : "false") + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP enable setter here 
-        
+
+    parameterManager.on(ID::Output, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Output changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP output gain setter here
+        compressor.setOutputGain(value, skipSmoothing);
     });
-    parameterManager.on(ID::Mode, [this](int value, bool skipSmoothing) {
-        DBG("[DEBUG] Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mode setter here
+
+    parameterManager.on(ID::CharacterMode, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Character Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        // Call your DSP character mode setter here
+        compressor.setCharacterMode(value > 0.5f, skipSmoothing);
     });
 
 
@@ -50,8 +78,8 @@ void CompressorAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
-    dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.resize(numChannels, static_cast<size_t>(samplesPerBlock));
+    compressor.prepare(numChannels, static_cast<size_t>(samplesPerBlock), static_cast<float>(sampleRate));
+
     
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -60,8 +88,8 @@ void CompressorAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 void CompressorAudioProcessor::releaseResources()
 {
     // Release DSP resources here
-    dryWetMixer.reset();
-    fxBuffer.resize(0, 0);
+    compressor.reset();
+
 }
 
 void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -83,18 +111,18 @@ void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
     // So we map the input channels to output channels accordingly
     Jonssonic::mapChannels<float>(
-        buffer.getArrayOfReadPointers(),    // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
-        fxBuffer.writePtrs(),               // Jonssonic::AudioBuffer<float> uses writePtrs() for non-const access
+        buffer.getArrayOfReadPointers(),  
+        buffer.getArrayOfWritePointers(),              
         numInputChannels, 
         numOutputChannels, 
         numSamples);
 
-    
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry buffer
-                             fxBuffer.readPtrs(),               // wet buffer
-                             buffer.getArrayOfWritePointers(),  // final output
-                             static_cast<size_t>(numSamples));  // number of samples
+    // Process your DSP here using the mapped buffer
+    compressor.processBlock(
+        buffer.getArrayOfReadPointers(), 
+        buffer.getArrayOfWritePointers(), 
+        static_cast<size_t>(numSamples));
+
 }
 
 void CompressorAudioProcessor::getStateInformation(juce::MemoryBlock& destData)

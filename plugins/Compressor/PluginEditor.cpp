@@ -9,7 +9,7 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioPr
         c.showValueBoxes = true; // Show value boxes for sliders
         c.title = "JONSSONIC"; // Plugin title
         c.subtitle = "COMPRESSOR"; // Plugin subtitle
-        c.gradientBaseColour = juce::Colour(0xffb36a1d).darker(0.2f);
+        c.gradientBaseColour = juce::Colour(0xffb36a1d).brighter(0.1f);
         // Optionally set other config fields here
           return c;
       }()),
