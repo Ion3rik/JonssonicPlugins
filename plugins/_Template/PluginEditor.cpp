@@ -33,7 +33,7 @@ TemplateAudioProcessorEditor::~TemplateAudioProcessorEditor()
 void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
 {
     if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
-        laf->drawMainBackground(g, getWidth(), getHeight());
+        laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
@@ -41,4 +41,6 @@ void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
 void TemplateAudioProcessorEditor::resized()
 {
     controlPanel.setBounds(getLocalBounds()); // Make the control panel fill the entire editor area
+    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+        laf->generateMainBackground(getWidth(), getHeight());
 }

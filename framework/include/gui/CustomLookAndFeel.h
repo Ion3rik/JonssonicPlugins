@@ -26,9 +26,18 @@ public:
             logo = juce::ImageFileFormat::loadFrom(logoFile);
         }
     }
-    
-    // Unified main background for editors
-    void drawMainBackground(juce::Graphics& g, int width, int height) {
+
+    /**
+     * @brief Draws the main background with gradient, noise overlay, and logo.
+     * Caches the generated background for efficient redrawing.
+     * @param width Width of the area to draw.
+     * @param height Height of the area to draw.
+     */
+    void generateMainBackground(int width, int height) {
+        if (width <= 0 || height <= 0)
+            return;
+        cachedBackground = juce::Image(juce::Image::ARGB, width, height, true);
+        juce::Graphics g(cachedBackground);
         // Main diagonal gradient using base colour from config (or fallback)
         juce::Colour base = config ? config->gradientBaseColour : juce::Colours::darkgrey;
         juce::Colour base2 = base.darker(0.3f);
@@ -55,43 +64,38 @@ public:
         g.setOpacity(0.20f);
         g.drawImageAt(noise, 0, 0);
         g.setOpacity(1.0f);
-        
+
         // Draw logo with configurable placement
         if (logo.isValid() && config) {
             const float logoOpacity = 1.0f;
             int logoHeight = static_cast<int>(config->logoHeight);
-            
             int logoWidth = logoHeight; // Always square for now
-
-                int logoX = config->logoMarginX;
-                int logoY = static_cast<int>(config->logoMarginY);
-
+            int logoX = config->logoMarginX;
+            int logoY = static_cast<int>(config->logoMarginY);
             // Horizontal placement
             switch (config->logoHorizontalPlacement) {
                 case Jonssonic::ControlPanelConfig::HorizontalPlacement::Left:
-                        logoX = config->logoMarginX;
+                    logoX = config->logoMarginX;
                     break;
                 case Jonssonic::ControlPanelConfig::HorizontalPlacement::Center:
-                        logoX = (width - logoWidth) / 2 + config->logoMarginX;
+                    logoX = (width - logoWidth) / 2 + config->logoMarginX;
                     break;
                 case Jonssonic::ControlPanelConfig::HorizontalPlacement::Right:
-                        logoX = width - logoWidth - config->logoMarginX;
+                    logoX = width - logoWidth - config->logoMarginX;
                     break;
             }
-
             // Vertical placement
             switch (config->logoVerticalPlacement) {
                 case Jonssonic::ControlPanelConfig::VerticalPlacement::Top:
-                        logoY = config->logoMarginY;
+                    logoY = config->logoMarginY;
                     break;
                 case Jonssonic::ControlPanelConfig::VerticalPlacement::Center:
-                        logoY = (height - logoHeight) / 2 + config->logoMarginY;
+                    logoY = (height - logoHeight) / 2 + config->logoMarginY;
                     break;
                 case Jonssonic::ControlPanelConfig::VerticalPlacement::Bottom:
-                        logoY = height - logoHeight - config->logoMarginY;
+                    logoY = height - logoHeight - config->logoMarginY;
                     break;
             }
-
             g.setOpacity(logoOpacity);
             // Draw logo with exact dimensions, ignoring aspect ratio
             g.drawImage(logo, 
@@ -99,6 +103,12 @@ public:
                        0, 0, logo.getWidth(), logo.getHeight(), false);
             g.setOpacity(1.0f);
         }
+    }
+
+    // Call this from paint() to draw the cached background
+    void drawCachedMainBackground(juce::Graphics& g) {
+        if (cachedBackground.isValid())
+            g.drawImageAt(cachedBackground, 0, 0);
     }
 
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPosProportional,
@@ -152,4 +162,5 @@ private:
     juce::Image knobStrip;
     int numFrames = 0;
     juce::Image logo;
+    juce::Image cachedBackground;
 };

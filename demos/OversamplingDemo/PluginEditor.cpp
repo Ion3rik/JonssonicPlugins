@@ -12,7 +12,7 @@ OversamplingDemoAudioProcessorEditor::OversamplingDemoAudioProcessorEditor(Overs
       }()),
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<CustomLookAndFeel>();
+    customLookAndFeel = std::make_unique<CustomLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel); // Add and make the control panel visible in the editor
     setSize (400, 250); // Set the size of the editor window in pixels
@@ -28,10 +28,15 @@ OversamplingDemoAudioProcessorEditor::~OversamplingDemoAudioProcessorEditor()
 //==============================================================================
 void OversamplingDemoAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+        laf->drawCachedMainBackground(g);
+    else
+        g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
 
 void OversamplingDemoAudioProcessorEditor::resized()
 {
     controlPanel.setBounds(getLocalBounds()); // Make the control panel fill the entire editor area
+    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+        laf->generateMainBackground(getWidth(), getHeight());
 }

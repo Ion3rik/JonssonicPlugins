@@ -34,7 +34,7 @@ FlangerAudioProcessorEditor::~FlangerAudioProcessorEditor()
 void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
 {
     if (auto* laf = dynamic_cast<Jonssonic::FlangerLookAndFeel*>(&getLookAndFeel()))
-        laf->drawMainBackground(g, getWidth(), getHeight());
+        laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 }
@@ -42,4 +42,6 @@ void FlangerAudioProcessorEditor::paint(juce::Graphics& g)
 void FlangerAudioProcessorEditor::resized()
 {
     controlPanel.setBounds(getLocalBounds());
+    if (auto* laf = dynamic_cast<Jonssonic::FlangerLookAndFeel*>(&getLookAndFeel()))
+        laf->generateMainBackground(getWidth(), getHeight());
 }
