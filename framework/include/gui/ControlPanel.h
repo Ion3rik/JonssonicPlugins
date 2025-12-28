@@ -205,8 +205,14 @@ private:
     }
 
     void layoutControls() {
-        int x = config.spacing;
-        int y = config.spacing;
+        // Add panel margins
+        
+
+        // Apply panel margins
+        int x = config.panelMarginLeft + config.spacing;
+        int y = config.panelMarginTop + config.spacing;
+        int availableWidth = getWidth() - config.panelMarginLeft - config.panelMarginRight;
+        int availableHeight = getHeight() - config.panelMarginTop - config.panelMarginBottom;
         // Add top margin before title if present
         if (config.title.isNotEmpty() && config.titleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top) {
             y += config.titleMarginY; // top margin before title
@@ -220,7 +226,7 @@ private:
             y += config.subtitleMarginY; // bottom margin after subtitle
         }
         int col = 0;
-        int width = (getWidth() - (config.columns + 1) * config.spacing) / config.columns;
+        int width = (availableWidth - (config.columns + 1) * config.spacing) / config.columns;
         int controlH = config.controlHeight;
         int labelH = config.labelHeight;
         const int valueBoxHeight = config.showValueBoxes ? 20 : 0;

@@ -3,7 +3,9 @@
 #include <MinimalJuceHeader.h>
 #include <Jonssonic/effects/Compressor.h>
 #include <parameters/ParameterManager.h>
+#include <visualizers/VisualizerManager.h>
 #include "Params.h"
+#include "Visualizers.h"
 
 
 class CompressorAudioProcessor : public juce::AudioProcessor
@@ -38,12 +40,18 @@ public:
     // Parameter access for editor
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
+    // Visualizer manager access for editor
+    Jonssonic::VisualizerManager<CompressorVisualizers::ID>& getVisualizerManager() { return visualizerManager; }
+
 private:
     // DSP objects and buffers
     Jonssonic::effects::Compressor<float> compressor; // Compressor DSP object
     
     // Parameter manager
     Jonssonic::ParameterManager<CompressorParams::ID> parameterManager;
+
+    // Visualizer manager
+    Jonssonic::VisualizerManager<CompressorVisualizers::ID> visualizerManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessor)
 };

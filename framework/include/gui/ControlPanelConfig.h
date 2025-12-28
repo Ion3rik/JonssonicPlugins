@@ -30,6 +30,14 @@ struct ControlPanelConfig
 {
     /** Number of columns in the control grid. */
     int columns;
+    /** Left margin of the panel in pixels. */
+    int panelMarginLeft;
+    /** Right margin of the panel in pixels. */
+    int panelMarginRight;
+    /** Top margin of the panel in pixels. */
+    int panelMarginTop;
+    /** Bottom margin of the panel in pixels. */
+    int panelMarginBottom;
     /** Show value boxes below sliders. */
     bool showValueBoxes;
     /** Height of each control (slider, combo, button) in pixels. */
@@ -95,7 +103,11 @@ struct ControlPanelConfig
      * @brief Default constructor initializes all fields to sensible defaults.
      */
         ControlPanelConfig()
-                : columns(3),
+                    : columns(3),
+                    panelMarginLeft(0),
+                    panelMarginRight(0),
+                    panelMarginTop(0),
+                    panelMarginBottom(0),
                     showValueBoxes(true),
                     controlHeight(80),
                     labelHeight(15),

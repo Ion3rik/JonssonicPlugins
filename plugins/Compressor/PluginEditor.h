@@ -4,6 +4,7 @@
 #include "PluginProcessor.h"
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
+#include <gui/GainReductionMeterComponent.h>
 #include "PluginLookAndFeel.h"
 
 class CompressorAudioProcessorEditor : public juce::AudioProcessorEditor
@@ -15,16 +16,17 @@ public:
     void resized() override;
 
 private:
-
-    // We need a reference to the processor object in order to access its parameters
+    // Reference to the processor for parameter and visualizer access
     CompressorAudioProcessor& audioProcessor;
 
-    // Configuration structure for the control panel (NOTE: has to be declared before controlPanel)
+    // Control panel config and instance (note the order must be config first here)
     Jonssonic::ControlPanelConfig controlPanelConfig;
-
-    // Automatic control panel for parameters
     Jonssonic::ControlPanel controlPanel;
 
+    // Level meter for gain reduction
+    std::unique_ptr<Jonssonic::GainReductionMeterComponent> gainReductionMeter;
+
+    // Custom look and feel
     std::unique_ptr<Jonssonic::CompressorLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessorEditor)

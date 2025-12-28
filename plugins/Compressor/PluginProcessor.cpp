@@ -5,7 +5,8 @@
 
 
 CompressorAudioProcessor::CompressorAudioProcessor()
-    : parameterManager(CompressorParams::createParams(), *this)
+    : parameterManager(CompressorParams::createParams(), *this),
+    visualizerManager(CompressorVisualizers::createVisualizers())
 {
 // ============================================================================
 // [DEBUG]: Prints all APVTS parameter IDs at startup
@@ -67,6 +68,12 @@ for (auto* param : apvts.processor.getParameters()) {
         compressor.setCharacterMode(value > 0.5f, skipSmoothing);
     });
 
+    // Register visualizer value suppliers
+    using VisualizerID = CompressorVisualizers::ID;
+    visualizerManager.registerValueSupplier(VisualizerID::GainReduction, [this]() -> float {
+        return compressor.getGainReduction();
+    });
+
 
 }
 
@@ -90,6 +97,9 @@ void CompressorAudioProcessor::releaseResources()
     // Release DSP resources here
     compressor.reset();
 
+    // Clear visualizer states
+    visualizerManager.clearStates();
+
 }
 
 void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -101,9 +111,16 @@ void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     
     // Early return if no audio to process
     if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
+    {
+        visualizerManager.clearStates(); // Make the visualizers reset when there's no audio
         return;
+    }
+
     // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
+
+    // Update all visualizers (Audio thread → Visualizer states)
+    visualizerManager.update();
 
     // Handle denormals
     juce::ScopedNoDenormals noDenormals;
