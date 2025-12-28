@@ -51,7 +51,7 @@ void CompressorAudioProcessorEditor::resized()
 {
     // Layout the meter on the right
     auto bounds = getLocalBounds();
-    int meterWidth = 65;
+    int meterWidth = 70;
     if (gainReductionMeter)
     {
     auto meterBounds = bounds; // make a copy to retain original bounds for control panel

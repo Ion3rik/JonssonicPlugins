@@ -147,7 +147,7 @@ function(add_plugin target)
             cxx_std_17)
 
     if(WIN32)
-        set(ASIO_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/asiosdk")
+        set(ASIO_SDK_PATH "${CMAKE_SOURCE_DIR}/external/asiosdk")
         if(EXISTS "${ASIO_SDK_PATH}/common")
             message(STATUS "Using local ASIO SDK at ${ASIO_SDK_PATH}")
             target_include_directories(${target} PRIVATE "${ASIO_SDK_PATH}/common")
@@ -177,27 +177,48 @@ function(add_plugin target)
             juce::juce_recommended_lto_flags)
 
     # ===================== Resource Copy Logic =====================
-    if(AP_RESOURCES AND APPLE)
+    if(AP_RESOURCES)
         set(_formats Standalone AU VST3)
         foreach(_fmt IN LISTS _formats)
             set(_real_target "${target}_${_fmt}")
             if(TARGET ${_real_target})
-                foreach(_res IN LISTS AP_RESOURCES)
-                    get_filename_component(_res_dir "${_res}" DIRECTORY)
-                    if(_res_dir)
-                        add_custom_command(TARGET ${_real_target} POST_BUILD
-                            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
-                            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
-                            COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
-                            VERBATIM)
-                    else()
-                        add_custom_command(TARGET ${_real_target} POST_BUILD
-                            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
-                            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
-                            COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
-                            VERBATIM)
-                    endif()
-                endforeach()
+                # Copy individual resources for Apple (bundle structure)
+                if(APPLE)
+                    foreach(_res IN LISTS AP_RESOURCES)
+                        get_filename_component(_res_dir "${_res}" DIRECTORY)
+                        if(_res_dir)
+                            add_custom_command(TARGET ${_real_target} POST_BUILD
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources/${_res_dir}"
+                                COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
+                                VERBATIM)
+                        else()
+                            add_custom_command(TARGET ${_real_target} POST_BUILD
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "$<TARGET_BUNDLE_DIR:${_real_target}>/Contents/Resources"
+                                COMMENT "Copying resource ${_res} to bundle for ${_real_target}"
+                                VERBATIM)
+                        endif()
+                    endforeach()
+                else()
+                    # For Windows and other platforms, copy only the specified resource files to the installed VST3 location
+                    foreach(_res IN LISTS AP_RESOURCES)
+                        get_filename_component(_res_dir "${_res}" DIRECTORY)
+                        if(_res_dir)
+                            add_custom_command(TARGET ${_real_target} POST_BUILD
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources/${_res_dir}"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources/${_res_dir}"
+                                COMMENT "Copying resource ${_res} to installed VST3 resources for ${_real_target}"
+                                VERBATIM)
+                        else()
+                            add_custom_command(TARGET ${_real_target} POST_BUILD
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources"
+                                COMMENT "Copying resource ${_res} to installed VST3 resources for ${_real_target}"
+                                VERBATIM)
+                        endif()
+                    endforeach()
+                endif()
             endif()
         endforeach()
     endif()
