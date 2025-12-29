@@ -60,6 +60,7 @@ for (auto* param : apvts.processor.getParameters()) {
         bool isEnabled = (enabled >= 0.5f);
         DBG("[DEBUG] Oversampling changed: " + juce::String(isEnabled ? "true" : "false"));
         distortion.setOversamplingEnabled(isEnabled);
+        setLatencySamples(distortion.getLatencySamples());
     });
 
 }

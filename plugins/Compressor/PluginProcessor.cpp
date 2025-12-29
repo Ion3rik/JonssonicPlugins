@@ -66,6 +66,7 @@ for (auto* param : apvts.processor.getParameters()) {
         DBG("[DEBUG] Character Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         // Call your DSP character mode setter here
         compressor.setCharacterMode(value > 0.5f, skipSmoothing);
+        setLatencySamples(compressor.getLatencySamples());
     });
 
     // Register visualizer value suppliers

@@ -51,7 +51,6 @@
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/fetch-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "USE_LOCAL_DSP": "OFF"
       }
     },
@@ -61,7 +60,6 @@
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/fetch-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
         "USE_LOCAL_DSP": "OFF",
         "BUILD_TESTING": "OFF",
         "BUILD_EXAMPLES": "OFF"
@@ -73,7 +71,6 @@
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/local-debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "USE_LOCAL_DSP": "ON"
       }
     },
@@ -83,7 +80,6 @@
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/local-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
         "USE_LOCAL_DSP": "ON",
         "BUILD_TESTING": "OFF",
         "BUILD_EXAMPLES": "OFF"
@@ -107,21 +103,29 @@
       "name": "mac-build-local-release",
       "configurePreset": "mac-local-dsp-release"
     },
-    {
-      "name": "win-build-fetch-debug",
-      "configurePreset": "win-fetch-dsp-debug"
-    },
-    {
-      "name": "win-build-fetch-release",
-      "configurePreset": "win-fetch-dsp-release"
-    },
-    {
-      "name": "win-build-local-debug",
-      "configurePreset": "win-local-dsp-debug"
-    },
-    {
-      "name": "win-build-local-release",
-      "configurePreset": "win-local-dsp-release"
-    }
+  {
+    "name": "win-build-fetch-debug",
+    "displayName": "[WIN] Fetch DSP - Debug",
+    "configurePreset": "win-fetch-dsp-debug",
+    "configuration": "Debug"
+  },
+  {
+    "name": "win-build-fetch-release",
+    "displayName": "[WIN] Fetch DSP - Release",
+    "configurePreset": "win-fetch-dsp-release",
+    "configuration": "Release"
+  },
+  {
+    "name": "win-build-local-debug",
+    "displayName": "[WIN] Local DSP - Debug",
+    "configurePreset": "win-local-dsp-debug",
+    "configuration": "Debug"
+  },
+  {
+    "name": "win-build-local-release",
+    "displayName": "[WIN] Local DSP - Release",
+    "configurePreset": "win-local-dsp-release",
+    "configuration": "Release"
+  }
   ]
 }
