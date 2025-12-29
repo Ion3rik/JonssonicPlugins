@@ -35,6 +35,7 @@ void DelayAudioProcessorEditor::paint(juce::Graphics& g)
         laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
 }
 
 void DelayAudioProcessorEditor::resized()

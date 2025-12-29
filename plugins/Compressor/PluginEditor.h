@@ -1,4 +1,5 @@
 #pragma once
+#include "Version.h"
 
 #include <MinimalJuceHeader.h>
 #include "PluginProcessor.h"

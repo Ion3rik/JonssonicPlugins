@@ -14,7 +14,16 @@ cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0175 NEW)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
 
+
+# Project version setup
 project(JonssonicPlugins VERSION 0.1.0)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/framework/include/Version.h.in
+    ${CMAKE_BINARY_DIR}/generated/Version.h
+    @ONLY
+)
+
+include_directories(${CMAKE_BINARY_DIR}/generated)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) 

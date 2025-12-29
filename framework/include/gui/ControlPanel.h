@@ -6,6 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "ControlPanelConfig.h"
+#include "Version.h"
 #include <parameters/ParameterIdUtils.h>
 
 namespace Jonssonic {
@@ -69,6 +70,21 @@ public:
                     break;
             }
             g.drawText(config.title, config.titleMarginX, titleY, getWidth() - config.titleMarginX * 2, config.titleHeight, justificationFlags);
+
+            // Draw version string in top right corner
+            constexpr int margin = 8;
+            juce::String versionStr = "v" JONSSONIC_VERSION_STRING;
+            g.setColour(juce::Colours::lightgrey.withAlpha(0.7f));
+            g.setFont(juce::Font(14.0f, juce::Font::plain));
+            int textWidth = g.getCurrentFont().getStringWidth(versionStr);
+            int textHeight = (int)g.getCurrentFont().getHeight();
+            g.drawText(versionStr,
+                getWidth() - textWidth - margin,
+                margin,
+                textWidth,
+                textHeight,
+                juce::Justification::topRight,
+                false);
         }
         
         // Draw subtitle if set

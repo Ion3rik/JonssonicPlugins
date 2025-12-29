@@ -32,10 +32,12 @@ TemplateAudioProcessorEditor::~TemplateAudioProcessorEditor()
 //==============================================================================
 void TemplateAudioProcessorEditor::paint(juce::Graphics& g)
 {
+
     if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+
 }
 
 void TemplateAudioProcessorEditor::resized()
