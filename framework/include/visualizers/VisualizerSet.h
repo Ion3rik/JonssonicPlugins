@@ -15,7 +15,7 @@
  * Holds visualizer definitions and provides type-safe access.
  * Currently supports LevelMeter and can be extended for more visualizer types.
  */
-namespace Jonssonic {
+namespace jonssonic::juce_framework::visualizers {
 
 template<typename IDType>
 class VisualizerSet {

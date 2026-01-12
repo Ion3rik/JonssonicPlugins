@@ -8,7 +8,7 @@
 #include <visualizers/VisualizerTypes.h>
 #include <visualizers/VisualizerSet.h>
 
-namespace CompressorVisualizers {
+namespace jonssonic::plugins::compressor::visualizers {
 
 // Enum or struct for visualizer IDs
 enum class ID {
@@ -17,8 +17,8 @@ enum class ID {
 
 
 // Create the list of meters for this plugin
-inline Jonssonic::VisualizerSet<ID> createVisualizers() {
-    using namespace Jonssonic;
+inline jonssonic::juce_framework::visualizers::VisualizerSet<ID> createVisualizers() {
+    using namespace jonssonic::juce_framework::visualizers;
 	VisualizerSet<ID> visualizers;
 
     // Add visualizers             ↓ id               ↓ name     ↓ minDb      ↓ maxDb

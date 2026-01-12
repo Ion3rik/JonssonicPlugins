@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Floating-point parameter specification

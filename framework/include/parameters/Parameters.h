@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Container for all parameters in a plugin

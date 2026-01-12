@@ -10,7 +10,7 @@
 #include <string>
 #include <functional>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Helper for generating groups of related parameters

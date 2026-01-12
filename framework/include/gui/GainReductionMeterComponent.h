@@ -9,7 +9,7 @@
 #include <memory>
 #include <visualizers/GainReductionMeterState.h>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::gui {
 /**
  * @brief Gain reduction meter GUI component
  * Polls LevelMeterState for level updates and repaints itself.
@@ -23,7 +23,7 @@ public:
      * @param state Shared pointer to the state to poll (must not be null)
      * @param refreshHz Polling rate in Hz (default 30)
      */
-    explicit GainReductionMeterComponent(std::shared_ptr<const GainReductionMeterState> state, int newRefreshHz = 30)
+    explicit GainReductionMeterComponent(std::shared_ptr<const jonssonic::juce_framework::visualizers::GainReductionMeterState> state, int newRefreshHz = 30)
         : gainReductionState(std::move(state)), refreshHz(newRefreshHz)
     {
         setOpaque(false);
@@ -127,7 +127,7 @@ private:
     const int silentFramesThreshold = 5; 
 
     // Pointer to the shared level meter state
-    std::shared_ptr<const GainReductionMeterState> gainReductionState;
+    std::shared_ptr<const jonssonic::juce_framework::visualizers::GainReductionMeterState> gainReductionState;
 
     /**
      * @brief Set the current level and repaint

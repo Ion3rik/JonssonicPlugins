@@ -21,14 +21,13 @@ private:
     CompressorAudioProcessor& audioProcessor;
 
     // Control panel config and instance (note the order must be config first here)
-    Jonssonic::ControlPanelConfig controlPanelConfig;
-    Jonssonic::ControlPanel controlPanel;
+    jonssonic::juce_framework::gui::ControlPanelConfig controlPanelConfig;
+    jonssonic::juce_framework::gui::ControlPanel controlPanel;
 
     // Level meter for gain reduction
-    std::unique_ptr<Jonssonic::GainReductionMeterComponent> gainReductionMeter;
-
+    std::unique_ptr<jonssonic::juce_framework::gui::GainReductionMeterComponent> gainReductionMeter;
     // Custom look and feel
-    std::unique_ptr<Jonssonic::CompressorLookAndFeel> customLookAndFeel;
+    std::unique_ptr<jonssonic::plugins::compressor::CompressorLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessorEditor)
 };

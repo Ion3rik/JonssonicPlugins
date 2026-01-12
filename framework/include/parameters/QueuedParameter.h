@@ -7,7 +7,7 @@
 #include <atomic>
 #include <optional>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Thread-safe parameter queue for deferred changes

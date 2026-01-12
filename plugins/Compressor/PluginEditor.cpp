@@ -4,7 +4,7 @@
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p),
             controlPanelConfig([]{
-                Jonssonic::ControlPanelConfig c;
+                jonssonic::juce_framework::gui::ControlPanelConfig c;
                 c.columns = 3; // Number of columns in the control panel
                 c.panelMarginRight = 50; // Extra right margin for meter
                 c.showValueBoxes = true; // Show value boxes for sliders
@@ -17,14 +17,14 @@ CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioPr
 
       controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
 {
-    customLookAndFeel = std::make_unique<Jonssonic::CompressorLookAndFeel>(&controlPanelConfig);
+    customLookAndFeel = std::make_unique<jonssonic::plugins::compressor::CompressorLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel);
 
     // Add gain reduction meter, wiring to the state from the processor's visualizer manager
-    if (const auto* variant = audioProcessor.getVisualizerManager().getState(CompressorVisualizers::ID::GainReduction)) {
-        if (auto state = std::get_if<std::shared_ptr<Jonssonic::GainReductionMeterState>>(variant)) {
-            gainReductionMeter = std::make_unique<Jonssonic::GainReductionMeterComponent>(*state);
+    if (const auto* variant = audioProcessor.getVisualizerManager().getState(jonssonic::plugins::compressor::visualizers::ID::GainReduction)) {
+        if (auto state = std::get_if<std::shared_ptr<jonssonic::juce_framework::visualizers::GainReductionMeterState>>(variant)) {
+            gainReductionMeter = std::make_unique<jonssonic::juce_framework::gui::GainReductionMeterComponent>(*state);
             addAndMakeVisible(gainReductionMeter.get());
         }
     }
@@ -41,7 +41,7 @@ CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
 //==============================================================================
 void CompressorAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<jonssonic::juce_framework::gui::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -64,6 +64,6 @@ void CompressorAudioProcessorEditor::resized()
     // Control panel fills the rest
     controlPanel.setBounds(bounds);
 
-    if (auto* laf = dynamic_cast<CustomLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<jonssonic::juce_framework::gui::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->generateMainBackground(getWidth(), getHeight());
 }

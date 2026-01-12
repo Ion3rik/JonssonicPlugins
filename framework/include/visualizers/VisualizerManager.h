@@ -9,7 +9,7 @@
 #include <visualizers/LevelMeterState.h>
 #include <visualizers/GainReductionMeterState.h>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::visualizers {
 /**
  * @brief Centralized visualizer manager
  * 

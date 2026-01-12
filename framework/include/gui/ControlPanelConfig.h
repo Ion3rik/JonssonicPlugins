@@ -8,7 +8,7 @@
 #include <juce_core/juce_core.h>         
 
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::gui {
 
 /**
  * @brief Configuration structure for Jonssonic ControlPanel automatic GUI.

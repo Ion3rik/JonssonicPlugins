@@ -1,7 +1,7 @@
 #pragma once
 
 #include <MinimalJuceHeader.h>
-#include <Jonssonic/effects/Compressor.h>
+#include <jonssonic/effects/compressor.h>
 #include <parameters/ParameterManager.h>
 #include <visualizers/VisualizerManager.h>
 #include "Params.h"
@@ -11,6 +11,7 @@
 class CompressorAudioProcessor : public juce::AudioProcessor
 {
 public:
+    //==============================================================================
     CompressorAudioProcessor();
     ~CompressorAudioProcessor() override;
 
@@ -41,17 +42,21 @@ public:
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
     // Visualizer manager access for editor
-    Jonssonic::VisualizerManager<CompressorVisualizers::ID>& getVisualizerManager() { return visualizerManager; }
+    jonssonic::juce_framework::visualizers::VisualizerManager<jonssonic::plugins::compressor::visualizers::ID>& getVisualizerManager() { return visualizerManager; }
 
 private:
+    // Bus Properties
+    static constexpr int mainInputBus = 0;
+    static constexpr int sidechainBus = 1;
+    
     // DSP objects and buffers
-    Jonssonic::effects::Compressor<float> compressor; // Compressor DSP object
+    jonssonic::effects::Compressor<float> compressor; // Compressor DSP object
     
     // Parameter manager
-    Jonssonic::ParameterManager<CompressorParams::ID> parameterManager;
+    jonssonic::juce_framework::parameters::ParameterManager<jonssonic::plugins::compressor::params::ID> parameterManager;
 
     // Visualizer manager
-    Jonssonic::VisualizerManager<CompressorVisualizers::ID> visualizerManager;
+    jonssonic::juce_framework::visualizers::VisualizerManager<jonssonic::plugins::compressor::visualizers::ID> visualizerManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessor)
 };

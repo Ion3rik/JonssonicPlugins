@@ -7,7 +7,7 @@
 #include <juce_core/juce_core.h>
 #include <type_traits>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Converts an enum parameter ID to a string (e.g., "param_0")

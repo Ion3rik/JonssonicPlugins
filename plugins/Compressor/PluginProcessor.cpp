@@ -1,12 +1,12 @@
 #include <iostream>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <Jonssonic/utils/BufferUtils.h>
+#include <jonssonic/utils/buffer_utils.h>
 
 
 CompressorAudioProcessor::CompressorAudioProcessor()
-    : parameterManager(CompressorParams::createParams(), *this),
-    visualizerManager(CompressorVisualizers::createVisualizers())
+    : parameterManager(jonssonic::plugins::compressor::params::createParams(), *this),
+    visualizerManager(jonssonic::plugins::compressor::visualizers::createVisualizers())
 {
 // ============================================================================
 // [DEBUG]: Prints all APVTS parameter IDs at startup
@@ -22,39 +22,33 @@ for (auto* param : apvts.processor.getParameters()) {
 // ============================================================================
 
     // Register callbacks for parameter changes
-    using ID = CompressorParams::ID;
+    using ID = jonssonic::plugins::compressor::params::ID;
     
     parameterManager.on(ID::Threshold, [this](float value, bool skipSmoothing) {
         DBG("[DEBUG] Threshold changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP threshold setter here
         compressor.setThreshold(value, skipSmoothing);
-    });
-
-    parameterManager.on(ID::Attack, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Attack changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP attack setter here
-        compressor.setAttack(value, skipSmoothing);
-    });
-
-    parameterManager.on(ID::Release, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Release changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP release setter here
-        compressor.setRelease(value, skipSmoothing);
     });
 
     parameterManager.on(ID::Ratio, [this](int value, bool skipSmoothing) {
         DBG("[DEBUG] Ratio changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP ratio setter here
         compressor.setRatio(static_cast<float>(value), skipSmoothing);
     });
 
-    parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mix setter here
-        compressor.setMix(value * 0.01, skipSmoothing);
-
-        
+    parameterManager.on(ID::Knee, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Knee changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        compressor.setKnee(value, skipSmoothing);
     });
+
+    parameterManager.on(ID::Attack, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Attack changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        compressor.setAttackTime(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Release, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Release changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        compressor.setReleaseTime(value, skipSmoothing);
+    });
+
 
     parameterManager.on(ID::Output, [this](float value, bool skipSmoothing) {
         DBG("[DEBUG] Output changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
@@ -62,15 +56,8 @@ for (auto* param : apvts.processor.getParameters()) {
         compressor.setOutputGain(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::CharacterMode, [this](float value, bool skipSmoothing) {
-        DBG("[DEBUG] Character Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP character mode setter here
-        compressor.setCharacterMode(value > 0.5f, skipSmoothing);
-        setLatencySamples(compressor.getLatencySamples());
-    });
-
     // Register visualizer value suppliers
-    using VisualizerID = CompressorVisualizers::ID;
+    using VisualizerID = jonssonic::plugins::compressor::visualizers::ID;
     visualizerManager.registerValueSupplier(VisualizerID::GainReduction, [this]() -> float {
         return compressor.getGainReduction();
     });
@@ -86,9 +73,8 @@ void CompressorAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBl
 {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
-    compressor.prepare(numChannels, static_cast<size_t>(samplesPerBlock), static_cast<float>(sampleRate));
+    compressor.prepare(numChannels, static_cast<float>(sampleRate));
 
-    
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
 }
@@ -128,7 +114,7 @@ void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
 
     // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
     // So we map the input channels to output channels accordingly
-    Jonssonic::mapChannels<float>(
+    jonssonic::utils::mapChannels<float>(
         buffer.getArrayOfReadPointers(),  
         buffer.getArrayOfWritePointers(),              
         numInputChannels, 
@@ -137,8 +123,9 @@ void CompressorAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
 
     // Process your DSP here using the mapped buffer
     compressor.processBlock(
-        buffer.getArrayOfReadPointers(), 
-        buffer.getArrayOfWritePointers(), 
+        buffer.getArrayOfReadPointers(), // Main input
+        buffer.getArrayOfReadPointers(), // Detector input (sidechain) - using main input for now
+        buffer.getArrayOfWritePointers(), // Output
         static_cast<size_t>(numSamples));
 
 }

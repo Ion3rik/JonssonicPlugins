@@ -9,7 +9,7 @@
 #include "Version.h"
 #include <parameters/ParameterIdUtils.h>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::gui {
 
 /**
  * @brief Automatic parameter control panel for JUCE APVTS
@@ -75,7 +75,7 @@ public:
             constexpr int margin = 8;
             juce::String versionStr = "v" JONSSONIC_VERSION_STRING;
             g.setColour(juce::Colours::lightgrey.withAlpha(0.7f));
-            g.setFont(juce::Font(14.0f, juce::Font::plain));
+            g.setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, juce::Font::plain)));
             int textWidth = g.getCurrentFont().getStringWidth(versionStr);
             int textHeight = (int)g.getCurrentFont().getHeight();
             g.drawText(versionStr,

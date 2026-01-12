@@ -18,7 +18,7 @@
 
 #include <vector>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::parameters {
 
 /**
  * @brief Central parameter management system
@@ -307,7 +307,7 @@ void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params,
     // Now populate parameter map with actual pointers
     for (const auto& paramVariant : params.getAll()) {
         std::visit([this](auto&& param) {
-            auto* p = apvts->getParameter(Jonssonic::idToString(param.id));
+            auto* p = apvts->getParameter(idToString(param.id));
             if (p) {
                 parameterMap[param.id] = p;
             }
@@ -323,7 +323,7 @@ ParameterManager<IDType>::createJuceParameter(
     return std::visit([this](auto&& param) -> std::unique_ptr<juce::RangedAudioParameter> {
         using T = std::decay_t<decltype(param)>;
         // Use juce::String everywhere for parameter IDs
-        const juce::String juceIdStr = Jonssonic::idToString(param.id);
+        const juce::String juceIdStr = idToString(param.id);
 
         if constexpr (std::is_same_v<T, FloatParam<IDType>>) {
             return std::make_unique<juce::AudioParameterFloat>(

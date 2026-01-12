@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::visualizers {
 
 
 /**

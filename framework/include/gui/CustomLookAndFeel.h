@@ -7,21 +7,22 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "../utils/ResourceUtils.h"
 
+namespace jonssonic::juce_framework::gui {
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
 public:
-    CustomLookAndFeel(const Jonssonic::ControlPanelConfig* config) {
+    CustomLookAndFeel(const jonssonic::juce_framework::gui::ControlPanelConfig* config) {
         // save pointer to config
         this->config = config;
 
         // Load the default knob strip from the plugin bundle's Resources folder at runtime
-        juce::File knobFile = getResourceFile("knobs/JonssonicRotarySlider.png");
+        juce::File knobFile = utils::getResourceFile("knobs/JonssonicRotarySlider.png");
         if (knobFile.existsAsFile()) {
             knobStrip = juce::ImageFileFormat::loadFrom(knobFile);
         }
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
 
         // Load the logo from the plugin bundle's Resources folder at runtime
-        juce::File logoFile = getResourceFile("logos/Jonssonic_logo.png");
+        juce::File logoFile = utils::getResourceFile("logos/Jonssonic_logo.png");
         if (logoFile.existsAsFile()) {
             logo = juce::ImageFileFormat::loadFrom(logoFile);
         }
@@ -74,25 +75,25 @@ public:
             int logoY = static_cast<int>(config->logoMarginY);
             // Horizontal placement
             switch (config->logoHorizontalPlacement) {
-                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Left:
+                case ControlPanelConfig::HorizontalPlacement::Left:
                     logoX = config->logoMarginX;
                     break;
-                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Center:
+                case ControlPanelConfig::HorizontalPlacement::Center:
                     logoX = (width - logoWidth) / 2 + config->logoMarginX;
                     break;
-                case Jonssonic::ControlPanelConfig::HorizontalPlacement::Right:
+                case ControlPanelConfig::HorizontalPlacement::Right:
                     logoX = width - logoWidth - config->logoMarginX;
                     break;
             }
             // Vertical placement
             switch (config->logoVerticalPlacement) {
-                case Jonssonic::ControlPanelConfig::VerticalPlacement::Top:
+                case ControlPanelConfig::VerticalPlacement::Top:
                     logoY = config->logoMarginY;
                     break;
-                case Jonssonic::ControlPanelConfig::VerticalPlacement::Center:
+                case ControlPanelConfig::VerticalPlacement::Center:
                     logoY = (height - logoHeight) / 2 + config->logoMarginY;
                     break;
-                case Jonssonic::ControlPanelConfig::VerticalPlacement::Bottom:
+                case ControlPanelConfig::VerticalPlacement::Bottom:
                     logoY = height - logoHeight - config->logoMarginY;
                     break;
             }
@@ -158,9 +159,10 @@ public:
     }
 
 private:
-    const Jonssonic::ControlPanelConfig* config = nullptr;
+    const ControlPanelConfig* config = nullptr;
     juce::Image knobStrip;
     int numFrames = 0;
     juce::Image logo;
     juce::Image cachedBackground;
 };
+} // namespace jonssonic::juce_framework::gui

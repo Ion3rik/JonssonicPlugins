@@ -9,7 +9,7 @@
 #include <memory>
 #include <visualizers/LevelMeterState.h>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::gui {
 /**
  * @brief Level meter GUI component
  * Polls LevelMeterState for level updates and repaints itself.

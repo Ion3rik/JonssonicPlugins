@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <string>
 
-namespace Jonssonic {
+namespace jonssonic::juce_framework::visualizers {
 
 /**
  * @brief Thread-safe state for the LevelMeterComponent.
