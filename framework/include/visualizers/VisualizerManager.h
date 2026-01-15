@@ -4,32 +4,31 @@
 
 #pragma once
 #include "VisualizerSet.h"
-#include <unordered_map>
 #include <memory>
-#include <visualizers/LevelMeterState.h>
+#include <unordered_map>
 #include <visualizers/GainReductionMeterState.h>
+#include <visualizers/LevelMeterState.h>
 
-namespace jonssonic::juce_framework::visualizers {
+namespace jnsc::juce_interface {
 /**
  * @brief Centralized visualizer manager
- * 
+ *
  * Features:
  * - Holds and manages multiple visualizers
  * - Provides access to visualizer values by ID
  * - Facilitates integration between DSP and GUI components
  * Usage:
  *   VisualizerManager<VisualizerID> visualizerManager(createVisualizers());
- *   visualizerManager.registerValueSupplier(VisualizerID::OutputLevel, [&]() { return dsp.getOutputLevel(); });
+ *   visualizerManager.registerValueSupplier(VisualizerID::OutputLevel, [&]() { return
+ * dsp.getOutputLevel(); });
  */
 
-template<typename IDType>
+template <typename IDType>
 class VisualizerManager {
-public:
+  public:
     using ValueSupplier = std::function<float()>;
 
-    VisualizerManager(const VisualizerSet<IDType>& visualizers)
-        : visualizerSet(visualizers)
-    {
+    VisualizerManager(const VisualizerSet<IDType>& visualizers) : visualizerSet(visualizers) {
         // Helper for overloaded lambdas
         struct {
             VisualizerManager* self;
@@ -60,11 +59,11 @@ public:
         suppliers[id] = std::move(supplier);
     }
 
-
     /**
      * @brief Get shared pointer to a visualizer state by ID
      */
-    using StateVariant = std::variant<std::shared_ptr<LevelMeterState>, std::shared_ptr<GainReductionMeterState>>;
+    using StateVariant =
+        std::variant<std::shared_ptr<LevelMeterState>, std::shared_ptr<GainReductionMeterState>>;
     const StateVariant* getState(IDType id) const {
         auto it = states.find(id);
         if (it != states.end())
@@ -80,29 +79,33 @@ public:
         for (auto& [id, supplier] : suppliers) {
             float v = supplier ? supplier() : 0.0f;
             if (const auto* stateVariant = getState(id)) {
-                std::visit([v](auto& ptr) {
-                    if (ptr) ptr->level.store(v, std::memory_order_relaxed);
-                }, *stateVariant);
+                std::visit(
+                    [v](auto& ptr) {
+                        if (ptr)
+                            ptr->level.store(v, std::memory_order_relaxed);
+                    },
+                    *stateVariant);
             }
         }
     }
 
-    const VisualizerSet<IDType>& getVisualizerSet() const {
-        return visualizerSet;
-    }
+    const VisualizerSet<IDType>& getVisualizerSet() const { return visualizerSet; }
 
     void clearStates() noexcept {
         for (auto& [id, stateVariant] : states) {
-            std::visit([](auto& ptr) {
-                if (ptr) ptr->clear();
-            }, stateVariant);
+            std::visit(
+                [](auto& ptr) {
+                    if (ptr)
+                        ptr->clear();
+                },
+                stateVariant);
         }
     }
 
-private:
+  private:
     VisualizerSet<IDType> visualizerSet;
     std::unordered_map<IDType, StateVariant> states;
     std::unordered_map<IDType, ValueSupplier> suppliers;
 };
 
-} // namespace Jonssonic§
+} // namespace jnsc::juce

@@ -2,68 +2,63 @@
 #include <gui/CustomLookAndFeel.h>
 
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioProcessor& p)
-    : AudioProcessorEditor(p), audioProcessor(p),
-            controlPanelConfig([]{
-                jonssonic::juce_framework::gui::ControlPanelConfig c;
-                c.columns = 3; // Number of columns in the control panel
-                c.panelMarginRight = 50; // Extra right margin for meter
-                c.showValueBoxes = true; // Show value boxes for sliders
-                c.title = "JONSSONIC"; // Plugin title
-                c.subtitle = "COMPRESSOR"; // Plugin subtitle
-                c.gradientBaseColour = juce::Colour(0xffb36a1d).brighter(0.1f);
-                // Optionally set other config fields here
-                return c;
-            }()),
+    : AudioProcessorEditor(p), audioProcessor(p), controlPanelConfig([] {
+          jnsc::juce_interface::ControlPanelConfig c;
+          c.columns = 3;             // Number of columns in the control panel
+          c.panelMarginRight = 50;   // Extra right margin for meter
+          c.showValueBoxes = true;   // Show value boxes for sliders
+          c.title = "JONSSONIC";     // Plugin title
+          c.subtitle = "COMPRESSOR"; // Plugin subtitle
+          c.gradientBaseColour = juce::Colour(0xffb36a1d).brighter(0.1f);
+          // Optionally set other config fields here
+          return c;
+      }()),
 
-      controlPanel(audioProcessor.getAPVTS(), controlPanelConfig)
-{
-    customLookAndFeel = std::make_unique<jonssonic::plugins::compressor::CompressorLookAndFeel>(&controlPanelConfig);
+      controlPanel(audioProcessor.getAPVTS(), controlPanelConfig) {
+    customLookAndFeel = std::make_unique<CompressorLookAndFeel>(&controlPanelConfig);
     setLookAndFeel(customLookAndFeel.get());
     addAndMakeVisible(controlPanel);
 
     // Add gain reduction meter, wiring to the state from the processor's visualizer manager
-    if (const auto* variant = audioProcessor.getVisualizerManager().getState(jonssonic::plugins::compressor::visualizers::ID::GainReduction)) {
-        if (auto state = std::get_if<std::shared_ptr<jonssonic::juce_framework::visualizers::GainReductionMeterState>>(variant)) {
-            gainReductionMeter = std::make_unique<jonssonic::juce_framework::gui::GainReductionMeterComponent>(*state);
+    if (const auto* variant = audioProcessor.getVisualizerManager().getState(
+            CompressorVisualizers::ID::GainReduction)) {
+        if (auto state =
+                std::get_if<std::shared_ptr<jnsc::juce_interface::GainReductionMeterState>>(
+                    variant)) {
+            gainReductionMeter =
+                std::make_unique<jnsc::juce_interface::GainReductionMeterComponent>(*state);
             addAndMakeVisible(gainReductionMeter.get());
         }
     }
 
-    setSize (400, 350); // Slightly wider to fit meter
+    setSize(400, 350); // Slightly wider to fit meter
 }
 
-CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor()
-{
+CompressorAudioProcessorEditor::~CompressorAudioProcessorEditor() {
     setLookAndFeel(nullptr); // Reset the look and feel to default
     customLookAndFeel.reset();
 }
 
 //==============================================================================
-void CompressorAudioProcessorEditor::paint(juce::Graphics& g)
-{
-    if (auto* laf = dynamic_cast<jonssonic::juce_framework::gui::CustomLookAndFeel*>(&getLookAndFeel()))
+void CompressorAudioProcessorEditor::paint(juce::Graphics& g) {
+    if (auto* laf = dynamic_cast<jnsc::juce_interface::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawCachedMainBackground(g);
     else
-        g.fillAll(getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
+        g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void CompressorAudioProcessorEditor::resized()
-{
+void CompressorAudioProcessorEditor::resized() {
     // Layout the meter on the right
     auto bounds = getLocalBounds();
     int meterWidth = 70;
-    if (gainReductionMeter)
-    {
-    auto meterBounds = bounds; // make a copy to retain original bounds for control panel
-    gainReductionMeter->setBounds(meterBounds.removeFromRight(meterWidth).reduced(15, 64)
-);
-
+    if (gainReductionMeter) {
+        auto meterBounds = bounds; // make a copy to retain original bounds for control panel
+        gainReductionMeter->setBounds(meterBounds.removeFromRight(meterWidth).reduced(15, 64));
     }
 
     // Control panel fills the rest
     controlPanel.setBounds(bounds);
 
-    if (auto* laf = dynamic_cast<jonssonic::juce_framework::gui::CustomLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<jnsc::juce_interface::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->generateMainBackground(getWidth(), getHeight());
 }

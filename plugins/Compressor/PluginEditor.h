@@ -1,33 +1,32 @@
 #pragma once
 #include "Version.h"
 
-#include <MinimalJuceHeader.h>
+#include "PluginLookAndFeel.h"
 #include "PluginProcessor.h"
+#include <MinimalJuceHeader.h>
 #include <gui/ControlPanel.h>
 #include <gui/ControlPanelConfig.h>
 #include <gui/GainReductionMeterComponent.h>
-#include "PluginLookAndFeel.h"
 
-class CompressorAudioProcessorEditor : public juce::AudioProcessorEditor
-{
-public:
+class CompressorAudioProcessorEditor : public juce::AudioProcessorEditor {
+  public:
     CompressorAudioProcessorEditor(CompressorAudioProcessor&);
     ~CompressorAudioProcessorEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
 
-private:
+  private:
     // Reference to the processor for parameter and visualizer access
     CompressorAudioProcessor& audioProcessor;
 
     // Control panel config and instance (note the order must be config first here)
-    jonssonic::juce_framework::gui::ControlPanelConfig controlPanelConfig;
-    jonssonic::juce_framework::gui::ControlPanel controlPanel;
+    jnsc::juce_interface::ControlPanelConfig controlPanelConfig;
+    jnsc::juce_interface::ControlPanel controlPanel;
 
     // Level meter for gain reduction
-    std::unique_ptr<jonssonic::juce_framework::gui::GainReductionMeterComponent> gainReductionMeter;
+    std::unique_ptr<jnsc::juce_interface::GainReductionMeterComponent> gainReductionMeter;
     // Custom look and feel
-    std::unique_ptr<jonssonic::plugins::compressor::CompressorLookAndFeel> customLookAndFeel;
+    std::unique_ptr<CompressorLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompressorAudioProcessorEditor)
 };

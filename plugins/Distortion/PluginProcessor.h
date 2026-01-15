@@ -1,16 +1,11 @@
 #pragma once
-#include <JuceHeader.h>
-#include <Jonssonic/effects/Distortion.h>
-#include <Jonssonic/core/mixing/DryWetMixer.h>
-#include <Jonssonic/core/common/DspParam.h>
-#include <Jonssonic/core/common/AudioBuffer.h>
-#include <parameters/ParameterManager.h>
 #include "Params.h"
+#include <JuceHeader.h>
+#include <jonssonic/effects/distortion.h>
+#include <parameters/ParameterManager.h>
 
-
-class DistortionAudioProcessor : public juce::AudioProcessor
-{
-public:
+class DistortionAudioProcessor : public juce::AudioProcessor {
+  public:
     DistortionAudioProcessor();
     ~DistortionAudioProcessor() override;
 
@@ -20,7 +15,6 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -36,18 +30,16 @@ public:
     const juce::String getProgramName(int) override;
     void changeProgramName(int, const juce::String&) override;
     //==============================================================================
-    
+
     // Parameter access for editor
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
-private:
+  private:
     // DSP objects and buffers
-    Jonssonic::effects::Distortion<float> distortion; // Distortion effect processor
-    Jonssonic::AudioBuffer<float> fxBuffer; // Buffer for effect processing
+    jnsc::effects::Distortion<float> distortion; // Distortion effect processor
 
-    
     // Parameter manager
-    Jonssonic::ParameterManager<DistortionParams::ID> parameterManager;
+    jnsc::juce_interface::ParameterManager<DistortionParams::ID> parameterManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DistortionAudioProcessor)
 };

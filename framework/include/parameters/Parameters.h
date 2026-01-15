@@ -7,31 +7,27 @@
 #pragma once
 
 #include "ParameterTypes.h"
+#include <stdexcept>
+#include <unordered_map>
 #include <variant>
 #include <vector>
-#include <unordered_map>
-#include <stdexcept>
 
-namespace jonssonic::juce_framework::parameters {
+namespace jnsc::juce_interface {
 
 /**
  * @brief Container for all parameters in a plugin
- * 
+ *
  * Holds parameter definitions and provides type-safe access.
  * Supports Float, Int, Bool, and Choice parameter types.
  */
-template<typename IDType>
+template <typename IDType>
 class ParameterSet {
-public:
-    using ParamVariant = std::variant<
-        FloatParam<IDType>,
-        IntParam<IDType>,
-        BoolParam<IDType>,
-        ChoiceParam<IDType>
-    >;
-    
+  public:
+    using ParamVariant =
+        std::variant<FloatParam<IDType>, IntParam<IDType>, BoolParam<IDType>, ChoiceParam<IDType>>;
+
     ParameterSet() = default;
-    
+
     /**
      * @brief Add a float parameter
      */
@@ -39,7 +35,7 @@ public:
         params_.emplace_back(param);
         indexMap_[param.id] = params_.size() - 1;
     }
-    
+
     /**
      * @brief Add an integer parameter
      */
@@ -47,7 +43,7 @@ public:
         params_.emplace_back(param);
         indexMap_[param.id] = params_.size() - 1;
     }
-    
+
     /**
      * @brief Add a boolean parameter
      */
@@ -55,7 +51,7 @@ public:
         params_.emplace_back(param);
         indexMap_[param.id] = params_.size() - 1;
     }
-    
+
     /**
      * @brief Add a choice parameter
      */
@@ -63,7 +59,7 @@ public:
         params_.emplace_back(param);
         indexMap_[param.id] = params_.size() - 1;
     }
-    
+
     /**
      * @brief Get parameter by ID
      */
@@ -74,31 +70,25 @@ public:
         }
         return params_[it->second];
     }
-    
+
     /**
      * @brief Check if parameter exists
      */
-    bool has(IDType id) const {
-        return indexMap_.find(id) != indexMap_.end();
-    }
-    
+    bool has(IDType id) const { return indexMap_.find(id) != indexMap_.end(); }
+
     /**
      * @brief Get all parameters
      */
-    const std::vector<ParamVariant>& getAll() const {
-        return params_;
-    }
-    
+    const std::vector<ParamVariant>& getAll() const { return params_; }
+
     /**
      * @brief Get number of parameters
      */
-    size_t size() const {
-        return params_.size();
-    }
+    size_t size() const { return params_.size(); }
 
-private:
+  private:
     std::vector<ParamVariant> params_;
     std::unordered_map<IDType, size_t> indexMap_;
 };
 
-} // namespace Jonssonic
+} // namespace jnsc::juce_interface

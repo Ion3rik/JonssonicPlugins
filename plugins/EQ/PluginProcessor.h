@@ -1,13 +1,11 @@
 #pragma once
-#include <JuceHeader.h>
-#include <Jonssonic/effects/Equalizer.h>
-#include <parameters/ParameterManager.h>
 #include "Params.h"
+#include <MinimalJuceHeader.h>
+#include <jonssonic/effects/equalizer.h>
+#include <parameters/ParameterManager.h>
 
-
-class EQAudioProcessor : public juce::AudioProcessor
-{
-public:
+class EQAudioProcessor : public juce::AudioProcessor {
+  public:
     EQAudioProcessor();
     ~EQAudioProcessor() override;
 
@@ -17,7 +15,6 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -34,17 +31,16 @@ public:
     void changeProgramName(int, const juce::String&) override;
 
     //==============================================================================
-    
+
     // Parameter access for editor
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
-private:
+  private:
     // DSP objects and buffers
-    Jonssonic::Equalizer<float> equalizer;
+    jnsc::effects::Equalizer<float> equalizer;
 
-    
     // Parameter manager
-    Jonssonic::ParameterManager<EQParams::ID> parameterManager;
+    jnsc::juce_interface::ParameterManager<EQParams::ID> parameterManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EQAudioProcessor)
 };

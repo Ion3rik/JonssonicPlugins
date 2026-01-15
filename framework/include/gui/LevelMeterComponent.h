@@ -2,30 +2,27 @@
 // Level meter component
 // SPDX-License-Identifier: MIT
 
-
 #pragma once
-#include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include <memory>
 #include <visualizers/LevelMeterState.h>
 
-namespace jonssonic::juce_framework::gui {
+namespace jnsc::juce_interface {
 /**
  * @brief Level meter GUI component
  * Polls LevelMeterState for level updates and repaints itself.
  */
-class LevelMeterComponent : public juce::Component, private juce::Timer
-{
-public:
-
+class LevelMeterComponent : public juce::Component, private juce::Timer {
+  public:
     /**
      * @brief Construct a LevelMeterComponent with a required LevelMeterState.
      * @param state Shared pointer to the state to poll (must not be null)
      * @param refreshHz Polling rate in Hz (default 30)
      */
-    explicit LevelMeterComponent(std::shared_ptr<const LevelMeterState> state, int newRefreshHz = 30)
-        : levelState(std::move(state)), refreshHz(newRefreshHz)
-    {
+    explicit LevelMeterComponent(std::shared_ptr<const LevelMeterState> state,
+                                 int newRefreshHz = 30)
+        : levelState(std::move(state)), refreshHz(newRefreshHz) {
         setOpaque(false);
         jassert(levelState != nullptr); // Enforce non-null state
         if (levelState)
@@ -33,10 +30,8 @@ public:
     }
     ~LevelMeterComponent() override = default;
 
-
     void paint(juce::Graphics& g) override {
         auto bounds = getLocalBounds().toFloat();
-
 
         constexpr float labelAreaWidth = 20.0f;
         constexpr float verticalPad = 20.0f; // space at top and bottom
@@ -44,7 +39,6 @@ public:
         auto meterBarBounds = paddedBounds.withWidth(paddedBounds.getWidth() - labelAreaWidth);
         auto labelArea = paddedBounds.withX(meterBarBounds.getRight()).withWidth(labelAreaWidth);
 
-    
         if (levelState) {
             // DRAW METER BAR
             float minDb = levelState->minDb;
@@ -62,12 +56,14 @@ public:
 
             // DRAW HOLD INDICATOR
             float holdDb = juce::Decibels::gainToDecibels(holdLevel, levelState->minDb);
-            float holdNorm = juce::jlimit(0.0f, 1.0f, juce::jmap(holdDb, levelState->minDb, levelState->maxDb, 0.0f, 1.0f));
+            float holdNorm =
+                juce::jlimit(0.0f,
+                             1.0f,
+                             juce::jmap(holdDb, levelState->minDb, levelState->maxDb, 0.0f, 1.0f));
             float holdY = meterBarBounds.getY() + meterBarBounds.getHeight() * (1.0f - holdNorm);
             g.setColour(juce::Colours::orange.withAlpha(0.9f));
             g.drawLine(meterBarBounds.getX(), holdY, meterBarBounds.getRight(), holdY, 2.0f);
         }
-
 
         // Set up font for tick markers
         juce::Font tickFont(juce::FontOptions("Avenir", 14, juce::Font::bold));
@@ -85,12 +81,16 @@ public:
                 float db = juce::jmap((float)i, 0.0f, (float)numTicks, minDb, maxDb);
                 float norm = juce::jmap(db, minDb, maxDb, 1.0f, 0.0f); // 1.0 = bottom, 0.0 = top
                 float y = paddedBounds.getY() + paddedBounds.getHeight() * norm;
-                // Draw dB ticks 
+                // Draw dB ticks
                 g.drawText(juce::String((int)db),
-                          labelArea.getX() + labelPad, y - 7, labelArea.getWidth() - labelPad, 14, juce::Justification::centredRight);
+                           labelArea.getX() + labelPad,
+                           y - 7,
+                           labelArea.getWidth() - labelPad,
+                           14,
+                           juce::Justification::centredRight);
             }
         }
-        
+
         // Set up font for meter label
         juce::Font labelFont(juce::FontOptions("Avenir", 14, juce::Font::plain));
         g.setColour(juce::Colours::white);
@@ -99,23 +99,23 @@ public:
         if (levelState && !levelState->label.empty()) {
             float labelHeight = 18.0f;
             g.drawText(levelState->label,
-                      meterBarBounds.getX(), meterBarBounds.getY() - labelHeight - 2,
-                      meterBarBounds.getWidth(), labelHeight,
-                      juce::Justification::centred);
+                       meterBarBounds.getX(),
+                       meterBarBounds.getY() - labelHeight - 2,
+                       meterBarBounds.getWidth(),
+                       labelHeight,
+                       juce::Justification::centred);
         }
     }
 
-
     void resized() override {}
 
-private:
+  private:
     // Visual state variables
     int refreshHz = 30;
     float level = 0.0f;
     float holdLevel = 0.0f;
     double holdTimeMs = 1000.0;
     double holdTimer = 0.0;
-
 
     // Pointer to the shared level meter state
     std::shared_ptr<const LevelMeterState> levelState;
@@ -134,7 +134,8 @@ private:
      * Reads the level from LevelMeterState and updates the display.
      */
     void timerCallback() override {
-        if (!levelState) return;
+        if (!levelState)
+            return;
         float newLevel = levelState->level.load(std::memory_order_relaxed);
         if (newLevel > holdLevel) {
             holdLevel = newLevel;
@@ -150,4 +151,4 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeterComponent)
 };
-} // namespace Jonssonic
+} // namespace jnsc::juce_interface

@@ -4,31 +4,32 @@
 
 #pragma once
 
-#include <parameters/Parameters.h>
 #include <parameters/ParameterGroup.h>
 #include <parameters/ParameterTypes.h>
+#include <parameters/Parameters.h>
 
-namespace EQParams {
+struct EQParams {
 
-// Parameter IDs as enum
-enum class ID {
-    // Define your parameter IDs here
-    // Example:
-    LowCutFreq,
-    LowMidGain,
-    HighMidGain,
-    HighShelfGain,
-    LowMidFreq,
-    HighMidFreq,
-    SoftClipperEnabled
-};
+    // Parameter IDs as enum
+    enum class ID {
+        // Define your parameter IDs here
+        // Example:
+        LowCutFreq,
+        LowMidGain,
+        HighMidGain,
+        HighShelfGain,
+        LowMidFreq,
+        HighMidFreq,
+        SoftClipperEnabled
+    };
 
-// Create parameter definitions
-inline Jonssonic::ParameterSet<ID> createParams() {
-    using namespace Jonssonic;
-    
-    ParameterSet<ID> params;
-    
+    // Create parameter definitions
+    inline jnsc::juce_interface::ParameterSet<ID> createParams() {
+        using namespace jnsc::juce_interface;
+
+        ParameterSet<ID> params;
+
+        // clang-format off
     // Float parameter        ↓ id                  ↓ name              ↓ min   ↓ max       ↓ def     ↓ unit  ↓ skew
     params.add(FloatParam<ID>{ID::LowCutFreq,      "Low Cut",           20.0f,   1000.0f,   20.0f,    "Hz",    0.5f});
     params.add(FloatParam<ID>{ID::LowMidGain,      "Low Mid Gain",      -15.0f,  15.0f,     0.0f,     "dB",    1.0f});
@@ -36,10 +37,7 @@ inline Jonssonic::ParameterSet<ID> createParams() {
     params.add(FloatParam<ID>{ID::HighShelfGain,   "High Shelf Gain",   -15.0f,  15.0f,     0.0f,     "dB",    1.0f});
     params.add(FloatParam<ID>{ID::LowMidFreq,      "Low Mid Freq",      50.0f,   3000.0f,   500.0f,   "Hz",    0.7f});  
     params.add(FloatParam<ID>{ID::HighMidFreq,     "High Mid Freq",     300.0f,  8000.0f,   4000.0f,  "Hz",    0.7f});
-
-    // Boolean parameter      ↓ id                  ↓ name                   ↓ default 
-    params.add(BoolParam<ID>{ID::SoftClipperEnabled, "Saturate", false});
-    return params;
-}
-
-} // namespace EQParams
+        // clang-format on
+        return params;
+    }
+};

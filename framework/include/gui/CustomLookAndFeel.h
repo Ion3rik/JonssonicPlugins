@@ -3,26 +3,27 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include "../utils/ResourceUtils.h"
+#include "ControlPanelConfig.h"
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "../utils/ResourceUtils.h"
 
-namespace jonssonic::juce_framework::gui {
+namespace jnsc::juce_interface {
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
-public:
-    CustomLookAndFeel(const jonssonic::juce_framework::gui::ControlPanelConfig* config) {
+  public:
+    CustomLookAndFeel(const ControlPanelConfig* config) {
         // save pointer to config
         this->config = config;
 
         // Load the default knob strip from the plugin bundle's Resources folder at runtime
-        juce::File knobFile = utils::getResourceFile("knobs/JonssonicRotarySlider.png");
+        juce::File knobFile = getResourceFile("knobs/JonssonicRotarySlider.png");
         if (knobFile.existsAsFile()) {
             knobStrip = juce::ImageFileFormat::loadFrom(knobFile);
         }
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
 
         // Load the logo from the plugin bundle's Resources folder at runtime
-        juce::File logoFile = utils::getResourceFile("logos/Jonssonic_logo.png");
+        juce::File logoFile = getResourceFile("logos/Jonssonic_logo.png");
         if (logoFile.existsAsFile()) {
             logo = juce::ImageFileFormat::loadFrom(logoFile);
         }
@@ -42,11 +43,7 @@ public:
         // Main diagonal gradient using base colour from config (or fallback)
         juce::Colour base = config ? config->gradientBaseColour : juce::Colours::darkgrey;
         juce::Colour base2 = base.darker(0.3f);
-        juce::ColourGradient grad(
-            base, 0, 0,
-            base2, width, height,
-            false
-        );
+        juce::ColourGradient grad(base, 0, 0, base2, width, height, false);
         g.setGradientFill(grad);
         g.fillRect(juce::Rectangle<float>(0.0f, 0.0f, (float)width, (float)height));
 
@@ -75,33 +72,40 @@ public:
             int logoY = static_cast<int>(config->logoMarginY);
             // Horizontal placement
             switch (config->logoHorizontalPlacement) {
-                case ControlPanelConfig::HorizontalPlacement::Left:
-                    logoX = config->logoMarginX;
-                    break;
-                case ControlPanelConfig::HorizontalPlacement::Center:
-                    logoX = (width - logoWidth) / 2 + config->logoMarginX;
-                    break;
-                case ControlPanelConfig::HorizontalPlacement::Right:
-                    logoX = width - logoWidth - config->logoMarginX;
-                    break;
+            case ControlPanelConfig::HorizontalPlacement::Left:
+                logoX = config->logoMarginX;
+                break;
+            case ControlPanelConfig::HorizontalPlacement::Center:
+                logoX = (width - logoWidth) / 2 + config->logoMarginX;
+                break;
+            case ControlPanelConfig::HorizontalPlacement::Right:
+                logoX = width - logoWidth - config->logoMarginX;
+                break;
             }
             // Vertical placement
             switch (config->logoVerticalPlacement) {
-                case ControlPanelConfig::VerticalPlacement::Top:
-                    logoY = config->logoMarginY;
-                    break;
-                case ControlPanelConfig::VerticalPlacement::Center:
-                    logoY = (height - logoHeight) / 2 + config->logoMarginY;
-                    break;
-                case ControlPanelConfig::VerticalPlacement::Bottom:
-                    logoY = height - logoHeight - config->logoMarginY;
-                    break;
+            case ControlPanelConfig::VerticalPlacement::Top:
+                logoY = config->logoMarginY;
+                break;
+            case ControlPanelConfig::VerticalPlacement::Center:
+                logoY = (height - logoHeight) / 2 + config->logoMarginY;
+                break;
+            case ControlPanelConfig::VerticalPlacement::Bottom:
+                logoY = height - logoHeight - config->logoMarginY;
+                break;
             }
             g.setOpacity(logoOpacity);
             // Draw logo with exact dimensions, ignoring aspect ratio
-            g.drawImage(logo, 
-                       (float)logoX, (float)logoY, (float)logoWidth, (float)logoHeight,
-                       0, 0, logo.getWidth(), logo.getHeight(), false);
+            g.drawImage(logo,
+                        (float)logoX,
+                        (float)logoY,
+                        (float)logoWidth,
+                        (float)logoHeight,
+                        0,
+                        0,
+                        logo.getWidth(),
+                        logo.getHeight(),
+                        false);
             g.setOpacity(1.0f);
         }
     }
@@ -112,45 +116,67 @@ public:
             g.drawImageAt(cachedBackground, 0, 0);
     }
 
-    void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPosProportional,
-                          float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override
-    {
+    void drawRotarySlider(juce::Graphics& g,
+                          int x,
+                          int y,
+                          int width,
+                          int height,
+                          float sliderPosProportional,
+                          float rotaryStartAngle,
+                          float rotaryEndAngle,
+                          juce::Slider& slider) override {
         if (knobStrip.isValid() && numFrames > 0) {
             const int frameSize = knobStrip.getWidth();
-            const int frame = juce::jlimit(0, numFrames - 1, static_cast<int>(std::round(sliderPosProportional * (numFrames - 1))));
+            const int frame =
+                juce::jlimit(0,
+                             numFrames - 1,
+                             static_cast<int>(std::round(sliderPosProportional * (numFrames - 1))));
             const float scale = 1.0f;
             const int baseSize = std::min(width, height);
             const int size = static_cast<int>(baseSize * scale);
             const int cx = x + (width - size) / 2;
             const int cy = y + (height - size) / 2;
             g.drawImage(knobStrip,
-                        cx, cy, size, size, // dest: centered square, scaled
-                        0, frame * frameSize, frameSize, frameSize // source
+                        cx,
+                        cy,
+                        size,
+                        size, // dest: centered square, scaled
+                        0,
+                        frame * frameSize,
+                        frameSize,
+                        frameSize // source
             );
         } else {
             // fallback: default rotary
-            juce::LookAndFeel_V4::drawRotarySlider(g, x, y, width, height, sliderPosProportional, rotaryStartAngle, rotaryEndAngle, slider);
+            juce::LookAndFeel_V4::drawRotarySlider(g,
+                                                   x,
+                                                   y,
+                                                   width,
+                                                   height,
+                                                   sliderPosProportional,
+                                                   rotaryStartAngle,
+                                                   rotaryEndAngle,
+                                                   slider);
         }
     }
 
-    void drawLabel (juce::Graphics& g, juce::Label& label) override
-    {
+    void drawLabel(juce::Graphics& g, juce::Label& label) override {
         auto& lf = getDefaultLookAndFeel();
         auto text = label.getText();
         auto area = label.getLocalBounds().toFloat();
 
         // Background
-        g.setColour (label.findColour (juce::Label::backgroundColourId));
-        g.fillRoundedRectangle (area, 6.0f);  // <-- rounded corners
+        g.setColour(label.findColour(juce::Label::backgroundColourId));
+        g.fillRoundedRectangle(area, 6.0f); // <-- rounded corners
 
         // Border
-        g.setColour (label.findColour (juce::Label::outlineColourId));
-        g.drawRoundedRectangle (area, 6.0f, 1.0f);
+        g.setColour(label.findColour(juce::Label::outlineColourId));
+        g.drawRoundedRectangle(area, 6.0f, 1.0f);
 
         // Text with font from label's property (set by ControlPanel)
-        g.setColour (label.findColour (juce::Label::textColourId));
-        g.setFont (label.getFont());
-        g.drawFittedText (text, label.getLocalBounds(), label.getJustificationType(), 1);
+        g.setColour(label.findColour(juce::Label::textColourId));
+        g.setFont(label.getFont());
+        g.drawFittedText(text, label.getLocalBounds(), label.getJustificationType(), 1);
     }
 
     void setKnobStrip(const juce::Image& image) {
@@ -158,11 +184,11 @@ public:
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
     }
 
-private:
+  private:
     const ControlPanelConfig* config = nullptr;
     juce::Image knobStrip;
     int numFrames = 0;
     juce::Image logo;
     juce::Image cachedBackground;
 };
-} // namespace jonssonic::juce_framework::gui
+} // namespace jnsc::juce

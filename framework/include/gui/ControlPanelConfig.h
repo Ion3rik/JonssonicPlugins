@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <juce_graphics/juce_graphics.h> 
-#include <juce_core/juce_core.h>         
+#include <juce_core/juce_core.h>
+#include <juce_graphics/juce_graphics.h>
 
-
-namespace jonssonic::juce_framework::gui {
+namespace jnsc::juce_interface {
 
 /**
  * @brief Configuration structure for Jonssonic ControlPanel automatic GUI.
@@ -26,8 +25,7 @@ namespace jonssonic::juce_framework::gui {
  *   config.logoHorizontalPlacement = ControlPanelConfig::HorizontalPlacement::Right;
  *   config.logoSize = 80;
  */
-struct ControlPanelConfig
-{
+struct ControlPanelConfig {
     /** Number of columns in the control grid. */
     int columns;
     /** Left margin of the panel in pixels. */
@@ -60,7 +58,6 @@ struct ControlPanelConfig
     enum class VerticalPlacement { Top, Center, Bottom };
     /** Horizontal placement for title, subtitle, and logo. */
     enum class HorizontalPlacement { Left, Center, Right };
-
 
     /** Title vertical placement (Top, Center, Bottom). */
     VerticalPlacement titleVerticalPlacement;
@@ -102,38 +99,20 @@ struct ControlPanelConfig
     /**
      * @brief Default constructor initializes all fields to sensible defaults.
      */
-        ControlPanelConfig()
-                    : columns(3),
-                    panelMarginLeft(0),
-                    panelMarginRight(0),
-                    panelMarginTop(0),
-                    panelMarginBottom(0),
-                    showValueBoxes(true),
-                    controlHeight(80),
-                    labelHeight(15),
-                    spacing(0),
-                    title("JONSSONIC"),
-                    titleHeight(40),
-                    subtitle("PLUGIN"),
-                    subtitleHeight(20),
-                    titleVerticalPlacement(VerticalPlacement::Top),
-                    titleHorizontalPlacement(HorizontalPlacement::Left),
-                    subtitleVerticalPlacement(VerticalPlacement::Bottom),
-                    subtitleHorizontalPlacement(HorizontalPlacement::Right),
-                    titleMarginX(60),
-                    titleMarginY(15),
-                    subtitleMarginX(30),
-                    subtitleMarginY(15),
-                    logoVerticalPlacement(VerticalPlacement::Top),
-                    logoHorizontalPlacement(HorizontalPlacement::Left),
-                    logoMarginX(15),
-                    logoMarginY(15),
-                    logoHeight(40),
-                    backgroundColor(juce::Colours::transparentBlack),
-                    gradientBaseColour(juce::Colours::darkgrey),
-                    fontName("Avenir"),
-                    fontStyle(juce::Font::plain)
-        {}
+    ControlPanelConfig()
+        : columns(3), panelMarginLeft(0), panelMarginRight(0), panelMarginTop(0),
+          panelMarginBottom(0), showValueBoxes(true), controlHeight(80), labelHeight(15),
+          spacing(0), title("JONSSONIC"), titleHeight(40), subtitle("PLUGIN"), subtitleHeight(20),
+          titleVerticalPlacement(VerticalPlacement::Top),
+          titleHorizontalPlacement(HorizontalPlacement::Left),
+          subtitleVerticalPlacement(VerticalPlacement::Bottom),
+          subtitleHorizontalPlacement(HorizontalPlacement::Right), titleMarginX(60),
+          titleMarginY(15), subtitleMarginX(30), subtitleMarginY(15),
+          logoVerticalPlacement(VerticalPlacement::Top),
+          logoHorizontalPlacement(HorizontalPlacement::Left), logoMarginX(15), logoMarginY(15),
+          logoHeight(40), backgroundColor(juce::Colours::transparentBlack),
+          gradientBaseColour(juce::Colours::darkgrey), fontName("Avenir"),
+          fontStyle(juce::Font::plain) {}
 };
 
-} // namespace Jonssonic
+} // namespace jnsc::juce

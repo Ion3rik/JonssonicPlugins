@@ -7,7 +7,7 @@
 #include <juce_core/juce_core.h>
 #include <type_traits>
 
-namespace jonssonic::juce_framework::parameters {
+namespace jnsc::juce_interface {
 
 /**
  * @brief Converts an enum parameter ID to a string (e.g., "param_0")
@@ -23,4 +23,4 @@ inline juce::String idToString(EnumType id) {
     return "param_" + juce::String(static_cast<int>(id));
 }
 
-} // namespace Jonssonic
+} // namespace jnsc::juce_interface

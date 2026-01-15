@@ -5,15 +5,14 @@
 
 #pragma once
 
-namespace jonssonic::juce_framework::visualizers {
-
+namespace jnsc::juce_interface {
 
 /**
  * @brief Level meter type specification
  *
  * Defines a level meter visualizer with ID, name, and dB range.
  */
-template<typename IDType>
+template <typename IDType>
 struct LevelMeter {
     IDType id;
     const char* name;
@@ -28,7 +27,7 @@ struct LevelMeter {
  * @brief Gain reduction meter type specification
  * Defines a gain reduction meter visualizer with ID, name, and dB range.
  */
-template<typename IDType>
+template <typename IDType>
 struct GainReductionMeter {
     IDType id;
     const char* name;
@@ -39,4 +38,4 @@ struct GainReductionMeter {
         : id(id), name(name), minDb(minDb), maxDb(maxDb) {}
 };
 
-} // namespace Jonssonic
+} // namespace jnsc::juce_interface
