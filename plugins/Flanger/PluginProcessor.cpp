@@ -1,13 +1,10 @@
-#include <iostream>
 #include "PluginProcessor.h"
-#include <JuceHeader.h>
 #include "PluginEditor.h"
-#include <Jonssonic/utils/BufferUtils.h>
+#include <JuceHeader.h>
+#include <iostream>
+#include <jonssonic/utils/buffer_utils.h>
 
-
-FlangerAudioProcessor::FlangerAudioProcessor()
-    : parameterManager(FlangerParams::createParams(), *this)
-{
+FlangerAudioProcessor::FlangerAudioProcessor() : parameterManager(FlangerParams().createParams(), *this) {
     // Print all APVTS parameter IDs at startup
     auto& apvts = parameterManager.getAPVTS();
     DBG("[DEBUG] APVTS parameter IDs at startup:");
@@ -21,7 +18,7 @@ FlangerAudioProcessor::FlangerAudioProcessor()
 
     // Register callbacks for parameter changes
     using ID = FlangerParams::ID;
-    
+
     parameterManager.on(ID::Rate, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Rate changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
         flanger.setRate(value, skipSmoothing);
@@ -29,12 +26,12 @@ FlangerAudioProcessor::FlangerAudioProcessor()
 
     parameterManager.on(ID::Depth, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Depth changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setDepth(value*0.01f, skipSmoothing);
+        flanger.setDepth(value * 0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::Spread, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Spread changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setSpread(value*0.01f, skipSmoothing);
+        flanger.setSpread(value * 0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::Delay, [this](float value, bool skipSmoothing) {
@@ -43,49 +40,46 @@ FlangerAudioProcessor::FlangerAudioProcessor()
     });
 
     parameterManager.on(ID::Feedback, [this](float value, bool skipSmoothing) {
-        DBG("[DSP] Feedback changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        flanger.setFeedback(value*0.01f, skipSmoothing);
+        DBG("[DSP] Feedback changed: " + juce::String(value) +
+            ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        flanger.setFeedback(value * 0.01f, skipSmoothing);
     });
 
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
         DBG("[DSP] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        dryWetMixer.setMix(value*0.01f, skipSmoothing);
+        dryWetMixer.setMix(value * 0.01f, skipSmoothing);
     });
 }
 
-FlangerAudioProcessor::~FlangerAudioProcessor()
-{
-}
+FlangerAudioProcessor::~FlangerAudioProcessor() {}
 
-void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
-{
+void FlangerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     flanger.prepare(numChannels, sampleRate);
     fxBuffer.resize(numChannels, samplesPerBlock);
     dryWetMixer.prepare(numChannels, sampleRate);
-    
+    dryWetMixer.setControlSmoothingTime(jnsc::Time<float>::Milliseconds(50.0f));
+
     // Initialize DSP with parameter defaults (skip smoothing for instant setup)
     parameterManager.syncAll(true);
 }
 
-void FlangerAudioProcessor::releaseResources()
-{
+void FlangerAudioProcessor::releaseResources() {
     flanger.reset();
     dryWetMixer.reset();
     fxBuffer.resize(0, 0); // Free buffer memory
 }
 
-void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
-{
+void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     // Get audio buffer info
     const int numInputChannels = getTotalNumInputChannels();
     const int numOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
-    
+
     // Early return if no audio to process
     if (numInputChannels == 0 || numOutputChannels == 0 || numSamples == 0)
         return;
-        
+
     // Update all parameters from FIFO (GUI thread → Audio thread)
     parameterManager.update();
 
@@ -94,60 +88,69 @@ void FlangerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 
     // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
     // So we map the input channels to output channels accordingly
-    Jonssonic::mapChannels<float>(
-        buffer.getArrayOfReadPointers(),    // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
-        fxBuffer.writePtrs(),               // Jonssonic::AudioBuffer<float> uses writePtrs() for non-const access
-        numInputChannels, 
-        numOutputChannels, 
+    jnsc::utils::mapChannels<float>(
+        buffer.getArrayOfReadPointers(), // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
+        fxBuffer.writePtrs(),            // jnsc::AudioBuffer<float> uses writePtrs() for non-const access
+        numInputChannels,
+        numOutputChannels,
         numSamples);
-        
+
     // Process wet signal in fxBuffer
-    flanger.processBlock(fxBuffer.readPtrs(),
-                         fxBuffer.writePtrs(),
-                         static_cast<size_t>(numSamples));
-    
+    flanger.processBlock(fxBuffer.readPtrs(), fxBuffer.writePtrs(), static_cast<size_t>(numSamples));
+
     // Mix wet signal with dry (addFrom adds wet to existing dry signal)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),   // dry buffer
-                             fxBuffer.readPtrs(),               // wet buffer
-                             buffer.getArrayOfWritePointers(),  // final output
-                             static_cast<size_t>(numSamples));  // number of samples
+    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),  // dry buffer
+                             fxBuffer.readPtrs(),              // wet buffer
+                             buffer.getArrayOfWritePointers(), // final output
+                             static_cast<size_t>(numSamples)); // number of samples
 }
 
-void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
-{
+void FlangerAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     parameterManager.saveState(destData);
 }
 
-void FlangerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
-{
+void FlangerAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
     parameterManager.loadState(data, sizeInBytes);
 }
 
-bool FlangerAudioProcessor::acceptsMidi() const
-{
+bool FlangerAudioProcessor::acceptsMidi() const {
     return true;
 }
 
-
-
-
 //==============================================================================
-const juce::String FlangerAudioProcessor::getName() const { return JucePlugin_Name; }
-bool FlangerAudioProcessor::producesMidi() const { return false; }
-bool FlangerAudioProcessor::isMidiEffect() const { return false; }
-double FlangerAudioProcessor::getTailLengthSeconds() const { return 0.0; }
-int FlangerAudioProcessor::getNumPrograms() { return 1; }
-int FlangerAudioProcessor::getCurrentProgram() { return 0; }
-void FlangerAudioProcessor::setCurrentProgram(int) { }
-const juce::String FlangerAudioProcessor::getProgramName(int) { return {}; }
-void FlangerAudioProcessor::changeProgramName(int, const juce::String&) { }
-bool FlangerAudioProcessor::hasEditor() const { return true; }
-juce::AudioProcessorEditor* FlangerAudioProcessor::createEditor() { return new FlangerAudioProcessorEditor(*this); }
+const juce::String FlangerAudioProcessor::getName() const {
+    return JucePlugin_Name;
+}
+bool FlangerAudioProcessor::producesMidi() const {
+    return false;
+}
+bool FlangerAudioProcessor::isMidiEffect() const {
+    return false;
+}
+double FlangerAudioProcessor::getTailLengthSeconds() const {
+    return 0.0;
+}
+int FlangerAudioProcessor::getNumPrograms() {
+    return 1;
+}
+int FlangerAudioProcessor::getCurrentProgram() {
+    return 0;
+}
+void FlangerAudioProcessor::setCurrentProgram(int) {}
+const juce::String FlangerAudioProcessor::getProgramName(int) {
+    return {};
+}
+void FlangerAudioProcessor::changeProgramName(int, const juce::String&) {}
+bool FlangerAudioProcessor::hasEditor() const {
+    return true;
+}
+juce::AudioProcessorEditor* FlangerAudioProcessor::createEditor() {
+    return new FlangerAudioProcessorEditor(*this);
+}
 //==============================================================================
 
 //==============================================================================
 // This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new FlangerAudioProcessor();
 }
