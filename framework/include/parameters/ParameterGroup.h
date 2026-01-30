@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Parameters.h"
+#include "ParameterSet.h"
 #include <functional>
 #include <string>
 
@@ -34,64 +34,75 @@ class ParameterGroup {
         std::string prefix;
     };
 
+    /// Default constructor
     ParameterGroup() = default;
 
     /**
      * @brief Add a float parameter template to this group
      * @param offset Offset from base ID (0, 1, 2, etc.)
      * @param name Parameter name (will be prefixed with instance name)
+     * @param min Minimum value
+     * @param max Maximum value
+     * @param def Default value
+     * @param unit Unit string (optional)
+     * @param skew Skew factor (1.0 = linear, <1.0 = logarithmic, >1.0 = exponential)
      * @return Reference to this for chaining
      */
-    ParameterGroup& addFloat(int offset,
-                             std::string name,
-                             float min,
-                             float max,
-                             float def,
-                             std::string unit = "",
-                             float skew = 1.0f) {
-        generators_.push_back(
-            [=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
-                auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
-                params.add(FloatParam<IDType>{id, prefix + " " + name, min, max, def, unit, skew});
-            });
+    ParameterGroup&
+    addFloat(int offset, std::string name, float min, float max, float def, std::string unit = "", float skew = 1.0f) {
+        generators_.push_back([=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
+            auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
+            params.add(FloatParam<IDType>{id, prefix + " " + name, min, max, def, unit, skew});
+        });
         return *this;
     }
 
     /**
-     * @brief Add an integer parameter template to this group
+     * @brief Add an integer parameter template to this group.
+     * @param offset Offset from base ID (0, 1, 2, etc.)
+     * @param name Parameter name (will be prefixed with instance name)
+     * @param min Minimum value
+     * @param max Maximum value
+     * @param def Default value
+     * @param unit Unit string (optional)
+     * @return Reference to this for chaining
      */
-    ParameterGroup&
-    addInt(int offset, std::string name, int min, int max, int def, std::string unit = "") {
-        generators_.push_back(
-            [=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
-                auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
-                params.add(IntParam<IDType>{id, prefix + " " + name, min, max, def, unit});
-            });
+    ParameterGroup& addInt(int offset, std::string name, int min, int max, int def, std::string unit = "") {
+        generators_.push_back([=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
+            auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
+            params.add(IntParam<IDType>{id, prefix + " " + name, min, max, def, unit});
+        });
         return *this;
     }
 
     /**
      * @brief Add a boolean parameter template to this group
+     * @param offset Offset from base ID (0, 1, 2, etc.)
+     * @param name Parameter name (will be prefixed with instance name)
+     * @param def Default value
+     * @return Reference to this for chaining
      */
     ParameterGroup& addBool(int offset, std::string name, bool def) {
-        generators_.push_back(
-            [=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
-                auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
-                params.add(BoolParam<IDType>{id, prefix + " " + name, def});
-            });
+        generators_.push_back([=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
+            auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
+            params.add(BoolParam<IDType>{id, prefix + " " + name, def});
+        });
         return *this;
     }
 
     /**
      * @brief Add a choice parameter template to this group
+     * @param offset Offset from base ID (0, 1, 2, etc.)
+     * @param name Parameter name (will be prefixed with instance name)
+     * @param choices List of choice strings
+     * @param def Default choice index
+     * @return Reference to this for chaining
      */
-    ParameterGroup&
-    addChoice(int offset, std::string name, std::vector<std::string> choices, int def) {
-        generators_.push_back(
-            [=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
-                auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
-                params.add(ChoiceParam<IDType>{id, prefix + " " + name, choices, def});
-            });
+    ParameterGroup& addChoice(int offset, std::string name, std::vector<std::string> choices, int def) {
+        generators_.push_back([=](IDType baseID, const std::string& prefix, ParameterSet<IDType>& params) {
+            auto id = static_cast<IDType>(static_cast<int>(baseID) + offset);
+            params.add(ChoiceParam<IDType>{id, prefix + " " + name, choices, def});
+        });
         return *this;
     }
 
@@ -116,11 +127,8 @@ class ParameterGroup {
      * @param prefix Name prefix (will append " 1", " 2", etc.)
      * @param stride ID stride between instances (default: # params in group)
      */
-    void instantiateSequential(ParameterSet<IDType>& params,
-                               IDType baseID,
-                               int count,
-                               const std::string& prefix,
-                               int stride = -1) const {
+    void instantiateSequential(
+        ParameterSet<IDType>& params, IDType baseID, int count, const std::string& prefix, int stride = -1) const {
         if (stride < 0) {
             stride = static_cast<int>(generators_.size());
         }

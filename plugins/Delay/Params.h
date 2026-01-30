@@ -5,8 +5,8 @@
 #pragma once
 
 #include <parameters/ParameterGroup.h>
+#include <parameters/ParameterSet.h>
 #include <parameters/ParameterTypes.h>
-#include <parameters/Parameters.h>
 
 struct DelayParams {
 

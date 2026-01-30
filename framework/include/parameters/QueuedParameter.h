@@ -52,6 +52,7 @@ namespace jnsc::juce_interface {
 template <typename T>
 class QueuedParameter {
   public:
+    /// Default constructor
     QueuedParameter() = default;
 
     /**
@@ -105,8 +106,7 @@ class QueuedParameter {
      * @brief Get pending value after waiting N blocks (auto-countdown)
      * @param numBlocks Number of blocks to wait before applying
      * @return Optional containing the pending value if ready, or std::nullopt
-     *
-     * Call this every block. It will count down and return the value when ready.
+     * @note Call this every block. It will count down and return the value when ready.
      * Resets counter if a new value is queued.
      */
     std::optional<T> getAfterBlocks(int numBlocks) {
@@ -134,6 +134,7 @@ class QueuedParameter {
 
     /**
      * @brief Get pending value if audio buffer is silent (below threshold)
+     * @tparam BufferType Type of audio buffer (must support getMagnitude)
      * @param buffer Audio buffer to check for silence
      * @param thresholdDb Silence threshold in dB (e.g., -60.0f)
      * @return Optional containing the pending value if silent, or std::nullopt
@@ -158,6 +159,7 @@ class QueuedParameter {
 
     /**
      * @brief Get pending value if custom condition is met
+     * @tparam ConditionFunc Type of condition function
      * @param condition Function returning true when safe to apply
      * @return Optional containing the pending value if condition met, or std::nullopt
      */

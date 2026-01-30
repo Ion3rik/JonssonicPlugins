@@ -7,7 +7,7 @@
 #pragma once
 
 #include "ParameterIdUtils.h"
-#include "Parameters.h"
+#include "ParameterSet.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include <functional>
@@ -36,12 +36,18 @@ namespace jnsc::juce_interface {
  *   // In processBlock:
  *   paramManager.update();  // Pulls from FIFO, triggers callbacks
  */
+
+// ==============================================================================
+// ParameterManager class
+// ==============================================================================
 template <typename IDType>
 class ParameterManager : public juce::AudioProcessorValueTreeState::Listener {
-    // Store parameter IDs for listener management
-    std::vector<juce::String> registeredParamIDs;
-
   public:
+    /**
+     * @brief Callback type for parameter changes
+     * @param value New normalized value [0, 1]
+     * @param skipSmoothing If true, DSP setter should skip smoothing
+     */
     using Callback = std::function<void(float, bool)>;
 
     /**
@@ -123,25 +129,30 @@ class ParameterManager : public juce::AudioProcessorValueTreeState::Listener {
     const juce::AudioProcessorValueTreeState& getAPVTS() const { return *apvts; }
 
   private:
+    // Store parameter IDs for listener management
+    std::vector<juce::String> registeredParamIDs;
+
+    // Struct for parameter change events
     struct ParameterChange {
         IDType id;
         float value;
     };
 
+    // Create APVTS from ParameterSet
     void createAPVTS(const ParameterSet<IDType>& params, juce::AudioProcessor& processor);
 
-    // juce::AudioProcessorValueTreeState::Listener
+    // AudioProcessorValueTreeState::Listener override
     void parameterChanged(const juce::String& parameterID, float newValue) override;
+
+    // Create JUCE parameter from ParamVariant
     std::unique_ptr<juce::RangedAudioParameter>
     createJuceParameter(const typename ParameterSet<IDType>::ParamVariant& param);
 
-    // Removed idToString method as global Jonssonic::idToString should be used.
-
-    std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;
-    juce::AbstractFifo fifo{128}; // Lock-free FIFO for parameter changes
-    std::vector<ParameterChange> fifoBuffer;
-    std::unordered_map<IDType, Callback> callbacks;
-    std::unordered_map<IDType, juce::RangedAudioParameter*> parameterMap;
+    std::unique_ptr<juce::AudioProcessorValueTreeState> apvts;            // Underlying APVTS
+    juce::AbstractFifo fifo{128};                                         // Lock-free FIFO for parameter changes
+    std::vector<ParameterChange> fifoBuffer;                              // FIFO buffer
+    std::unordered_map<IDType, Callback> callbacks;                       // Registered callbacks
+    std::unordered_map<IDType, juce::RangedAudioParameter*> parameterMap; // ID to parameter map
 };
 
 //==============================================================================
@@ -149,8 +160,7 @@ class ParameterManager : public juce::AudioProcessorValueTreeState::Listener {
 //==============================================================================
 
 template <typename IDType>
-ParameterManager<IDType>::ParameterManager(const ParameterSet<IDType>& params,
-                                           juce::AudioProcessor& processor) {
+ParameterManager<IDType>::ParameterManager(const ParameterSet<IDType>& params, juce::AudioProcessor& processor) {
     fifoBuffer.resize(128);
     createAPVTS(params, processor);
 
@@ -206,8 +216,7 @@ void ParameterManager<IDType>::update() {
     // Process first block
     for (int i = 0; i < size1; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start1 + i)];
-        DBG("[ParameterManager] update: id=" + idToString(change.id) +
-            ", value=" + juce::String(change.value));
+        DBG("[ParameterManager] update: id=" + idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false); // Real-time changes use smoothing
@@ -217,8 +226,7 @@ void ParameterManager<IDType>::update() {
     // Process second block (if wrapped)
     for (int i = 0; i < size2; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start2 + i)];
-        DBG("[ParameterManager] update: id=" + idToString(change.id) +
-            ", value=" + juce::String(change.value));
+        DBG("[ParameterManager] update: id=" + idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false); // Real-time changes use smoothing
@@ -279,8 +287,7 @@ void ParameterManager<IDType>::saveState(juce::MemoryBlock& destData) const {
 
 template <typename IDType>
 void ParameterManager<IDType>::loadState(const void* data, int sizeInBytes) {
-    std::unique_ptr<juce::XmlElement> xml(
-        juce::AudioProcessor::getXmlFromBinary(data, sizeInBytes));
+    std::unique_ptr<juce::XmlElement> xml(juce::AudioProcessor::getXmlFromBinary(data, sizeInBytes));
     if (xml && xml->hasTagName(apvts->state.getType())) {
         apvts->replaceState(juce::ValueTree::fromXml(*xml));
 
@@ -292,8 +299,7 @@ void ParameterManager<IDType>::loadState(const void* data, int sizeInBytes) {
 }
 
 template <typename IDType>
-void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params,
-                                           juce::AudioProcessor& processor) {
+void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params, juce::AudioProcessor& processor) {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     for (const auto& paramVariant : params.getAll()) {
@@ -309,10 +315,7 @@ void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params,
         layout.add(std::move(juceParam));
     }
 
-    apvts = std::make_unique<juce::AudioProcessorValueTreeState>(processor,
-                                                                 nullptr,
-                                                                 "Parameters",
-                                                                 std::move(layout));
+    apvts = std::make_unique<juce::AudioProcessorValueTreeState>(processor, nullptr, "Parameters", std::move(layout));
 
     // Now populate parameter map with actual pointers
     for (const auto& paramVariant : params.getAll()) {
@@ -328,8 +331,8 @@ void ParameterManager<IDType>::createAPVTS(const ParameterSet<IDType>& params,
 }
 
 template <typename IDType>
-std::unique_ptr<juce::RangedAudioParameter> ParameterManager<IDType>::createJuceParameter(
-    const typename ParameterSet<IDType>::ParamVariant& paramVariant) {
+std::unique_ptr<juce::RangedAudioParameter>
+ParameterManager<IDType>::createJuceParameter(const typename ParameterSet<IDType>::ParamVariant& paramVariant) {
 
     return std::visit(
         [this](auto&& param) -> std::unique_ptr<juce::RangedAudioParameter> {

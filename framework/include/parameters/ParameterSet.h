@@ -23,72 +23,84 @@ namespace jnsc::juce_interface {
 template <typename IDType>
 class ParameterSet {
   public:
-    using ParamVariant =
-        std::variant<FloatParam<IDType>, IntParam<IDType>, BoolParam<IDType>, ChoiceParam<IDType>>;
+    /// Type alias for parameter variant.
+    using ParamVariant = std::variant<FloatParam<IDType>, IntParam<IDType>, BoolParam<IDType>, ChoiceParam<IDType>>;
 
+    /// Default constructor.
     ParameterSet() = default;
 
     /**
-     * @brief Add a float parameter
+     * @brief Add a float parameter.
+     * @param param FloatParam to add.
      */
     void add(FloatParam<IDType> param) {
-        params_.emplace_back(param);
-        indexMap_[param.id] = params_.size() - 1;
+        params.emplace_back(param);
+        indexMap[param.id] = params.size() - 1;
     }
 
     /**
-     * @brief Add an integer parameter
+     * @brief Add an integer parameter.
+     * @param param IntParam to add.
      */
     void add(IntParam<IDType> param) {
-        params_.emplace_back(param);
-        indexMap_[param.id] = params_.size() - 1;
+        params.emplace_back(param);
+        indexMap[param.id] = params.size() - 1;
     }
 
     /**
-     * @brief Add a boolean parameter
+     * @brief Add a boolean parameter.
+     * @param param BoolParam to add.
      */
     void add(BoolParam<IDType> param) {
-        params_.emplace_back(param);
-        indexMap_[param.id] = params_.size() - 1;
+        params.emplace_back(param);
+        indexMap[param.id] = params.size() - 1;
     }
 
     /**
-     * @brief Add a choice parameter
+     * @brief Add a choice parameter.
+     * @param param ChoiceParam to add.
      */
     void add(ChoiceParam<IDType> param) {
-        params_.emplace_back(param);
-        indexMap_[param.id] = params_.size() - 1;
+        params.emplace_back(param);
+        indexMap[param.id] = params.size() - 1;
     }
 
     /**
-     * @brief Get parameter by ID
+     * @brief Get parameter by ID.
+     * @param id Parameter ID.
+     * @return Reference to the parameter variant.
+     * @throws std::runtime_error if parameter ID not found.
      */
     const ParamVariant& get(IDType id) const {
-        auto it = indexMap_.find(id);
-        if (it == indexMap_.end()) {
+        auto it = indexMap.find(id);
+        if (it == indexMap.end()) {
             throw std::runtime_error("Parameter ID not found");
         }
-        return params_[it->second];
+        return params[it->second];
     }
 
     /**
-     * @brief Check if parameter exists
+     * @brief Check if parameter exists.
+     * @param id Parameter ID.
+     * @return true if parameter with given ID exists, false otherwise.
      */
-    bool has(IDType id) const { return indexMap_.find(id) != indexMap_.end(); }
+    bool has(IDType id) const { return indexMap.find(id) != indexMap.end(); }
 
     /**
      * @brief Get all parameters
+     * @return Const reference to vector of all parameter variants.
      */
-    const std::vector<ParamVariant>& getAll() const { return params_; }
+    const std::vector<ParamVariant>& getAll() const { return params; }
 
     /**
      * @brief Get number of parameters
+     * @return Number of parameters in the set.
      */
-    size_t size() const { return params_.size(); }
+    size_t size() const { return params.size(); }
 
   private:
-    std::vector<ParamVariant> params_;
-    std::unordered_map<IDType, size_t> indexMap_;
+    std::vector<ParamVariant> params;
+    std::unordered_map<IDType, size_t> indexMap;
 };
 
 } // namespace jnsc::juce_interface

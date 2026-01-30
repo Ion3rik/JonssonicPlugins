@@ -26,8 +26,13 @@ namespace jnsc::juce_interface {
 template <typename IDType>
 class VisualizerManager {
   public:
+    /// Type alias for value supplier function
     using ValueSupplier = std::function<float()>;
 
+    /**
+     * @brief Construct VisualizerManager with a given VisualizerSet.
+     * @param visualizers VisualizerSet defining the visualizers to manage.
+     */
     VisualizerManager(const VisualizerSet<IDType>& visualizers) : visualizerSet(visualizers) {
         // Helper for overloaded lambdas
         struct {
@@ -52,18 +57,22 @@ class VisualizerManager {
         }
     }
 
+    /// Destructor
     ~VisualizerManager() = default;
 
-    // Register a value supplier for a visualizer
-    void registerValueSupplier(IDType id, ValueSupplier supplier) {
-        suppliers[id] = std::move(supplier);
-    }
+    /**
+     * @brief Register a value supplier for a visualizer by ID.
+     * @param id Visualizer ID
+     * @param supplier Function that supplies the current value for the visualizer.
+     */
+    void registerValueSupplier(IDType id, ValueSupplier supplier) { suppliers[id] = std::move(supplier); }
 
     /**
      * @brief Get shared pointer to a visualizer state by ID
+     * @param id Visualizer ID
+     * @return Pointer to the visualizer state variant, or nullptr if not found
      */
-    using StateVariant =
-        std::variant<std::shared_ptr<LevelMeterState>, std::shared_ptr<GainReductionMeterState>>;
+    using StateVariant = std::variant<std::shared_ptr<LevelMeterState>, std::shared_ptr<GainReductionMeterState>>;
     const StateVariant* getState(IDType id) const {
         auto it = states.find(id);
         if (it != states.end())
@@ -73,7 +82,7 @@ class VisualizerManager {
 
     /**
      * @brief Update all visualizer states by polling their value suppliers
-     * This should be called from the audio thread regularly (e.g., once per processBlock)
+     * @note This should be called from the audio thread regularly (e.g., once per processBlock)
      */
     void update() noexcept {
         for (auto& [id, supplier] : suppliers) {
@@ -89,8 +98,10 @@ class VisualizerManager {
         }
     }
 
+    /// Get the VisualizerSet
     const VisualizerSet<IDType>& getVisualizerSet() const { return visualizerSet; }
 
+    /// Clear all visualizer states
     void clearStates() noexcept {
         for (auto& [id, stateVariant] : states) {
             std::visit(
@@ -108,4 +119,4 @@ class VisualizerManager {
     std::unordered_map<IDType, ValueSupplier> suppliers;
 };
 
-} // namespace jnsc::juce
+} // namespace jnsc::juce_interface

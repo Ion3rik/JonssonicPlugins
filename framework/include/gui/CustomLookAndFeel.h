@@ -11,6 +11,10 @@
 namespace jnsc::juce_interface {
 class CustomLookAndFeel : public juce::LookAndFeel_V4 {
   public:
+    /**
+     * @brief Constructor
+     * @param config Pointer to ControlPanelConfig for accessing configuration settings
+     */
     CustomLookAndFeel(const ControlPanelConfig* config) {
         // save pointer to config
         this->config = config;
@@ -30,10 +34,11 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
     }
 
     /**
-     * @brief Draws the main background with gradient, noise overlay, and logo.
+     * @brief Generates the main background with gradient, noise overlay, and logo.
      * Caches the generated background for efficient redrawing.
      * @param width Width of the area to draw.
      * @param height Height of the area to draw.
+     * @note Call this method when the component is resized to regenerate the background.
      */
     void generateMainBackground(int width, int height) {
         if (width <= 0 || height <= 0)
@@ -110,7 +115,11 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         }
     }
 
-    // Call this from paint() to draw the cached background
+    /**
+     * @brief Draws the cached main background onto the provided Graphics context.
+     * @param g Graphics context to draw onto.
+     * @note Call this from the JUCE component's paint() method.
+     */
     void drawCachedMainBackground(juce::Graphics& g) {
         if (cachedBackground.isValid())
             g.drawImageAt(cachedBackground, 0, 0);
@@ -128,9 +137,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         if (knobStrip.isValid() && numFrames > 0) {
             const int frameSize = knobStrip.getWidth();
             const int frame =
-                juce::jlimit(0,
-                             numFrames - 1,
-                             static_cast<int>(std::round(sliderPosProportional * (numFrames - 1))));
+                juce::jlimit(0, numFrames - 1, static_cast<int>(std::round(sliderPosProportional * (numFrames - 1))));
             const float scale = 1.0f;
             const int baseSize = std::min(width, height);
             const int size = static_cast<int>(baseSize * scale);
@@ -191,4 +198,4 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
     juce::Image logo;
     juce::Image cachedBackground;
 };
-} // namespace jnsc::juce
+} // namespace jnsc::juce_interface

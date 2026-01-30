@@ -1,5 +1,6 @@
 // Jonssonic Plugin Framework
-// Minimal JUCE header inclusion
+// Minimal JUCE header inclusion for lighter builds
+// SPDX-License-Identifier: MIT
 
 #pragma once
 

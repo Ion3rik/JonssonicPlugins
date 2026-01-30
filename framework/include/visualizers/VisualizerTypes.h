@@ -6,10 +6,12 @@
 #pragma once
 
 namespace jnsc::juce_interface {
+/**
+ * @brief Visualizer type definitions.
+ */
 
 /**
  * @brief Level meter type specification
- *
  * Defines a level meter visualizer with ID, name, and dB range.
  */
 template <typename IDType>

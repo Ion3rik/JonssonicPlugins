@@ -30,19 +30,27 @@ namespace jnsc::juce_interface {
  */
 class ControlPanel : public juce::Component {
   public:
+    /**
+     * @brief Constructor
+     * @param apvts Reference to the AudioProcessorValueTreeState
+     * @param config Configuration struct for panel layout settings
+     */
     ControlPanel(juce::AudioProcessorValueTreeState& apvts, const ControlPanelConfig& config)
         : apvts(apvts), config(config) {
         buildControls();
     }
 
+    /**
+     * @brief Paint the control panel.
+     * @param g Graphics context
+     */
     void paint(juce::Graphics& g) override {
         g.fillAll(config.backgroundColor);
 
         // Draw title if set
         if (config.title.isNotEmpty()) {
             g.setColour(juce::Colours::white);
-            juce::Font titleFont(
-                juce::FontOptions(config.fontName, config.titleHeight, juce::Font::bold));
+            juce::Font titleFont(juce::FontOptions(config.fontName, config.titleHeight, juce::Font::bold));
             g.setFont(titleFont);
 
             int justificationFlags = 0;
@@ -97,8 +105,7 @@ class ControlPanel : public juce::Component {
         // Draw subtitle if set
         if (config.subtitle.isNotEmpty()) {
             g.setColour(juce::Colours::white.withAlpha(1.0f));
-            juce::Font subtitleFont(
-                juce::FontOptions(config.fontName, config.subtitleHeight, juce::Font::plain));
+            juce::Font subtitleFont(juce::FontOptions(config.fontName, config.subtitleHeight, juce::Font::plain));
             g.setFont(subtitleFont);
 
             int justificationFlags = 0;
@@ -142,9 +149,10 @@ class ControlPanel : public juce::Component {
         }
     }
 
+    /// Resize calls @ref layoutControls.
     void resized() override { layoutControls(); }
 
-    // Access to created controls if needed
+    /// Access to created controls if needed
     juce::Component* getControlForParam(const juce::String& paramID) {
         auto it = controls.find(paramID);
         return it != controls.end() ? it->second : nullptr;
@@ -156,12 +164,9 @@ class ControlPanel : public juce::Component {
     std::vector<std::unique_ptr<juce::Component>> ownedControls;
     std::unordered_map<juce::String, juce::Component*> controls;
     std::vector<juce::Label*> labels;
-    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>>
-        sliderAttachments;
-    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>>
-        comboBoxAttachments;
-    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>>
-        buttonAttachments;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> sliderAttachments;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment>> comboBoxAttachments;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> buttonAttachments;
 
     void buildControls() {
         ownedControls.clear();
@@ -185,18 +190,14 @@ class ControlPanel : public juce::Component {
                 DBG("[ControlPanel] Attaching Slider to paramID: " + paramID);
                 auto* slider = new juce::Slider();
                 slider->setSliderStyle(juce::Slider::RotaryVerticalDrag);
-                slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow
-                                                              : juce::Slider::NoTextBox,
+                slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow : juce::Slider::NoTextBox,
                                         false,
                                         60,
                                         20);
                 slider->setTextValueSuffix(" " + floatParam->getLabel());
                 slider->setRange(floatParam->range.start, floatParam->range.end);
                 sliderAttachments.emplace_back(
-                    std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-                        apvts,
-                        paramID,
-                        *slider));
+                    std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *slider));
                 control.reset(slider);
             }
 
@@ -204,20 +205,14 @@ class ControlPanel : public juce::Component {
                 DBG("[ControlPanel] Attaching Slider to paramID: " + paramID);
                 auto* slider = new juce::Slider();
                 slider->setSliderStyle(juce::Slider::RotaryVerticalDrag);
-                slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow
-                                                              : juce::Slider::NoTextBox,
+                slider->setTextBoxStyle(config.showValueBoxes ? juce::Slider::TextBoxBelow : juce::Slider::NoTextBox,
                                         false,
                                         60,
                                         20);
                 slider->setTextValueSuffix(" " + intParam->getLabel());
-                slider->setRange(intParam->getNormalisableRange().start,
-                                 intParam->getNormalisableRange().end,
-                                 1);
+                slider->setRange(intParam->getNormalisableRange().start, intParam->getNormalisableRange().end, 1);
                 sliderAttachments.emplace_back(
-                    std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-                        apvts,
-                        paramID,
-                        *slider));
+                    std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *slider));
                 control.reset(slider);
             } else if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param)) {
                 DBG("[ControlPanel] Attaching ComboBox to paramID: " + paramID);
@@ -225,19 +220,13 @@ class ControlPanel : public juce::Component {
                 for (int i = 0; i < choiceParam->choices.size(); ++i)
                     combo->addItem(choiceParam->choices[i], i + 1);
                 comboBoxAttachments.emplace_back(
-                    std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-                        apvts,
-                        paramID,
-                        *combo));
+                    std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, paramID, *combo));
                 control.reset(combo);
             } else if (auto* boolParam = dynamic_cast<juce::AudioParameterBool*>(param)) {
                 DBG("[ControlPanel] Attaching Button to paramID: " + paramID);
                 auto* button = new juce::ToggleButton();
                 buttonAttachments.emplace_back(
-                    std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-                        apvts,
-                        paramID,
-                        *button));
+                    std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, paramID, *button));
                 control.reset(button);
             } else {
                 DBG("[ControlPanel] Skipping unknown param type for paramID: " + paramID);
@@ -248,8 +237,7 @@ class ControlPanel : public juce::Component {
                 auto* label = new juce::Label();
                 label->setText(param->getName(64), juce::dontSendNotification);
                 label->setJustificationType(juce::Justification::centred);
-                label->setFont(
-                    juce::Font(juce::FontOptions(config.fontName, 14.0f, config.fontStyle)));
+                label->setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, config.fontStyle)));
                 // Attach label to control for accessibility, but layout is handled manually
                 label->attachToComponent(control.get(), false);
                 labels.push_back(label);
@@ -263,16 +251,15 @@ class ControlPanel : public juce::Component {
     }
 
     void layoutControls() {
-        // Add panel margins
 
-        // Apply panel margins
+        // Add panel margins
         int x = config.panelMarginLeft + config.spacing;
         int y = config.panelMarginTop + config.spacing;
         int availableWidth = getWidth() - config.panelMarginLeft - config.panelMarginRight;
         int availableHeight = getHeight() - config.panelMarginTop - config.panelMarginBottom;
+
         // Add top margin before title if present
-        if (config.title.isNotEmpty() &&
-            config.titleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top) {
+        if (config.title.isNotEmpty() && config.titleVerticalPlacement == ControlPanelConfig::VerticalPlacement::Top) {
             y += config.titleMarginY; // top margin before title
             y += config.titleHeight;
             y += config.titleMarginY; // bottom margin after title
@@ -296,8 +283,7 @@ class ControlPanel : public juce::Component {
             int cx = x + col * (width + config.spacing);
             int cy = y;
 
-            label->setFont(
-                juce::Font(juce::FontOptions(config.fontName, (float)labelH, config.fontStyle)));
+            label->setFont(juce::Font(juce::FontOptions(config.fontName, (float)labelH, config.fontStyle)));
 
             // For toggle buttons, place checkbox left and label right in the same row
             if (dynamic_cast<juce::ToggleButton*>(control)) {
@@ -307,8 +293,7 @@ class ControlPanel : public juce::Component {
                 int toggleX = cx + (width - toggleW - labelW); // center the pair
                 int labelX = toggleX + toggleW + 8;
                 int rowH = std::max(labelH, toggleH);
-                int rowY =
-                    cy; // position below where the label would be (for consistency with sliders)
+                int rowY = cy; // position below where the label would be (for consistency with sliders)
                 control->setBounds(toggleX, rowY, toggleW, toggleH);
                 label->setBounds(labelX, rowY, labelW, rowH);
                 label->setJustificationType(juce::Justification::centredLeft);

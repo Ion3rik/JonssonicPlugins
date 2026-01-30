@@ -2,16 +2,22 @@
 #include <juce_core/juce_core.h>
 
 namespace jnsc::juce_interface {
-// Returns the full path to a resource file (e.g., "logos/Jonssonic_logo.png")
-// Handles macOS bundles, Windows VST3, and Standalone
+/**
+ * @brief Utility functions for accessing plugin resources.
+ */
+
+/**
+ * @brief Get resource file path within the plugin bundle
+ * @param relativePath Relative path within Resources folder (e.g., "logos/Jonssonic_logo.png")
+ * @return juce::File pointing to the resource
+ */
 inline juce::File getResourceFile(const juce::String& relativePath) {
 #if JUCE_MAC
     return juce::File::getSpecialLocation(juce::File::currentApplicationFile)
         .getChildFile("Contents/Resources/")
         .getChildFile(relativePath);
 #elif JUCE_WINDOWS
-    auto exeDir =
-        juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory();
+    auto exeDir = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory();
     juce::File vst3Bundle = exeDir.getParentDirectory().getParentDirectory();
     if (vst3Bundle.getFileName().endsWithIgnoreCase(".vst3")) {
         return vst3Bundle.getChildFile("Resources").getChildFile(relativePath);

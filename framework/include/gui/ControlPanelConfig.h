@@ -100,19 +100,15 @@ struct ControlPanelConfig {
      * @brief Default constructor initializes all fields to sensible defaults.
      */
     ControlPanelConfig()
-        : columns(3), panelMarginLeft(0), panelMarginRight(0), panelMarginTop(0),
-          panelMarginBottom(0), showValueBoxes(true), controlHeight(80), labelHeight(15),
-          spacing(0), title("JONSSONIC"), titleHeight(40), subtitle("PLUGIN"), subtitleHeight(20),
-          titleVerticalPlacement(VerticalPlacement::Top),
-          titleHorizontalPlacement(HorizontalPlacement::Left),
-          subtitleVerticalPlacement(VerticalPlacement::Bottom),
-          subtitleHorizontalPlacement(HorizontalPlacement::Right), titleMarginX(60),
-          titleMarginY(15), subtitleMarginX(30), subtitleMarginY(15),
-          logoVerticalPlacement(VerticalPlacement::Top),
-          logoHorizontalPlacement(HorizontalPlacement::Left), logoMarginX(15), logoMarginY(15),
-          logoHeight(40), backgroundColor(juce::Colours::transparentBlack),
-          gradientBaseColour(juce::Colours::darkgrey), fontName("Avenir"),
-          fontStyle(juce::Font::plain) {}
+        : columns(3), panelMarginLeft(0), panelMarginRight(0), panelMarginTop(0), panelMarginBottom(0),
+          showValueBoxes(true), controlHeight(80), labelHeight(15), spacing(0), title("JONSSONIC"), titleHeight(40),
+          subtitle("PLUGIN"), subtitleHeight(20), titleVerticalPlacement(VerticalPlacement::Top),
+          titleHorizontalPlacement(HorizontalPlacement::Left), subtitleVerticalPlacement(VerticalPlacement::Bottom),
+          subtitleHorizontalPlacement(HorizontalPlacement::Right), titleMarginX(60), titleMarginY(15),
+          subtitleMarginX(30), subtitleMarginY(15), logoVerticalPlacement(VerticalPlacement::Top),
+          logoHorizontalPlacement(HorizontalPlacement::Left), logoMarginX(15), logoMarginY(15), logoHeight(40),
+          backgroundColor(juce::Colours::transparentBlack), gradientBaseColour(juce::Colours::darkgrey),
+          fontName("Avenir"), fontStyle(juce::Font::plain) {}
 };
 
-} // namespace jnsc::juce
+} // namespace jnsc::juce_interface

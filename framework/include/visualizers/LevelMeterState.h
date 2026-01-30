@@ -11,7 +11,6 @@ namespace jnsc::juce_interface {
 
 /**
  * @brief Thread-safe state for the LevelMeterComponent.
- *
  * Audio thread writes, GUI reads. No locks, no allocations.
  * Extend with more fields as needed (e.g. RMS, hold, timestamp).
  */
@@ -29,20 +28,17 @@ struct LevelMeterState {
     std::atomic<size_t> lastUpdateSample{0};
 
     /**
-     * @brief dB range for the meter
+     * @brief dB range for the meter.
+     * @param minDb Minimum dB value for the meter.
+     * @param maxDb Maximum dB value for the meter.
      */
     float minDb{-60.0f}; // Minimum dB value for the meter
-    float maxDb{20.0f};  // Maximum dB value for the meter
+    float maxDb{20.0f};
 
-    /**
-     * @brief Label for the meter
-     */
-
+    /// Optional label for the meter.
     std::string label;
 
-    /**
-     * @brief Clear the meter state
-     */
+    /// Clear the meter state (reset levels to 0.0).
     void clear() noexcept {
         level.store(0.0f, std::memory_order_relaxed);
         peak.store(0.0f, std::memory_order_relaxed);
@@ -51,4 +47,4 @@ struct LevelMeterState {
     }
 };
 
-} // namespace jnsc::juce
+} // namespace jnsc::juce_interface
