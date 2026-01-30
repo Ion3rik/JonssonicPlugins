@@ -1,15 +1,13 @@
 #pragma once
 
-#include <MinimalJuceHeader.h>
-#include <Jonssonic/core/common/AudioBuffer.h>
-#include <Jonssonic/core/mixing/DryWetMixer.h>
-#include <parameters/ParameterManager.h>
 #include "Params.h"
+#include <MinimalJuceHeader.h>
+#include <jonssonic/core/common/audio_buffer.h>
+#include <jonssonic/core/mixing/dry_wet_mixer.h>
+#include <parameters/ParameterManager.h>
 
-
-class TemplateAudioProcessor : public juce::AudioProcessor
-{
-public:
+class TemplateAudioProcessor : public juce::AudioProcessor {
+  public:
     TemplateAudioProcessor();
     ~TemplateAudioProcessor() override;
 
@@ -19,7 +17,6 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -35,17 +32,16 @@ public:
     const juce::String getProgramName(int) override;
     void changeProgramName(int, const juce::String&) override;
     //==============================================================================
-    
+
     // Parameter access for editor
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
-private:
+  private:
     // DSP objects and buffers
-    Jonssonic::AudioBuffer<float> fxBuffer; // Buffer for effect processing
-    Jonssonic::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
-    
-    // Parameter manager
-    Jonssonic::ParameterManager<TemplateParams::ID> parameterManager;
+    jnsc::AudioBuffer<float> fxBuffer;    // Buffer for effect processing
+    jnsc::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
 
+    // Parameter manager
+    jnsc::juce_interface::ParameterManager<TemplateParams::ID> parameterManager;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TemplateAudioProcessor)
 };
