@@ -1,0 +1,107 @@
+name: Build and Release Plugins
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            preset_configure: mac-fetch-dsp-release
+            preset_build: mac-build-fetch-release
+            artifact_name: JonssonicPlugins-macOS
+          - os: windows-latest
+            preset_configure: win-fetch-dsp-release
+            preset_build: win-build-fetch-release
+            artifact_name: JonssonicPlugins-Windows
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Setup MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure CMake
+        run: cmake --preset ${{ matrix.preset_configure }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset_build }}
+
+      - name: Package macOS plugins
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p release-package
+          # Copy all Standalone apps and AU plugins
+          find build/fetch-release -name "*.app" -type d -exec cp -R {} release-package/ \;
+          find build/fetch-release -name "*.component" -type d -exec cp -R {} release-package/ \;
+          # Create zip
+          cd release-package
+          zip -r ../${{ matrix.artifact_name }}.zip .
+          cd ..
+
+      - name: Package Windows plugins
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-package
+          # Copy all Standalone .exe and VST3 plugins
+          Get-ChildItem -Path build/fetch-release -Recurse -Include "*.exe" | Where-Object { $_.Directory.Name -eq "Release" } | Copy-Item -Destination release-package
+          Get-ChildItem -Path build/fetch-release -Recurse -Directory -Filter "*.vst3" | Copy-Item -Destination release-package -Recurse
+          # Create zip
+          Compress-Archive -Path release-package/* -DestinationPath ${{ matrix.artifact_name }}.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.zip
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/JonssonicPlugins-macOS/JonssonicPlugins-macOS.zip
+            artifacts/JonssonicPlugins-Windows/JonssonicPlugins-Windows.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## Download
+            
+            ### macOS
+            - Download `JonssonicPlugins-macOS.zip`
+            - Contains Standalone apps and AU plugins
+            - Extract and copy .app to Applications, .component to ~/Library/Audio/Plug-Ins/Components/
+            
+            ### Windows
+            - Download `JonssonicPlugins-Windows.zip`
+            - Contains Standalone .exe and VST3 plugins
+            - Extract and copy .vst3 to C:\Program Files\Common Files\VST3\
