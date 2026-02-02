@@ -1,13 +1,11 @@
 #pragma once
-#include <JuceHeader.h>
-#include <Jonssonic/core/filters/BiquadFilter.h>
-#include <parameters/ParameterManager.h>
 #include "Params.h"
+#include <MinimalJuceHeader.h>
+#include <jonssonic/core/filters/biquad_filter.h>
+#include <parameters/ParameterManager.h>
 
-
-class BiquadDemoAudioProcessor : public juce::AudioProcessor
-{
-public:
+class BiquadDemoAudioProcessor : public juce::AudioProcessor {
+  public:
     BiquadDemoAudioProcessor();
     ~BiquadDemoAudioProcessor() override;
 
@@ -17,7 +15,6 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -33,15 +30,15 @@ public:
     const juce::String getProgramName(int) override;
     void changeProgramName(int, const juce::String&) override;
     //==============================================================================
-    
+
     // Parameter access for editor
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
-private:
-    Jonssonic::BiquadFilter<float> biquadFilter; // Biquad filter
-    
+  private:
+    jnsc::BiquadFilter<float> biquadFilter; // Biquad filter
+
     // Parameter manager
-    Jonssonic::ParameterManager<BiquadDemoParams::ID> parameterManager;
+    jnsc::juce_interface::ParameterManager<BiquadDemoParams::ID> parameterManager;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BiquadDemoAudioProcessor)
 };
