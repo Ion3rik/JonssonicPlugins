@@ -1,9 +1,12 @@
 # JonssonicPlugins
 A plugin development framework and collection of audio effects built with [JonssonicDSP](https://github.com/Ion3rik/JonssonicDSP), JUCE, and CMake. Includes a lightweight framework for rapid plugin development with automatic parameter management and GUI generation. 
 
+## Example Plugins
+- Delay, Flanger, Reverb, EQ, Compressor, Distortion.
+
 ## Framework
 
-This project includes the **JonssonicFramework** - a lightweight framework that simplifies plugin development by providing:
+This project includes the **jnsc::juce_interface** - a lightweight framework that simplifies plugin development with JUCE by providing:
 
 - **ParameterManager**: Type-safe parameter management with automatic APVTS integration and thread-safe updates
 - **ControlPanel**: Automatic GUI generation from parameters with customizable layouts
