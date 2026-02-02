@@ -59,3 +59,13 @@ The script will:
    # Or build all plugins in the repo
    cmake --build build/fetch-debug
    ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Copyright Notice
+
+**Code:** © 2025 Jon Fagerström - Licensed under the MIT License
+
+**Logo and Branding:** The Jonssonic logo and brand assets in the `resources/logos/` directory are © 2025 Jon Fagerström. All rights reserved. These assets may not be used without explicit permission, even when using the code under the MIT License.
