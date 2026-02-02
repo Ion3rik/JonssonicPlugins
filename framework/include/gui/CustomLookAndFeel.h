@@ -125,6 +125,18 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
             g.drawImageAt(cachedBackground, 0, 0);
     }
 
+    /**
+     * @brief Custom drawing for rotary sliders using a knob strip image.
+     * @param g Graphics context
+     * @param x X position of the slider
+     * @param y Y position of the slider
+     * @param width Width of the slider
+     * @param height Height of the slider
+     * @param sliderPosProportional Proportional position of the slider (0.0 to 1.0)
+     * @param rotaryStartAngle Start angle for the rotary slider
+     * @param rotaryEndAngle End angle for the rotary slider
+     * @param slider Reference to the slider being drawn
+     */
     void drawRotarySlider(juce::Graphics& g,
                           int x,
                           int y,
@@ -167,6 +179,11 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         }
     }
 
+    /**
+     * @brief Custom drawing for labels with rounded corners and custom styling.
+     * @param g Graphics context
+     * @param label Label to draw
+     */
     void drawLabel(juce::Graphics& g, juce::Label& label) override {
         auto& lf = getDefaultLookAndFeel();
         auto text = label.getText();
@@ -186,6 +203,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         g.drawFittedText(text, label.getLocalBounds(), label.getJustificationType(), 1);
     }
 
+    /**
+     * @brief Sets a custom knob strip image for rotary sliders.
+     * @param image Image containing the knob strip (vertical frames).
+     */
     void setKnobStrip(const juce::Image& image) {
         knobStrip = image;
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;

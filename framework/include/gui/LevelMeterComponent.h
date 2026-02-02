@@ -20,16 +20,21 @@ class LevelMeterComponent : public juce::Component, private juce::Timer {
      * @param state Shared pointer to the state to poll (must not be null)
      * @param refreshHz Polling rate in Hz (default 30)
      */
-    explicit LevelMeterComponent(std::shared_ptr<const LevelMeterState> state,
-                                 int newRefreshHz = 30)
+    explicit LevelMeterComponent(std::shared_ptr<const LevelMeterState> state, int newRefreshHz = 30)
         : levelState(std::move(state)), refreshHz(newRefreshHz) {
         setOpaque(false);
         jassert(levelState != nullptr); // Enforce non-null state
         if (levelState)
             startTimerHz(refreshHz);
     }
+
+    /// Default destructor
     ~LevelMeterComponent() override = default;
 
+    /**
+     * @brief Paint the level meter.
+     * @param g Graphics context
+     */
     void paint(juce::Graphics& g) override {
         auto bounds = getLocalBounds().toFloat();
 
@@ -57,9 +62,7 @@ class LevelMeterComponent : public juce::Component, private juce::Timer {
             // DRAW HOLD INDICATOR
             float holdDb = juce::Decibels::gainToDecibels(holdLevel, levelState->minDb);
             float holdNorm =
-                juce::jlimit(0.0f,
-                             1.0f,
-                             juce::jmap(holdDb, levelState->minDb, levelState->maxDb, 0.0f, 1.0f));
+                juce::jlimit(0.0f, 1.0f, juce::jmap(holdDb, levelState->minDb, levelState->maxDb, 0.0f, 1.0f));
             float holdY = meterBarBounds.getY() + meterBarBounds.getHeight() * (1.0f - holdNorm);
             g.setColour(juce::Colours::orange.withAlpha(0.9f));
             g.drawLine(meterBarBounds.getX(), holdY, meterBarBounds.getRight(), holdY, 2.0f);
@@ -107,6 +110,7 @@ class LevelMeterComponent : public juce::Component, private juce::Timer {
         }
     }
 
+    /// Resize does nothing special
     void resized() override {}
 
   private:
@@ -120,19 +124,13 @@ class LevelMeterComponent : public juce::Component, private juce::Timer {
     // Pointer to the shared level meter state
     std::shared_ptr<const LevelMeterState> levelState;
 
-    /**
-     * @brief Set the current level and repaint
-     * @param newLevel New level value (0.0 to 1.0)
-     */
+    // Set the current level (0.0 to 1.0)
     void setLevel(float newLevel) {
         level = juce::jlimit(0.0f, 1.0f, newLevel);
         repaint();
     }
 
-    /**
-     * @brief Timer callback to poll level state
-     * Reads the level from LevelMeterState and updates the display.
-     */
+    // Timer callback to poll the LevelMeterState
     void timerCallback() override {
         if (!levelState)
             return;
