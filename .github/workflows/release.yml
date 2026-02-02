@@ -39,8 +39,17 @@ jobs:
       - name: Configure CMake
         run: cmake --preset ${{ matrix.preset_configure }}
 
-      - name: Build
-        run: cmake --build --preset ${{ matrix.preset_build }}
+      - name: Build macOS plugins
+        if: runner.os == 'macOS'
+        run: |
+          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_Standalone
+          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_AU
+
+      - name: Build Windows plugins
+        if: runner.os == 'Windows'
+        run: |
+          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_Standalone
+          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_VST3
 
       - name: Package macOS plugins
         if: runner.os == 'macOS'
