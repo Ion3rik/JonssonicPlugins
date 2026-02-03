@@ -55,9 +55,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p release-package
-          # Copy only actual plugin builds (exclude demos and template)
-          find build/fetch-release/plugins -name "*.app" -type d -exec cp -R {} release-package/ \;
-          find build/fetch-release/plugins -name "*.component" -type d -exec cp -R {} release-package/ \;
+          # Copy only actual plugin builds (exclude demos and _Template)
+          find build/fetch-release/plugins -name "*.app" -type d ! -path "*/_Template/*" ! -path "*/BiquadDemo/*" ! -path "*/OversamplingDemo/*" -exec cp -R {} release-package/ \;
+          find build/fetch-release/plugins -name "*.component" -type d ! -path "*/_Template/*" ! -path "*/BiquadDemo/*" ! -path "*/OversamplingDemo/*" -exec cp -R {} release-package/ \;
           # Create zip
           cd release-package
           zip -r ../${{ matrix.artifact_name }}.zip .
@@ -68,9 +68,28 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release-package
-          # Copy only actual plugin builds from plugins directory (exclude demos and template)
-          Get-ChildItem -Path build/fetch-release/plugins -Recurse -Include "*.exe" | Where-Object { $_.Directory.Name -eq "Release" } | Copy-Item -Destination release-package
-          Get-ChildItem -Path build/fetch-release/plugins -Recurse -Directory -Filter "*.vst3" | Copy-Item -Destination release-package -Recurse
+          
+          # Package each plugin (exclude _Template and demos)
+          $pluginDirs = Get-ChildItem -Path build/fetch-release/plugins -Directory | Where-Object { 
+            $_.Name -notlike "_*" -and $_.Name -notlike "*Demo"
+          }
+          
+          foreach ($pluginDir in $pluginDirs) {
+            $pluginName = $pluginDir.Name
+            
+            # Find and copy Standalone .exe (in bin/Release)
+            $exePath = "build/fetch-release/bin/Release/$pluginName.exe"
+            if (Test-Path $exePath) {
+              Copy-Item $exePath -Destination "release-package/$pluginName.exe"
+            }
+            
+            # Find and copy VST3 bundle with resources
+            $vst3Path = Get-ChildItem -Path $pluginDir.FullName -Recurse -Directory -Filter "$pluginName.vst3" | Select-Object -First 1
+            if ($vst3Path) {
+              Copy-Item $vst3Path.FullName -Destination "release-package/$pluginName.vst3" -Recurse
+            }
+          }
+          
           # Create zip
           Compress-Archive -Path release-package/* -DestinationPath ${{ matrix.artifact_name }}.zip
 
