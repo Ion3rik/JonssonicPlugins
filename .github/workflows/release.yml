@@ -55,9 +55,9 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p release-package
-          # Copy all Standalone apps and AU plugins
-          find build/fetch-release -name "*.app" -type d -exec cp -R {} release-package/ \;
-          find build/fetch-release -name "*.component" -type d -exec cp -R {} release-package/ \;
+          # Copy only actual plugin builds (exclude demos and template)
+          find build/fetch-release/plugins -name "*.app" -type d -exec cp -R {} release-package/ \;
+          find build/fetch-release/plugins -name "*.component" -type d -exec cp -R {} release-package/ \;
           # Create zip
           cd release-package
           zip -r ../${{ matrix.artifact_name }}.zip .
@@ -68,9 +68,9 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path release-package
-          # Copy all Standalone .exe and VST3 plugins
-          Get-ChildItem -Path build/fetch-release -Recurse -Include "*.exe" | Where-Object { $_.Directory.Name -eq "Release" } | Copy-Item -Destination release-package
-          Get-ChildItem -Path build/fetch-release -Recurse -Directory -Filter "*.vst3" | Copy-Item -Destination release-package -Recurse
+          # Copy only actual plugin builds from plugins directory (exclude demos and template)
+          Get-ChildItem -Path build/fetch-release/plugins -Recurse -Include "*.exe" | Where-Object { $_.Directory.Name -eq "Release" } | Copy-Item -Destination release-package
+          Get-ChildItem -Path build/fetch-release/plugins -Recurse -Directory -Filter "*.vst3" | Copy-Item -Destination release-package -Recurse
           # Create zip
           Compress-Archive -Path release-package/* -DestinationPath ${{ matrix.artifact_name }}.zip
 
