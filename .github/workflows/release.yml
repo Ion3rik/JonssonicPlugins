@@ -69,26 +69,49 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path release-package
           
+          # Debug: Show what we're working with
+          Write-Host "=== Searching for plugins ==="
+          Get-ChildItem -Path build/fetch-release/plugins -Directory | ForEach-Object { Write-Host "Found plugin dir: $($_.Name)" }
+          
           # Package each plugin (exclude _Template and demos)
           $pluginDirs = Get-ChildItem -Path build/fetch-release/plugins -Directory | Where-Object { 
             $_.Name -notlike "_*" -and $_.Name -notlike "*Demo"
           }
           
+          Write-Host "`n=== Processing plugins ==="
           foreach ($pluginDir in $pluginDirs) {
             $pluginName = $pluginDir.Name
+            Write-Host "Processing: $pluginName"
             
-            # Find and copy Standalone .exe (in bin/Release)
+            # Find and copy Standalone .exe (in bin/Release or plugins/<name>/Release)
             $exePath = "build/fetch-release/bin/Release/$pluginName.exe"
+            Write-Host "  Checking for .exe at: $exePath"
             if (Test-Path $exePath) {
+              Write-Host "  Found .exe, copying..."
               Copy-Item $exePath -Destination "release-package/$pluginName.exe"
+            } else {
+              Write-Host "  .exe not found at expected path"
+              # Try alternative path
+              $altExePath = Get-ChildItem -Path $pluginDir.FullName -Recurse -Filter "$pluginName.exe" | Select-Object -First 1
+              if ($altExePath) {
+                Write-Host "  Found .exe at alternative path: $($altExePath.FullName)"
+                Copy-Item $altExePath.FullName -Destination "release-package/$pluginName.exe"
+              }
             }
             
             # Find and copy VST3 bundle with resources
+            Write-Host "  Searching for .vst3 in: $($pluginDir.FullName)"
             $vst3Path = Get-ChildItem -Path $pluginDir.FullName -Recurse -Directory -Filter "$pluginName.vst3" | Select-Object -First 1
             if ($vst3Path) {
+              Write-Host "  Found .vst3 at: $($vst3Path.FullName)"
               Copy-Item $vst3Path.FullName -Destination "release-package/$pluginName.vst3" -Recurse
+            } else {
+              Write-Host "  .vst3 not found"
             }
           }
+          
+          Write-Host "`n=== Contents of release-package ==="
+          Get-ChildItem -Path release-package -Recurse | ForEach-Object { Write-Host $_.FullName }
           
           # Create zip
           Compress-Archive -Path release-package/* -DestinationPath ${{ matrix.artifact_name }}.zip
