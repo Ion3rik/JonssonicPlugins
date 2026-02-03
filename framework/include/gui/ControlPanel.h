@@ -91,12 +91,12 @@ class ControlPanel : public juce::Component {
             g.setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, juce::Font::plain)));
             juce::GlyphArrangement glyphs;
             glyphs.addLineOfText(g.getCurrentFont(), versionStr, 0.0f, 0.0f);
-            float textWidth = glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), true).getWidth();
+            int textWidth = (int)glyphs.getBoundingBox(0, glyphs.getNumGlyphs(), true).getWidth();
             int textHeight = (int)g.getCurrentFont().getHeight();
             g.drawText(versionStr,
-                       getWidth() - (int)textWidth - margin,
+                       getWidth() - textWidth - margin - 20, // Extra padding
                        margin,
-                       (int)textWidth,
+                       textWidth + 20,
                        textHeight,
                        juce::Justification::topRight,
                        false);
