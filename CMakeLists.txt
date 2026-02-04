@@ -100,9 +100,6 @@ FetchContent_MakeAvailable(juce)
 # ============================================================
 # Framework Library
 # ============================================================
-
-
-
 add_subdirectory(framework)
 
 # ============================================================
@@ -231,6 +228,40 @@ function(add_plugin target)
             endif()
         endforeach()
     endif()
+    
+    # ===================== Install Rules for Packaging =====================
+    # Install Standalone executables
+    if(TARGET ${target}_Standalone)
+        if(APPLE)
+            install(TARGETS ${target}_Standalone
+                    BUNDLE DESTINATION bin
+                    COMPONENT ${target})
+        else()
+            install(TARGETS ${target}_Standalone
+                    RUNTIME DESTINATION bin
+                    COMPONENT ${target})
+        endif()
+    endif()
+    
+    # Install VST3 plugins
+    if(TARGET ${target}_VST3)
+        install(TARGETS ${target}_VST3
+                LIBRARY DESTINATION vst3
+                COMPONENT ${target})
+        # Install resources for Windows VST3
+        if(AP_RESOURCES AND WIN32)
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/
+                    DESTINATION vst3/${AP_PROD_NAME}.vst3/resources
+                    COMPONENT ${target})
+        endif()
+    endif()
+    
+    # Install AU plugins (macOS only)
+    if(TARGET ${target}_AU AND APPLE)
+        install(TARGETS ${target}_AU
+                LIBRARY DESTINATION au
+                COMPONENT ${target})
+    endif()
 endfunction(add_plugin)
 
 # ============================================================
@@ -296,6 +327,7 @@ if(PROJECT_IS_TOP_LEVEL)
 else()
     message(STATUS "Skipping example plugins and demos (not top-level project)")
 endif()
+
 
 
 
