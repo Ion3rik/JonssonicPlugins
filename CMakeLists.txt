@@ -73,6 +73,8 @@ else()
     message(STATUS "Fetching DSP from GitHub")
 
     include(FetchContent)
+    
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
     FetchContent_Declare(
         mydsp
