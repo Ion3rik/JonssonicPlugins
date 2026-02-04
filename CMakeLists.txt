@@ -74,7 +74,8 @@ else()
 
     include(FetchContent)
     
-    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(JONSSONIC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(JONSSONIC_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
     FetchContent_Declare(
         mydsp
