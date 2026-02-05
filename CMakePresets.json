@@ -20,8 +20,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "USE_LOCAL_DSP": "OFF",
         "BUILD_TESTING": "OFF",
-        "BUILD_EXAMPLES": "OFF",
-        "BUILD_DEMOS": "OFF"
+        "BUILD_EXAMPLES": "OFF"
       }
     },
     {
@@ -63,8 +62,7 @@
       "cacheVariables": {
         "USE_LOCAL_DSP": "OFF",
         "BUILD_TESTING": "OFF",
-        "BUILD_EXAMPLES": "OFF",
-        "BUILD_DEMOS": "OFF"
+        "BUILD_EXAMPLES": "OFF"
       }
     },
     {

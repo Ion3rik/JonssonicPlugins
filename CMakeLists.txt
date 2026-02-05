@@ -54,9 +54,6 @@ set(company_copyright "Jonssonic © 2025")
 set(company_code "JONS")
 set(company_bundle_id "com.jonssonic")
 
-# Build options
-option(BUILD_DEMOS "Build demo plugins" ON)
-
 
 # ============================================================
 # JonssonicDSP LIBRARY (Safe Hybrid Mode)
@@ -76,9 +73,6 @@ else()
     message(STATUS "Fetching DSP from GitHub")
 
     include(FetchContent)
-    
-    set(JONSSONIC_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(JONSSONIC_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
     FetchContent_Declare(
         mydsp
@@ -106,6 +100,9 @@ FetchContent_MakeAvailable(juce)
 # ============================================================
 # Framework Library
 # ============================================================
+
+
+
 add_subdirectory(framework)
 
 # ============================================================
@@ -234,34 +231,6 @@ function(add_plugin target)
             endif()
         endforeach()
     endif()
-    
-    # ===================== Install Rules for Packaging =====================
-    # Install Standalone executables
-    if(TARGET ${target}_Standalone)
-        if(APPLE)
-            install(TARGETS ${target}_Standalone
-                    BUNDLE DESTINATION bin
-                    COMPONENT ${target})
-        else()
-            install(TARGETS ${target}_Standalone
-                    RUNTIME DESTINATION bin
-                    COMPONENT ${target})
-        endif()
-    endif()
-    
-    # Install VST3 plugins
-    if(TARGET ${target}_VST3)
-        install(TARGETS ${target}_VST3
-                LIBRARY DESTINATION vst3
-                COMPONENT ${target})
-    endif()
-    
-    # Install AU plugins (macOS only)
-    if(TARGET ${target}_AU AND APPLE)
-        install(TARGETS ${target}_AU
-                LIBRARY DESTINATION au
-                COMPONENT ${target})
-    endif()
 endfunction(add_plugin)
 
 # ============================================================
@@ -271,19 +240,16 @@ if(PROJECT_IS_TOP_LEVEL)
     message(STATUS "Building example plugins...")
     
 
-    # Scan all folders inside plugins/ and automatically add them as subdirectories, filtering out _ and . prefixed dirs
+    # Scan all folders inside plugins/ and automatically add them as subdirectories (do not filter here)
     file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
     foreach(plugin_dir IN LISTS plugin_dirs)
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
-            string(SUBSTRING "${plugin_dir}" 0 1 first_char)
-            if(NOT first_char STREQUAL "." AND NOT first_char STREQUAL "_")
-                message(STATUS "Adding plugin directory: ${plugin_dir}")
-                add_subdirectory(plugins/${plugin_dir})
-            endif()
+            message(STATUS "Adding plugin directory: ${plugin_dir}")
+            add_subdirectory(plugins/${plugin_dir})
         endif()
     endforeach()
 
-    # Collect all valid plugin directories for custom targets
+    # Now filter for valid_plugin_dirs (for ALL_PLUGIN_TARGETS etc.)
     set(valid_plugin_dirs "")
     foreach(plugin_dir IN LISTS plugin_dirs)
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
@@ -317,23 +283,19 @@ if(PROJECT_IS_TOP_LEVEL)
     # ============================================================
     # DEMOS (Only build when this is the top-level project)
     # ============================================================
-    if(BUILD_DEMOS)
-        # Scan all folders inside demos/ and automatically add them as subdirectories
-        file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
 
-        foreach(demo_dir IN LISTS demo_dirs)
-            if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/demos/${demo_dir}")
-                message(STATUS "Adding demo directory: ${demo_dir}")
-                add_subdirectory(demos/${demo_dir})
-            endif()
-        endforeach()
-    else()
-        message(STATUS "Skipping demos (BUILD_DEMOS=OFF)")
-    endif()
+    # Scan all folders inside demos/ and automatically add them as subdirectories
+    file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
+
+    foreach(demo_dir IN LISTS demo_dirs)
+        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/demos/${demo_dir}")
+            message(STATUS "Adding demo directory: ${demo_dir}")
+            add_subdirectory(demos/${demo_dir})
+        endif()
+    endforeach()
 else()
     message(STATUS "Skipping example plugins and demos (not top-level project)")
 endif()
-
 
 
 
