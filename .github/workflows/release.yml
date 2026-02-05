@@ -28,9 +28,7 @@ jobs:
       
       - name: Package AU Plugins
         run: |
-          mkdir -p JonssonicPlugins_macOS_AU
-          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} JonssonicPlugins_macOS_AU/ \;
-          ditto -c -k --sequesterRsrc --keepParent JonssonicPlugins_macOS_AU JonssonicPlugins_macOS_AU.zip
+          ditto -c -k --sequesterRsrc --keepParent build/fetch-release/release-staging/AU JonssonicPlugins_macOS_AU.zip
       
       - name: Upload AU artifacts
         uses: actions/upload-artifact@v4
@@ -60,9 +58,7 @@ jobs:
       
       - name: Package VST3 Plugins
         run: |
-          New-Item -ItemType Directory -Force -Path release
-          Get-ChildItem -Path build/fetch-release/plugins -Filter "*.vst3" -Recurse -Directory | Where-Object { $_.FullName -like "*\Release\VST3\*" } | Copy-Item -Destination release -Recurse -Force
-          Compress-Archive -Path release\* -DestinationPath JonssonicPlugins_Windows_VST3.zip
+          Compress-Archive -Path build\fetch-release\release-staging\VST3\* -DestinationPath JonssonicPlugins_Windows_VST3.zip
         shell: pwsh
       
       - name: Upload VST3 artifacts

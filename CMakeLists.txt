@@ -231,6 +231,24 @@ function(add_plugin target)
             endif()
         endforeach()
     endif()
+    
+    # ===================== Release Staging =====================
+    # Copy AU and VST3 plugins to a release staging directory for easy packaging
+    if(APPLE AND TARGET ${target}_AU)
+        add_custom_command(TARGET ${target}_AU POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/AU"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:${target}_AU>" "${CMAKE_BINARY_DIR}/release-staging/AU/${AP_PROD_NAME}.component"
+            COMMENT "Staging ${AP_PROD_NAME}.component for release"
+            VERBATIM)
+    endif()
+    
+    if(TARGET ${target}_VST3)
+        add_custom_command(TARGET ${target}_VST3 POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/VST3"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:${target}_VST3>" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
+            COMMENT "Staging ${AP_PROD_NAME}.vst3 for release"
+            VERBATIM)
+    endif()
 endfunction(add_plugin)
 
 # ============================================================
