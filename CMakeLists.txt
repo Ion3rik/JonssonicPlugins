@@ -268,16 +268,19 @@ if(PROJECT_IS_TOP_LEVEL)
     message(STATUS "Building example plugins...")
     
 
-    # Scan all folders inside plugins/ and automatically add them as subdirectories (do not filter here)
+    # Scan all folders inside plugins/ and automatically add them as subdirectories, filtering out _ and . prefixed dirs
     file(GLOB plugin_dirs RELATIVE ${CMAKE_SOURCE_DIR}/plugins ${CMAKE_SOURCE_DIR}/plugins/*)
     foreach(plugin_dir IN LISTS plugin_dirs)
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
-            message(STATUS "Adding plugin directory: ${plugin_dir}")
-            add_subdirectory(plugins/${plugin_dir})
+            string(SUBSTRING "${plugin_dir}" 0 1 first_char)
+            if(NOT first_char STREQUAL "." AND NOT first_char STREQUAL "_")
+                message(STATUS "Adding plugin directory: ${plugin_dir}")
+                add_subdirectory(plugins/${plugin_dir})
+            endif()
         endif()
     endforeach()
 
-    # Now filter for valid_plugin_dirs (for ALL_PLUGIN_TARGETS etc.)
+    # Collect all valid plugin directories for custom targets
     set(valid_plugin_dirs "")
     foreach(plugin_dir IN LISTS plugin_dirs)
         if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/plugins/${plugin_dir}")
