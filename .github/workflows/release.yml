@@ -3,108 +3,144 @@ name: Build and Release Plugins
 on:
   push:
     tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
-  workflow_dispatch:  # Allow manual triggering
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            preset_configure: mac-fetch-dsp-release
-            preset_build: mac-build-fetch-release
-            artifact_name: JonssonicPlugins-macOS
-          - os: windows-latest
-            preset_configure: win-fetch-dsp-release
-            preset_build: win-build-fetch-release
-            artifact_name: JonssonicPlugins-Windows
-
+  build-macos-au:
+    name: Build macOS AU Plugins
+    runs-on: macos-latest
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Setup Ninja (macOS)
-        if: runner.os == 'macOS'
+      
+      - name: Install Ninja
         run: brew install ninja
-
-      - name: Setup MSVC (Windows)
-        if: runner.os == 'Windows'
-        uses: microsoft/setup-msbuild@v2
-
+      
       - name: Configure CMake
-        run: cmake --preset ${{ matrix.preset_configure }}
-
-      - name: Build macOS plugins
-        if: runner.os == 'macOS'
+        run: cmake --preset mac-fetch-dsp-release
+      
+      - name: Build AU Plugins
+        run: cmake --build build/fetch-release --target all_plugins_AU --config Release
+      
+      - name: Create AU artifacts directory
         run: |
-          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_Standalone
-          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_AU
-
-      - name: Build Windows plugins
-        if: runner.os == 'Windows'
+          mkdir -p artifacts/AU
+          find build/fetch-release -name "*.component" -type d -exec cp -R {} artifacts/AU/ \;
+      
+      - name: Create AU zip archive
         run: |
-          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_Standalone
-          cmake --build --preset ${{ matrix.preset_build }} --target all_plugins_VST3
-
-      - name: Install Plugins
-        run: cmake --install build/fetch-release --prefix release-package --config Release
-
-      - name: Create Archive (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          cd release-package
-          zip -r ../${{ matrix.artifact_name }}.zip bin au
-          cd ..
-          
-      - name: Create Archive (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Compress-Archive -Path release-package/* -DestinationPath ${{ matrix.artifact_name }}.zip
-
-      - name: Upload artifacts
+          cd artifacts/AU
+          for plugin in *.component; do
+            zip -r "${plugin%.component}_AU_macOS.zip" "$plugin"
+          done
+          rm -rf *.component
+      
+      - name: Upload AU artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.artifact_name }}.zip
+          name: macos-au-plugins
+          path: artifacts/AU/*.zip
+          if-no-files-found: error
 
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
+  build-windows-vst3:
+    name: Build Windows VST3 Plugins
+    runs-on: windows-latest
     
     steps:
-      - name: Download all artifacts
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      
+      - name: Configure CMake
+        run: cmake --preset win-fetch-dsp-release
+      
+      - name: Build VST3 Plugins
+        run: cmake --build build/fetch-release --target all_plugins_VST3 --config Release
+      
+      - name: Create VST3 artifacts directory
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/VST3
+          Get-ChildItem -Path build/fetch-release -Filter "*.vst3" -Recurse -Directory | Copy-Item -Destination artifacts/VST3 -Recurse -Force
+        shell: pwsh
+      
+      - name: Create VST3 zip archives
+        run: |
+          cd artifacts/VST3
+          Get-ChildItem -Filter "*.vst3" -Directory | ForEach-Object {
+            $zipName = "$($_.BaseName)_VST3_Windows.zip"
+            Compress-Archive -Path $_.FullName -DestinationPath $zipName
+            Remove-Item -Recurse -Force $_.FullName
+          }
+        shell: pwsh
+      
+      - name: Upload VST3 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-vst3-plugins
+          path: artifacts/VST3/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: [build-macos-au, build-windows-vst3]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download macOS AU artifacts
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
-
+          name: macos-au-plugins
+          path: release-artifacts
+      
+      - name: Download Windows VST3 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-vst3-plugins
+          path: release-artifacts
+      
+      - name: Create release body
+        run: |
+          cat > release_body.md << 'EOF'
+          ## Installation Instructions
+          
+          ### macOS (AU Plugins)
+          1. Download the desired `*_AU_macOS.zip` file(s)
+          2. Unzip the downloaded file(s)
+          3. Copy the `.component` file(s) to one of these locations:
+             - **User**: `~/Library/Audio/Plug-Ins/Components/`
+             - **System**: `/Library/Audio/Plug-Ins/Components/`
+          4. Restart your DAW (Digital Audio Workstation)
+          5. Rescan plugins in your DAW if necessary
+          6. The plugin(s) should now appear in your DAW's plugin list
+          
+          ### Windows (VST3 Plugins)
+          1. Download the desired `*_VST3_Windows.zip` file(s)
+          2. Unzip the downloaded file(s)
+          3. Copy the `.vst3` folder(s) to one of these locations:
+             - **64-bit**: `C:\Program Files\Common Files\VST3\`
+             - **Custom**: Your DAW's custom VST3 folder (if configured)
+          4. Restart your DAW
+          5. Rescan plugins in your DAW if necessary
+          6. The plugin(s) should now appear in your DAW's plugin list
+        
+          EOF
+      
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/JonssonicPlugins-macOS/JonssonicPlugins-macOS.zip
-            artifacts/JonssonicPlugins-Windows/JonssonicPlugins-Windows.zip
+          files: release-artifacts/*.zip
+          body_path: release_body.md
           draft: false
           prerelease: false
           generate_release_notes: true
-          body: |
-            ## Download
-            
-            ### macOS
-            - Download `JonssonicPlugins-macOS.zip`
-            - Contains Standalone apps and AU plugins
-            - Extract and copy .app to Applications, .component to ~/Library/Audio/Plug-Ins/Components/
-            
-            ### Windows
-            - Download `JonssonicPlugins-Windows.zip`
-            - Contains Standalone .exe and VST3 plugins
-            - Extract and copy .vst3 to C:\Program Files\Common Files\VST3\
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
