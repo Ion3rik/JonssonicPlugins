@@ -29,14 +29,12 @@ jobs:
       - name: Create AU artifacts directory
         run: |
           mkdir -p artifacts/AU
-          find build/fetch-release -name "*.component" -type d -exec cp -R {} artifacts/AU/ \;
+          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} artifacts/AU/ \;
       
       - name: Create AU zip archive
         run: |
           cd artifacts/AU
-          for plugin in *.component; do
-            zip -r "${plugin%.component}_AU_macOS.zip" "$plugin"
-          done
+          zip -r "JonssonicPlugins_AU_macOS.zip" *.component
           rm -rf *.component
       
       - name: Upload AU artifacts
@@ -68,17 +66,14 @@ jobs:
       - name: Create VST3 artifacts directory
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/VST3
-          Get-ChildItem -Path build/fetch-release -Filter "*.vst3" -Recurse -Directory | Copy-Item -Destination artifacts/VST3 -Recurse -Force
+          Get-ChildItem -Path build/fetch-release/plugins -Filter "*.vst3" -Recurse -Directory | Where-Object { $_.FullName -like "*\Release\VST3\*" } | Copy-Item -Destination artifacts/VST3 -Recurse -Force
         shell: pwsh
       
-      - name: Create VST3 zip archives
+      - name: Create VST3 zip archive
         run: |
           cd artifacts/VST3
-          Get-ChildItem -Filter "*.vst3" -Directory | ForEach-Object {
-            $zipName = "$($_.BaseName)_VST3_Windows.zip"
-            Compress-Archive -Path $_.FullName -DestinationPath $zipName
-            Remove-Item -Recurse -Force $_.FullName
-          }
+          Compress-Archive -Path *.vst3 -DestinationPath "JonssonicPlugins_VST3_Windows.zip"
+          Get-ChildItem -Filter "*.vst3" -Directory | Remove-Item -Recurse -Force
         shell: pwsh
       
       - name: Upload VST3 artifacts
