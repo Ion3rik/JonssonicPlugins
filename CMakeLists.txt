@@ -243,11 +243,21 @@ function(add_plugin target)
     endif()
     
     if(TARGET ${target}_VST3)
-        add_custom_command(TARGET ${target}_VST3 POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/VST3"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${target}_VST3>/${AP_PROD_NAME}.vst3" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
-            COMMENT "Staging ${AP_PROD_NAME}.vst3 for release"
-            VERBATIM)
+        if(WIN32)
+            # On Windows, VST3 is in the artefacts directory
+            add_custom_command(TARGET ${target}_VST3 POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/VST3"
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_BINARY_DIR}/plugins/${target}/${target}_artefacts/$<CONFIG>/VST3/${AP_PROD_NAME}.vst3" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
+                COMMENT "Staging ${AP_PROD_NAME}.vst3 for release"
+                VERBATIM)
+        else()
+            # On macOS/Linux, use TARGET_BUNDLE_DIR
+            add_custom_command(TARGET ${target}_VST3 POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/VST3"
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:${target}_VST3>" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
+                COMMENT "Staging ${AP_PROD_NAME}.vst3 for release"
+                VERBATIM)
+        endif()
     endif()
 endfunction(add_plugin)
 
