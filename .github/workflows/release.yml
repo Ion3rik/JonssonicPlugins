@@ -28,13 +28,19 @@ jobs:
       
       - name: Package AU Plugins
         run: |
-          ditto -c -k --sequesterRsrc --keepParent build/fetch-release/release-staging/AU JonssonicPlugins_macOS_AU.zip
+          VERSION=${GITHUB_REF#refs/tags/v}
+          pkgbuild \
+            --root build/fetch-release/release-staging/AU \
+            --identifier com.jonssonic.plugins.au \
+            --version "$VERSION" \
+            --install-location ~/Library/Audio/Plug-Ins/Components \
+            JonssonicPlugins.pkg
       
       - name: Upload AU artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-au-plugins
-          path: JonssonicPlugins_macOS_AU.zip
+          path: JonssonicPlugins.pkg
           if-no-files-found: error
 
   build-windows-vst3:
@@ -93,31 +99,34 @@ jobs:
           ## Installation Instructions
           
           ### macOS (AU Plugins)
-          1. Download the desired `*_AU_macOS.zip` file(s)
-          2. Unzip the downloaded file(s)
-          3. Copy the `.component` file(s) to one of these locations:
-             - **User**: `~/Library/Audio/Plug-Ins/Components/`
-             - **System**: `/Library/Audio/Plug-Ins/Components/`
-          4. Restart your DAW (Digital Audio Workstation)
-          5. Rescan plugins in your DAW if necessary
-          6. The plugin(s) should now appear in your DAW's plugin list
+          
+          **These plugins are unsigned.** To install:
+          
+          1. Download `JonssonicPlugins.pkg`
+          2. **Right-click** (or Control-click) on `JonssonicPlugins.pkg`
+          3. Select **"Open"** from the menu
+          4. Click **"Open"** in the security dialog that appears
+          5. Follow the installer prompts (installs to `~/Library/Audio/Plug-Ins/Components/`)
+          6. Restart your DAW and rescan plugins
+          
+          The plugins should now appear in your DAW's plugin list.
           
           ### Windows (VST3 Plugins)
-          1. Download the desired `*_VST3_Windows.zip` file(s)
-          2. Unzip the downloaded file(s)
-          3. Copy the `.vst3` folder(s) to one of these locations:
+          1. Download `JonssonicPlugins_Windows_VST3.zip`
+          2. Unzip the downloaded file
+          3. Copy all `.vst3` folders to one of these locations:
              - **64-bit**: `C:\Program Files\Common Files\VST3\`
              - **Custom**: Your DAW's custom VST3 folder (if configured)
           4. Restart your DAW
           5. Rescan plugins in your DAW if necessary
-          6. The plugin(s) should now appear in your DAW's plugin list
+          6. The plugins should now appear in your DAW's plugin list
         
           EOF
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-artifacts/*.zip
+          files: release-artifacts/*
           body_path: release_body.md
           draft: false
           prerelease: false
