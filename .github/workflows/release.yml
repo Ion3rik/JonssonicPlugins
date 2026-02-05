@@ -26,22 +26,18 @@ jobs:
       - name: Build AU Plugins
         run: cmake --build build/fetch-release --target all_plugins_AU --config Release
       
-      - name: Create AU artifacts directory
+      - name: Package AU Plugins
         run: |
-          mkdir -p artifacts/AU
-          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} artifacts/AU/ \;
-      
-      - name: Create AU zip archive
-        run: |
-          cd artifacts/AU
-          zip -r "JonssonicPlugins_AU_macOS.zip" *.component
-          rm -rf *.component
+          mkdir -p release
+          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} release/ \;
+          cd release
+          ditto -c -k --sequesterRsrc . ../JonssonicPlugins_macOS_AU.zip
       
       - name: Upload AU artifacts
         uses: actions/upload-artifact@v4
         with:
           name: macos-au-plugins
-          path: artifacts/AU/*.zip
+          path: JonssonicPlugins_macOS_AU.zip
           if-no-files-found: error
 
   build-windows-vst3:
@@ -63,24 +59,18 @@ jobs:
       - name: Build VST3 Plugins
         run: cmake --build build/fetch-release --target all_plugins_VST3 --config Release
       
-      - name: Create VST3 artifacts directory
+      - name: Package VST3 Plugins
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts/VST3
-          Get-ChildItem -Path build/fetch-release/plugins -Filter "*.vst3" -Recurse -Directory | Where-Object { $_.FullName -like "*\Release\VST3\*" } | Copy-Item -Destination artifacts/VST3 -Recurse -Force
-        shell: pwsh
-      
-      - name: Create VST3 zip archive
-        run: |
-          cd artifacts/VST3
-          Compress-Archive -Path *.vst3 -DestinationPath "JonssonicPlugins_VST3_Windows.zip"
-          Get-ChildItem -Filter "*.vst3" -Directory | Remove-Item -Recurse -Force
+          New-Item -ItemType Directory -Force -Path release
+          Get-ChildItem -Path build/fetch-release/plugins -Filter "*.vst3" -Recurse -Directory | Where-Object { $_.FullName -like "*\Release\VST3\*" } | Copy-Item -Destination release -Recurse -Force
+          Compress-Archive -Path release\* -DestinationPath JonssonicPlugins_Windows_VST3.zip
         shell: pwsh
       
       - name: Upload VST3 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-vst3-plugins
-          path: artifacts/VST3/*.zip
+          path: JonssonicPlugins_Windows_VST3.zip
           if-no-files-found: error
 
   release:
