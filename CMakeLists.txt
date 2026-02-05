@@ -251,12 +251,6 @@ function(add_plugin target)
         install(TARGETS ${target}_VST3
                 LIBRARY DESTINATION vst3
                 COMPONENT ${target})
-        # Install resources for Windows VST3
-        if(AP_RESOURCES AND WIN32)
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/
-                    DESTINATION vst3/${AP_PROD_NAME}.vst3/resources
-                    COMPONENT ${target})
-        endif()
     endif()
     
     # Install AU plugins (macOS only)
