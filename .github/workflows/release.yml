@@ -28,10 +28,9 @@ jobs:
       
       - name: Package AU Plugins
         run: |
-          mkdir -p release
-          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} release/ \;
-          cd release
-          ditto -c -k --sequesterRsrc . ../JonssonicPlugins_macOS_AU.zip
+          mkdir -p JonssonicPlugins_macOS_AU
+          find build/fetch-release/plugins -path "*/Release/AU/*.component" -type d -exec cp -R {} JonssonicPlugins_macOS_AU/ \;
+          ditto -c -k --sequesterRsrc --keepParent JonssonicPlugins_macOS_AU JonssonicPlugins_macOS_AU.zip
       
       - name: Upload AU artifacts
         uses: actions/upload-artifact@v4
