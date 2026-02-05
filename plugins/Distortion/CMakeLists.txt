@@ -1,5 +1,4 @@
 # Plugin-specific CMake for Distortion plugin
-
 add_plugin(Distortion
     VERSION 0.1.0
     PLUGIN_NAME "Distortion"
@@ -20,10 +19,3 @@ add_plugin(Distortion
         knobs/JonssonicRotarySlider.png
         knobs/JonssonicRotarySlider_Distortion.png
 )
-
-target_link_libraries(Distortion 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(Distortion PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

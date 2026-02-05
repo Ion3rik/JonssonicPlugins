@@ -1,5 +1,4 @@
 # Plugin-specific CMake for Template plugin
-
 add_plugin(Template
     VERSION 0.1.0
     PLUGIN_NAME "Template"
@@ -19,11 +18,3 @@ add_plugin(Template
         logos/Jonssonic_logo.png
         knobs/JonssonicRotarySlider.png
 )
-
-
-target_link_libraries(Template 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(Template PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

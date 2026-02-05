@@ -1,5 +1,4 @@
 # Plugin-specific CMake for Delay plugin
-
 add_plugin(Delay
     VERSION 0.1.0
     PLUGIN_NAME "Delay"
@@ -20,10 +19,3 @@ add_plugin(Delay
         knobs/JonssonicRotarySlider.png
         knobs/JonssonicRotarySlider_Delay.png
 )
-
-target_link_libraries(Delay 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(Delay PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

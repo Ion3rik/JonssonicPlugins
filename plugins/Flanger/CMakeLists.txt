@@ -1,5 +1,4 @@
 # Plugin-specific CMake for Flanger
-
 add_plugin(Flanger
     VERSION 0.1.0
     PLUGIN_NAME "Flanger"
@@ -21,9 +20,3 @@ add_plugin(Flanger
         knobs/JonssonicRotarySlider_Flanger.png
 )
 
-target_link_libraries(Flanger 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(Flanger PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

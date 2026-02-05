@@ -1,5 +1,4 @@
 # Plugin-specific CMake for Reverb plugin
-
 add_plugin(Reverb
     VERSION 0.1.0
     PLUGIN_NAME "Reverb"
@@ -21,9 +20,3 @@ add_plugin(Reverb
         knobs/JonssonicRotarySlider_Reverb.png
 )
 
-target_link_libraries(Reverb 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(Reverb PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

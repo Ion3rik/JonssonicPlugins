@@ -1,5 +1,4 @@
 # Plugin-specific CMake for EQ plugin
-
 add_plugin(EQ
     VERSION 0.1.0
     PLUGIN_NAME "EQ"
@@ -20,10 +19,3 @@ add_plugin(EQ
         knobs/JonssonicRotarySlider.png
         knobs/JonssonicRotarySlider_EQ.png
 )
-
-target_link_libraries(EQ 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(EQ PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

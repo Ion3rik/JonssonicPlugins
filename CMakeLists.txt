@@ -70,17 +70,17 @@ else()
         message(WARNING "Local DSP requested but NOT found. Falling back to FetchContent.")
     endif()
 
-    message(STATUS "Fetching DSP from GitHub")
+    message(STATUS "Fetching JonssonicDSP from GitHub")
 
     include(FetchContent)
 
     FetchContent_Declare(
-        mydsp
+        JonssonicDSP
         GIT_REPOSITORY https://github.com/Ion3rik/JonssonicDSP.git
         GIT_TAG main   # Change to version tag later if needed
     )
 
-    FetchContent_MakeAvailable(mydsp)
+    FetchContent_MakeAvailable(JonssonicDSP)
 
 endif()
 
@@ -143,18 +143,31 @@ function(add_plugin target)
 
     juce_generate_juce_header(${target})
 
+    # Add plugin source files and include directories
     target_sources(${target}
         PRIVATE
             ${AP_SOURCES})
-
     target_include_directories(${target}
         PRIVATE
             ${AP_INCLUDE_DIRS})
-
     target_compile_features(${target}
         PUBLIC
             cxx_std_17)
 
+    # Link against JonssonicDSP and JonssonicFramework globally for all plugins
+    target_link_libraries(${target}
+        PRIVATE
+            JonssonicDSP
+            JonssonicFramework
+    )
+    # Include JonssonicDSP headers 
+    if(USE_LOCAL_DSP AND EXISTS "${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include")
+        target_include_directories(${target} PRIVATE "${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include")
+    elseif(EXISTS "${CMAKE_BINARY_DIR}/_deps/jonssonicdsp-src/include")
+        target_include_directories(${target} PRIVATE "${CMAKE_BINARY_DIR}/_deps/jonssonicdsp-src/include")
+    endif()
+
+    # Platform-specific settings
     if(WIN32)
         set(ASIO_SDK_PATH "${CMAKE_SOURCE_DIR}/external/asiosdk")
         if(EXISTS "${ASIO_SDK_PATH}/common")
@@ -185,7 +198,7 @@ function(add_plugin target)
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags)
 
-    # ===================== Resource Copy Logic =====================
+    # Resource handling
     if(AP_RESOURCES)
         set(_formats Standalone AU VST3)
         foreach(_fmt IN LISTS _formats)
@@ -232,7 +245,7 @@ function(add_plugin target)
         endforeach()
     endif()
     
-    # ===================== Release Staging =====================
+
     # Copy AU and VST3 plugins to a release staging directory for easy packaging
     if(APPLE AND TARGET ${target}_AU)
         add_custom_command(TARGET ${target}_AU POST_BUILD

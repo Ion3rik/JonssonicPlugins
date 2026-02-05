@@ -1,7 +1,4 @@
-
 # Plugin-specific CMake for Compressor plugin
-
-# Add Compressor Plugin target with runtime resource copying
 add_plugin(Compressor
     VERSION 0.1.0
     PLUGIN_NAME "Compressor"
@@ -23,11 +20,4 @@ add_plugin(Compressor
         knobs/JonssonicRotarySlider.png
         knobs/JonssonicRotarySlider_Compressor.png
         
-)
-
-# Link Jonssonic DSP and Framework libraries
-target_link_libraries(Compressor 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
 )
