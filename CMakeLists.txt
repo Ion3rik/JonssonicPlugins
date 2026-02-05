@@ -54,6 +54,9 @@ set(company_copyright "Jonssonic © 2025")
 set(company_code "JONS")
 set(company_bundle_id "com.jonssonic")
 
+# Build options
+option(BUILD_DEMOS "Build demo plugins" ON)
+
 
 # ============================================================
 # JonssonicDSP LIBRARY (Safe Hybrid Mode)
@@ -314,16 +317,19 @@ if(PROJECT_IS_TOP_LEVEL)
     # ============================================================
     # DEMOS (Only build when this is the top-level project)
     # ============================================================
+    if(BUILD_DEMOS)
+        # Scan all folders inside demos/ and automatically add them as subdirectories
+        file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
 
-    # Scan all folders inside demos/ and automatically add them as subdirectories
-    file(GLOB demo_dirs RELATIVE ${CMAKE_SOURCE_DIR}/demos ${CMAKE_SOURCE_DIR}/demos/*)
-
-    foreach(demo_dir IN LISTS demo_dirs)
-        if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/demos/${demo_dir}")
-            message(STATUS "Adding demo directory: ${demo_dir}")
-            add_subdirectory(demos/${demo_dir})
-        endif()
-    endforeach()
+        foreach(demo_dir IN LISTS demo_dirs)
+            if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/demos/${demo_dir}")
+                message(STATUS "Adding demo directory: ${demo_dir}")
+                add_subdirectory(demos/${demo_dir})
+            endif()
+        endforeach()
+    else()
+        message(STATUS "Skipping demos (BUILD_DEMOS=OFF)")
+    endif()
 else()
     message(STATUS "Skipping example plugins and demos (not top-level project)")
 endif()
