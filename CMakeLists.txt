@@ -245,7 +245,7 @@ function(add_plugin target)
     if(TARGET ${target}_VST3)
         add_custom_command(TARGET ${target}_VST3 POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/release-staging/VST3"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${target}_VST3>/../VST3/${AP_PROD_NAME}.vst3" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_FILE_DIR:${target}_VST3>/${AP_PROD_NAME}.vst3" "${CMAKE_BINARY_DIR}/release-staging/VST3/${AP_PROD_NAME}.vst3"
             COMMENT "Staging ${AP_PROD_NAME}.vst3 for release"
             VERBATIM)
     endif()

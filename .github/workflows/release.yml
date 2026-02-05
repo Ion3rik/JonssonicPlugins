@@ -33,7 +33,7 @@ jobs:
             --root build/fetch-release/release-staging/AU \
             --identifier com.jonssonic.plugins.au \
             --version "$VERSION" \
-            --install-location ~/Library/Audio/Plug-Ins/Components \
+            --install-location /Library/Audio/Plug-Ins/Components \
             JonssonicPlugins.pkg
       
       - name: Upload AU artifacts
