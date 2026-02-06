@@ -223,20 +223,21 @@ function(add_plugin target)
                         endif()
                     endforeach()
                 else()
-                    # For Windows and other platforms, copy only the specified resource files to the installed VST3 location
+                    # For Windows and other platforms, copy only the specified resource files to the VST3 artefact directory before staging
                     foreach(_res IN LISTS AP_RESOURCES)
                         get_filename_component(_res_dir "${_res}" DIRECTORY)
+                        set(_vst3_artefact_dir "${CMAKE_BINARY_DIR}/plugins/${target}/${target}_artefacts/$<CONFIG>/VST3/${AP_PROD_NAME}.vst3")
                         if(_res_dir)
                             add_custom_command(TARGET ${_real_target} POST_BUILD
-                                COMMAND ${CMAKE_COMMAND} -E make_directory "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources/${_res_dir}"
-                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources/${_res_dir}"
-                                COMMENT "Copying resource ${_res} to installed VST3 resources for ${_real_target}"
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "${_vst3_artefact_dir}/resources/${_res_dir}"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "${_vst3_artefact_dir}/resources/${_res_dir}"
+                                COMMENT "Copying resource ${_res} to VST3 artefact resources for ${_real_target}"
                                 VERBATIM)
                         else()
                             add_custom_command(TARGET ${_real_target} POST_BUILD
-                                COMMAND ${CMAKE_COMMAND} -E make_directory "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources"
-                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "C:/Program Files/Common Files/VST3/${AP_PROD_NAME}.vst3/resources"
-                                COMMENT "Copying resource ${_res} to installed VST3 resources for ${_real_target}"
+                                COMMAND ${CMAKE_COMMAND} -E make_directory "${_vst3_artefact_dir}/resources"
+                                COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/resources/${_res}" "${_vst3_artefact_dir}/resources"
+                                COMMENT "Copying resource ${_res} to VST3 artefact resources for ${_real_target}"
                                 VERBATIM)
                         endif()
                     endforeach()
