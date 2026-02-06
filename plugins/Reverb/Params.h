@@ -25,7 +25,7 @@ struct ReverbParams {
         params.add(FloatParam<ID>{ID::ReverbTimeHigh,  "RT High",          0.2f,   10.0f,      1.0f,     "s",    1.0f});
 
         params.add(FloatParam<ID>{ID::Diffusion,       "Diffusion",        0.0f,   100.0f,     50.0f,    "%",    1.0f});
-        params.add(FloatParam<ID>{ID::ModRate,         "Mod. Rate",        0.5f,   5.0f,       1.0f,    "Hz",    0.5f});
+        params.add(FloatParam<ID>{ID::ModRate,         "Mod. Rate",        1.0f,   5.0f,       1.0f,    "Hz",    0.5f});
         params.add(FloatParam<ID>{ID::ModDepth,        "Mod. Depth",       0.0f,   100.0f,     10.0f,    "%",    1.0f});
 
         params.add(FloatParam<ID>{ID::PreDelay,        "Pre-Delay",        0.0f,   200.0f,     0.0f,     "ms",   1.0f});
