@@ -16,10 +16,3 @@ add_plugin(BiquadDemo
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
 )
-
-target_link_libraries(BiquadDemo 
-    PRIVATE 
-        JonssonicDSP
-        JonssonicFramework
-)
-target_include_directories(BiquadDemo PRIVATE ${CMAKE_SOURCE_DIR}/external/JonssonicDSP/include)

@@ -11,7 +11,7 @@
 struct BiquadDemoParams {
 
     // Parameter IDs as enum
-    enum class ID { Gain, Frequency, Q, FilterType };
+    enum class ID { Gain, Frequency, Q, Response };
 
     // Create parameter definitions
     inline jnsc::juce_interface::ParameterSet<ID> createParams() {
@@ -24,15 +24,15 @@ struct BiquadDemoParams {
         params.add(FloatParam<ID>{ID::Frequency, "Frequency", 10.0f, 20000.0f, 1000.0f, "Hz", 0.5f});
         params.add(FloatParam<ID>{ID::Q, "Q", 0.1f, 10.0f, 0.707f, "", 1.0f});
 
-        // Choice parameter        ↓ id            ↓ name           ↓ choices       ↓ def idx
-        params.add(ChoiceParam<ID>{ID::FilterType, "Filter Type", {"Low Pass",
-                                                                   "High Pass", 
-                                                                   "Band Pass", 
-                                                                   "All Pass", 
-                                                                   "Notch",
-                                                                   "Peak",
-                                                                   "Low Shelf",
-                                                                   "High Shelf"},   0});
+        // Choice parameter        ↓ id            ↓ name     ↓ choices            ↓ def idx
+        params.add(ChoiceParam<ID>{ID::Response, "Response", {"Low Pass",
+                                                              "High Pass", 
+                                                              "Band Pass", 
+                                                              "All Pass", 
+                                                              "Notch",
+                                                              "Peak",
+                                                              "Low Shelf",
+                                                              "High Shelf"},        0});
         // clang-format on
         return params;
     }
