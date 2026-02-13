@@ -20,25 +20,25 @@ BiquadDemoAudioProcessor::BiquadDemoAudioProcessor() : parameterManager(BiquadDe
 
     // Register callbacks for parameter changes
     using ID = BiquadDemoParams::ID;
-    using Response = jnsc::Filter<float>::Response;
+    using Response = jnsc::BiquadFilter<float>::Response;
 
     parameterManager.on(ID::Gain, [this](float value, bool skipSmoothing) {
-        biquad.getEngine().setGain(jnsc::Gain<float>::Decibels(value));
+        biquad.setGain(jnsc::Gain<float>::Decibels(value));
         DBG("[DEBUG] Gain changed: " + juce::String(value));
     });
 
     parameterManager.on(ID::Frequency, [this](float value, bool skipSmoothing) {
-        biquad.getEngine().setFrequency(jnsc::Frequency<float>::Hertz(value));
+        biquad.setFrequency(jnsc::Frequency<float>::Hertz(value));
         DBG("[DEBUG] Frequency changed: " + juce::String(value) + " Hz");
     });
 
     parameterManager.on(ID::Q, [this](float value, bool skipSmoothing) {
-        biquad.getEngine().setQ(value);
+        biquad.setQ(value);
         DBG("[DEBUG] Q changed: " + juce::String(value));
     });
 
     parameterManager.on(ID::Response, [this](int value, bool skipSmoothing) {
-        biquad.getEngine().setResponse(static_cast<Response>(value));
+        biquad.setResponse(static_cast<Response>(value));
         DBG("[DEBUG] Filter Type changed: " + juce::String(value));
     });
 }
@@ -48,7 +48,7 @@ BiquadDemoAudioProcessor::~BiquadDemoAudioProcessor() {}
 void BiquadDemoAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
     // Prepare all DSP objects and buffers here
-    biquad.prepare(numChannels, 1, static_cast<float>(sampleRate));
+    biquad.prepare(numChannels, static_cast<float>(sampleRate));
 
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -83,9 +83,9 @@ void BiquadDemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
                                     numSamples);
 
     // Process audio with biquad filter
-    biquad.getEngine().processBlock(buffer.getArrayOfReadPointers(),  // dry input
-                                    buffer.getArrayOfWritePointers(), // output
-                                    static_cast<size_t>(numSamples)); // number of samples
+    biquad.processBlock(buffer.getArrayOfReadPointers(),  // dry input
+                        buffer.getArrayOfWritePointers(), // output
+                        static_cast<size_t>(numSamples)); // number of samples
 }
 
 void BiquadDemoAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {

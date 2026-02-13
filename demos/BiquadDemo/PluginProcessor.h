@@ -1,7 +1,7 @@
 #pragma once
 #include "Params.h"
 #include <MinimalJuceHeader.h>
-#include <jonssonic/core/filters/filter.h>
+#include <jonssonic/core/filters/biquad_filter.h>
 #include <parameters/ParameterManager.h>
 
 class BiquadDemoAudioProcessor : public juce::AudioProcessor {
@@ -35,7 +35,7 @@ class BiquadDemoAudioProcessor : public juce::AudioProcessor {
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
   private:
-    jnsc::Filter<float, jnsc::SeriesBiquadDF2T<float>> biquad;
+    jnsc::BiquadFilter<float> biquad;
 
     // Parameter manager
     jnsc::juce_interface::ParameterManager<BiquadDemoParams::ID> parameterManager;
