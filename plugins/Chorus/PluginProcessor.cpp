@@ -1,5 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <JuceHeader.h>
 #include <iostream>
 #include <jonssonic/utils/buffer_utils.h>
 
@@ -20,19 +21,36 @@ ChorusAudioProcessor::ChorusAudioProcessor() : parameterManager(ChorusParams().c
     // Register callbacks for parameter changes
     using ID = ChorusParams::ID;
 
+    parameterManager.on(ID::Rate, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Rate changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        chorus.setRate(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Depth, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Depth changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        chorus.setDepth(value * 0.01f, skipSmoothing); // We are converting from [0,100] to [0,1]
+    });
+
+    parameterManager.on(ID::Spread, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Spread changed: " + juce::String(value) +
+            ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        chorus.setSpread(value * 0.01f, skipSmoothing); // We are converting from [0,100] to [0,1]
+    });
+
+    parameterManager.on(ID::Delay, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Delay changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        chorus.setDelayMs(value, skipSmoothing);
+    });
+
+    parameterManager.on(ID::Feedback, [this](float value, bool skipSmoothing) {
+        DBG("[DEBUG] Feedback changed: " + juce::String(value) +
+            ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
+        chorus.setFeedback(value * 0.01f, skipSmoothing); // We are converting from [0,100] to [0,1]
+    });
+
     parameterManager.on(ID::Mix, [this](float value, bool skipSmoothing) {
         DBG("[DEBUG] Mix changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mix setter here
         dryWetMixer.setMix(value * 0.01f); // We are converting from [0,100] to [0,1]
-    });
-    parameterManager.on(ID::Enable, [this](bool value, bool skipSmoothing) {
-        DBG("[DEBUG] Enable changed: " + juce::String(value ? "true" : "false") +
-            ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP enable setter here
-    });
-    parameterManager.on(ID::Mode, [this](int value, bool skipSmoothing) {
-        DBG("[DEBUG] Mode changed: " + juce::String(value) + ", skipSmoothing: " + (skipSmoothing ? "true" : "false"));
-        // Call your DSP mode setter here
     });
 }
 
@@ -43,6 +61,7 @@ void ChorusAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     // Prepare all DSP objects and buffers here
     dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
     fxBuffer.resize(numChannels, static_cast<size_t>(samplesPerBlock));
+    chorus.prepare(numChannels, static_cast<float>(sampleRate));
 
     // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
     parameterManager.syncAll(true);
@@ -52,6 +71,7 @@ void ChorusAudioProcessor::releaseResources() {
     // Release DSP resources here
     dryWetMixer.reset();
     fxBuffer.resize(0, 0);
+    chorus.reset();
 }
 
 void ChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -78,7 +98,10 @@ void ChorusAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         numOutputChannels,
         numSamples);
 
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
+    // Process the chorus effect
+    chorus.processBlock(fxBuffer.readPtrs(), fxBuffer.writePtrs(), static_cast<size_t>(numSamples));
+
+    // Dry/wet processing
     dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),  // dry buffer
                              fxBuffer.readPtrs(),              // wet buffer
                              buffer.getArrayOfWritePointers(), // final output

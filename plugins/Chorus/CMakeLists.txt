@@ -17,4 +17,5 @@ add_plugin(Chorus
     RESOURCES
         logos/Jonssonic_logo.png
         knobs/JonssonicRotarySlider.png
+        knobs/JonssonicRotarySlider_Chorus.png
 )

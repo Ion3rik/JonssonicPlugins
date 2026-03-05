@@ -4,6 +4,7 @@
 #include <MinimalJuceHeader.h>
 #include <jonssonic/core/common/audio_buffer.h>
 #include <jonssonic/core/mixing/dry_wet_mixer.h>
+#include <jonssonic/effects/chorus.h>
 #include <parameters/ParameterManager.h>
 
 class ChorusAudioProcessor : public juce::AudioProcessor {
@@ -40,6 +41,7 @@ class ChorusAudioProcessor : public juce::AudioProcessor {
     // DSP objects and buffers
     jnsc::AudioBuffer<float> fxBuffer;    // Buffer for effect processing
     jnsc::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
+    jnsc::effects::Chorus<float> chorus;  // Chorus effect processor
 
     // Parameter manager
     jnsc::juce_interface::ParameterManager<ChorusParams::ID> parameterManager;

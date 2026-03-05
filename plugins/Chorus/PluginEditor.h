@@ -24,7 +24,7 @@ class ChorusAudioProcessorEditor : public juce::AudioProcessorEditor {
     // Automatic control panel for parameters
     jnsc::juce_interface::ControlPanel controlPanel;
 
-    std::unique_ptr<TemplateLookAndFeel> customLookAndFeel;
+    std::unique_ptr<ChorusLookAndFeel> customLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChorusAudioProcessorEditor)
 };
