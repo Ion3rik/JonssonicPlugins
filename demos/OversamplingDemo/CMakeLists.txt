@@ -1,7 +1,6 @@
 # Plugin-specific CMake for OversamplingDemo plugin
 
 add_plugin(OversamplingDemo
-    VERSION 0.1.0
     PLUGIN_NAME "OversamplingDemo"
     PROD_NAME "OversamplingDemo"
     PROD_CODE OsDm

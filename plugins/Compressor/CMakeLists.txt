@@ -1,6 +1,5 @@
 # Plugin-specific CMake for Compressor plugin
 add_plugin(Compressor
-    VERSION 0.1.0
     PLUGIN_NAME "Compressor"
     PROD_NAME "Compressor"
     PROD_CODE COMP

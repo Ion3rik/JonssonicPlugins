@@ -1,6 +1,5 @@
 # Plugin-specific CMake for SVFDemo plugin
 add_plugin(SVFDemo
-    VERSION 0.1.0
     PLUGIN_NAME "SVFDemo"
     PROD_NAME "SVFDemo"
     PROD_CODE SVFD

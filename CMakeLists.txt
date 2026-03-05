@@ -114,6 +114,11 @@ function(add_plugin target)
     set(multi_value_args SOURCES INCLUDE_DIRS RESOURCES)
     cmake_parse_arguments(AP "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
+    # Default to project version if not specified
+    if(NOT AP_VERSION)
+        set(AP_VERSION ${PROJECT_VERSION})
+    endif()
+
     message(STATUS "Adding JUCE plugin target: ${target}")
     message(STATUS "  PLUGIN_NAME: ${AP_PLUGIN_NAME}")
     message(STATUS "  VERSION: ${AP_VERSION}")

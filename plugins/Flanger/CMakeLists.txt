@@ -1,6 +1,5 @@
 # Plugin-specific CMake for Flanger
 add_plugin(Flanger
-    VERSION 0.1.0
     PLUGIN_NAME "Flanger"
     PROD_NAME "Flanger"
     PROD_CODE FLGR

@@ -1,6 +1,5 @@
 # Plugin-specific CMake for EQ plugin
 add_plugin(EQ
-    VERSION 0.1.0
     PLUGIN_NAME "EQ"
     PROD_NAME "EQ"
     PROD_CODE EQXX

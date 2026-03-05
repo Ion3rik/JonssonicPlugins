@@ -1,6 +1,5 @@
 # Plugin-specific CMake for Delay plugin
 add_plugin(Delay
-    VERSION 0.1.0
     PLUGIN_NAME "Delay"
     PROD_NAME "Delay"
     PROD_CODE DELA
