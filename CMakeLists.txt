@@ -16,7 +16,7 @@ set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
 
 
 # Project version setup
-project(JonssonicPlugins VERSION 0.1.1)
+project(JonssonicPlugins VERSION 0.2.0)
 configure_file(
     ${CMAKE_SOURCE_DIR}/framework/include/Version.h.in
     ${CMAKE_BINARY_DIR}/generated/Version.h
