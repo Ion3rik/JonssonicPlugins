@@ -8,7 +8,7 @@ ChorusAudioProcessorEditor::ChorusAudioProcessorEditor(ChorusAudioProcessor& p)
           c.showValueBoxes = true; // Show value boxes for sliders
           c.title = "JONSSONIC";   // Plugin title
           c.subtitle = "CHORUS";   // Plugin subtitle
-          c.backgroundColor = juce::Colour(0xff3C8CC8).brighter(0.1f);
+          c.gradientBaseColour = juce::Colour(0xff3C8CC8).brighter(0.1f);
           // Optionally set other config fields here
           return c;
       }()),
@@ -26,8 +26,7 @@ ChorusAudioProcessorEditor::~ChorusAudioProcessorEditor() {
 
 //==============================================================================
 void ChorusAudioProcessorEditor::paint(juce::Graphics& g) {
-
-    if (auto* laf = dynamic_cast<ChorusLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<jnsc::juce_interface::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->drawCachedMainBackground(g);
     else
         g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
@@ -35,6 +34,6 @@ void ChorusAudioProcessorEditor::paint(juce::Graphics& g) {
 
 void ChorusAudioProcessorEditor::resized() {
     controlPanel.setBounds(getLocalBounds()); // Make the control panel fill the entire editor area
-    if (auto* laf = dynamic_cast<ChorusLookAndFeel*>(&getLookAndFeel()))
+    if (auto* laf = dynamic_cast<jnsc::juce_interface::CustomLookAndFeel*>(&getLookAndFeel()))
         laf->generateMainBackground(getWidth(), getHeight());
 }

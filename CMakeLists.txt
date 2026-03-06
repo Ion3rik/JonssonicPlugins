@@ -200,8 +200,12 @@ function(add_plugin target)
             juce::juce_gui_basics
             juce::juce_graphics
         PUBLIC
-            juce::juce_recommended_config_flags
-            juce::juce_recommended_lto_flags)
+            juce::juce_recommended_config_flags)
+    
+    # Only enable LTO for Release builds to speed up Debug linking
+    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        target_link_libraries(${target} PUBLIC juce::juce_recommended_lto_flags)
+    endif()
 
     # Resource handling
     if(AP_RESOURCES)
