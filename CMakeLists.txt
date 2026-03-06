@@ -29,6 +29,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
 set(VST3_OUTPUT_DIR "${CMAKE_BINARY_DIR}/VST3") # Output directory for VST3 plugins
 
+# Option to enable Link-Time Optimization (disabled by default for faster local development)
+option(ENABLE_LTO "Enable Link-Time Optimization (slower linking, smaller/faster binaries)" OFF)
+
 # MacOs specific settings
 set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64") # Universal Binary for macOS
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0") # Minimum macOS version
@@ -202,9 +205,10 @@ function(add_plugin target)
         PUBLIC
             juce::juce_recommended_config_flags)
     
-    # Only enable LTO for Release builds to speed up Debug linking
-    if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    # Only enable LTO if explicitly requested (e.g., for GitHub release builds)
+    if(ENABLE_LTO)
         target_link_libraries(${target} PUBLIC juce::juce_recommended_lto_flags)
+        message(STATUS "  LTO enabled for ${target}")
     endif()
 
     # Resource handling
