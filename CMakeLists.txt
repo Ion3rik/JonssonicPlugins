@@ -113,7 +113,7 @@ add_subdirectory(framework)
 # ============================================================
 function(add_plugin target)
     # parse input args
-    set(one_value_args TARGET VERSION PLUGIN_NAME PROD_NAME PROD_CODE SYNTH)
+    set(one_value_args TARGET VERSION PLUGIN_NAME PROD_NAME PROD_CODE SYNTH ICON_BIG ICON_SMALL)
     set(multi_value_args SOURCES INCLUDE_DIRS RESOURCES)
     cmake_parse_arguments(AP "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
@@ -132,8 +132,25 @@ function(add_plugin target)
         message(STATUS "  RESOURCES: ${AP_RESOURCES}")
     endif()
 
+    # All plugins inherit the brand icon unless they provide their own artwork.
+    if(NOT AP_ICON_BIG)
+        set(AP_ICON_BIG "${PROJECT_SOURCE_DIR}/resources/logos/Jonssonic_logo.png")
+    endif()
+    if(NOT AP_ICON_SMALL)
+        set(AP_ICON_SMALL "${AP_ICON_BIG}")
+    endif()
+
+    set(plugin_icon_args)
+    if(AP_ICON_BIG)
+        list(APPEND plugin_icon_args ICON_BIG "${AP_ICON_BIG}")
+    endif()
+    if(AP_ICON_SMALL)
+        list(APPEND plugin_icon_args ICON_SMALL "${AP_ICON_SMALL}")
+    endif()
+
     # Add juce plugin target
     juce_add_plugin(${target}
+        ${plugin_icon_args}
         PRODUCT_NAME ${AP_PROD_NAME}
         VERSION ${AP_VERSION}
         MICROPHONE_PERMISSION_ENABLED TRUE

@@ -216,7 +216,6 @@ void ParameterManager<IDType>::update() {
     // Process first block
     for (int i = 0; i < size1; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start1 + i)];
-        DBG("[ParameterManager] update: id=" + idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false); // Real-time changes use smoothing
@@ -226,7 +225,6 @@ void ParameterManager<IDType>::update() {
     // Process second block (if wrapped)
     for (int i = 0; i < size2; ++i) {
         const auto& change = fifoBuffer[static_cast<size_t>(start2 + i)];
-        DBG("[ParameterManager] update: id=" + idToString(change.id) + ", value=" + juce::String(change.value));
         auto it = callbacks.find(change.id);
         if (it != callbacks.end()) {
             it->second(change.value, false); // Real-time changes use smoothing
