@@ -10,7 +10,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
                                              jnsc::juce_interface::idToString(HexaAmpParams::ID::Squish),
                                              jnsc::juce_interface::idToString(HexaAmpParams::ID::Level),
                                              jnsc::juce_interface::idToString(HexaAmpParams::ID::Color),
-                                             jnsc::juce_interface::idToString(HexaAmpParams::ID::Body)},
+                                             jnsc::juce_interface::idToString(HexaAmpParams::ID::Tilt)},
                    "J O N S S O N I C",
                    juce::StringArray{jnsc::juce_interface::idToString(HexaAmpParams::ID::Bypass)}) {
     setOpaque(true);

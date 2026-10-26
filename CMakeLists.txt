@@ -164,7 +164,7 @@ function(add_plugin target)
         IS_SYNTH ${AP_SYNTH}
         NEEDS_MIDI_INPUT ${AP_SYNTH}
         NEEDS_MIDI_OUTPUT FALSE
-        COPY_PLUGIN_AFTER_BUILD TRUE)
+        COPY_PLUGIN_AFTER_BUILD FALSE)
 
     juce_generate_juce_header(${target})
 
@@ -276,6 +276,8 @@ function(add_plugin target)
         endforeach()
     endif()
     
+
+    juce_enable_copy_plugin_step(${target})
 
     # Copy AU and VST3 plugins to a release staging directory for easy packaging
     if(APPLE AND TARGET ${target}_AU)

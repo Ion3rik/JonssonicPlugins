@@ -1,11 +1,9 @@
 #pragma once
 
 #include "Params.h"
+#include "DSP/HexaAmp.h"
 #include <MinimalJuceHeader.h>
-#include <jonssonic/core/common/audio_buffer.h>
-#include <jonssonic/core/mixing/dry_wet_mixer.h>
 #include <parameters/ParameterManager.h>
-#include <atomic>
 
 class HexaAmpAudioProcessor : public juce::AudioProcessor {
   public:
@@ -15,6 +13,7 @@ class HexaAmpAudioProcessor : public juce::AudioProcessor {
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     void releaseResources() override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     juce::AudioProcessorParameter* getBypassParameter() const override { return bypassParameter; }
 
     void getStateInformation(juce::MemoryBlock& destData) override;
@@ -40,12 +39,12 @@ class HexaAmpAudioProcessor : public juce::AudioProcessor {
 
   private:
     // DSP objects and buffers
-    jnsc::AudioBuffer<float> fxBuffer;    // Buffer for effect processing
-    jnsc::DryWetMixer<float> dryWetMixer; // Dry/wet mixer
+    jnsc::hexa_amp::HexaAmp hexaAmp; // Amp effect processor
+    bool effectPrepared = false;
 
     // Parameter manager
     jnsc::juce_interface::ParameterManager<HexaAmpParams::ID> parameterManager;
     juce::RangedAudioParameter* bypassParameter = nullptr;
-    std::atomic<float>* bypassValue = nullptr;
+    bool bypassed = false;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HexaAmpAudioProcessor)
 };

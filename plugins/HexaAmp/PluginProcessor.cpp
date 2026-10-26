@@ -1,69 +1,78 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <iostream>
-#include <jonssonic/utils/buffer_utils.h>
+#include <algorithm>
 
-HexaAmpAudioProcessor::HexaAmpAudioProcessor() : parameterManager(HexaAmpParams().createParams(), *this) {
-    // ============================================================================
-    // [DEBUG]: Prints all APVTS parameter IDs at startup
-    // This helps verify that your parameters are registered correctly.
-    // You can remove or comment out this block when you no longer need it.
+HexaAmpAudioProcessor::HexaAmpAudioProcessor()
+    : AudioProcessor(BusesProperties()
+                         .withInput("Input", juce::AudioChannelSet::mono(), true)
+                         .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      parameterManager(HexaAmpParams().createParams(), *this) {
     auto& apvts = parameterManager.getAPVTS();
     const auto bypassID = jnsc::juce_interface::idToString(HexaAmpParams::ID::Bypass);
     bypassParameter = apvts.getParameter(bypassID);
-    bypassValue = apvts.getRawParameterValue(bypassID);
-    DBG("[DEBUG] APVTS parameter IDs at startup:");
-    for (auto* param : apvts.processor.getParameters()) {
-        if (auto* paramWithID = dynamic_cast<juce::AudioProcessorParameterWithID*>(param)) {
-            DBG("  " + paramWithID->paramID);
-        }
-    }
-    // ============================================================================
 
     // Register callbacks for parameter changes
     using ID = HexaAmpParams::ID;
 
-    parameterManager.on(ID::Drive, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP drive setter here
+    parameterManager.on(ID::Bypass, [this](float value, bool /*skipSmoothing*/) { bypassed = value >= 0.5f; });
+
+    parameterManager.on(ID::Drive, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setDrive(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::Bite, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP bite setter here
+    parameterManager.on(ID::Bite, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setBite(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::Squish, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP squish setter here
+    parameterManager.on(ID::Squish, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setSquish(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::Level, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP level setter here
+    parameterManager.on(ID::Level, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setLevel(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::Color, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP color setter here
+    parameterManager.on(ID::Color, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setColor(value, skipSmoothing);
     });
 
-    parameterManager.on(ID::Body, [](float /*value*/, bool /*skipSmoothing*/) {
-        // Call your DSP body setter here
+    parameterManager.on(ID::Tilt, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setTilt(value, skipSmoothing);
     });
 }
 
 HexaAmpAudioProcessor::~HexaAmpAudioProcessor() {}
 
-void HexaAmpAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-    auto numChannels = static_cast<size_t>(getTotalNumOutputChannels());
-    // Prepare all DSP objects and buffers here
-    dryWetMixer.prepare(numChannels, static_cast<float>(sampleRate));
-    fxBuffer.resize(numChannels, static_cast<size_t>(samplesPerBlock));
+bool HexaAmpAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
+    if (layouts.inputBuses.size() != 1 || layouts.outputBuses.size() != 1)
+        return false;
 
-    // Initialize DSP with parameter defaults (defined in Params.h) (skip smoothing for instant setup)
+    return layouts.getMainInputChannelSet() == juce::AudioChannelSet::mono() &&
+           (layouts.getMainOutputChannelSet() == juce::AudioChannelSet::mono() ||
+            layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo());
+}
+
+void HexaAmpAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    effectPrepared = false;
+    // Prepare all DSP objects and buffers here
+    hexaAmp.prepare(static_cast<size_t>(samplesPerBlock), static_cast<float>(sampleRate));
+    setLatencySamples(static_cast<int>(hexaAmp.getLatencySamples()));
+    effectPrepared = true;
+
+    // Initialize DSP with current parameter values (skip smoothing for instant setup)
     parameterManager.syncAll(true);
 }
 
 void HexaAmpAudioProcessor::releaseResources() {
     // Release DSP resources here
-    dryWetMixer.reset();
-    fxBuffer.resize(0, 0);
+    effectPrepared = false;
+    hexaAmp.reset();
 }
 
 void HexaAmpAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
@@ -79,7 +88,7 @@ void HexaAmpAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     parameterManager.update();
 
     // Keep input audio untouched when bypassed, and skip every DSP stage.
-    if (bypassValue->load(std::memory_order_relaxed) >= 0.5f) {
+    if (bypassed) {
         for (int channel = numInputChannels; channel < numOutputChannels; ++channel)
             buffer.clear(channel, 0, numSamples);
         return;
@@ -88,20 +97,12 @@ void HexaAmpAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
     // Handle denormals
     juce::ScopedNoDenormals noDenormals;
 
-    // Note: Jonssonic DSP expects numInputChannels == numOutputChannels
-    // So we map the input channels to output channels accordingly
-    jnsc::utils::mapChannels<float>(
-        buffer.getArrayOfReadPointers(), // juce::AudioBuffer<float> uses getArrayOfReadPointers() for const access
-        fxBuffer.writePtrs(),            // Jonssonic::AudioBuffer<float> uses writePtrs() for non-const access
-        numInputChannels,
-        numOutputChannels,
-        numSamples);
+    if (!effectPrepared)
+        return;
 
-    // DSP processing here (this template includes only a dry/wet mixer as an example)
-    dryWetMixer.processBlock(buffer.getArrayOfReadPointers(),  // dry buffer
-                             fxBuffer.readPtrs(),              // wet buffer
-                             buffer.getArrayOfWritePointers(), // final output
-                             static_cast<size_t>(numSamples)); // number of samples
+    hexaAmp.processBlock(buffer.getReadPointer(0), buffer.getWritePointer(0), static_cast<size_t>(numSamples));
+    for (int channel = 1; channel < numOutputChannels; ++channel)
+        std::copy_n(buffer.getReadPointer(0), numSamples, buffer.getWritePointer(channel));
 }
 
 void HexaAmpAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
