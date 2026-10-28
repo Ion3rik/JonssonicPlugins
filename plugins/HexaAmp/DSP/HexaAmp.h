@@ -4,9 +4,9 @@
 
 #pragma once
 #include <jonssonic/core/common/audio_buffer.h>
+#include <jonssonic/core/common/dsp_param.h>
 #include <jonssonic/core/common/quantities.h>
 #include <jonssonic/core/dynamics/envelope_follower.h>
-#include <jonssonic/core/dynamics/gain_computer.h>
 #include <jonssonic/core/filters/biquad_filter.h>
 #include <jonssonic/core/nonlinear/wave_shaper.h>
 #include <jonssonic/core/oversampling/oversampler.h>
@@ -47,21 +47,28 @@ class HexaAmp {
     static constexpr float MID_BOOST_MAX_DB = 12.0;
 
     // POST FILTER
-    static constexpr float POST_HIGH_PASS_CUTOFF_HZ = 80.0;
+    static constexpr float POST_HIGH_PASS_MIN_CUTOFF_HZ = 70.0;
+    static constexpr float POST_HIGH_PASS_MAX_CUTOFF_HZ = 95.0;
 
-    static constexpr float POST_LOW_MID_MIN_FREQUENCY_HZ = 110.0;
-    static constexpr float POST_LOW_MID_MAX_FREQUENCY_HZ = 145.0;
-    static constexpr float POST_LOW_MID_MIN_GAIN_DB = 5.0;
-    static constexpr float POST_LOW_MID_MAX_GAIN_DB = 7.0;
-    static constexpr float POST_LOW_MID_Q = 1.2;
+    static constexpr float POST_BASS_MIN_FREQUENCY_HZ = 110.0;
+    static constexpr float POST_BASS_MAX_FREQUENCY_HZ = 140.0;
+    static constexpr float POST_BASS_MIN_GAIN_DB = 4.0;
+    static constexpr float POST_BASS_MAX_GAIN_DB = 6.0;
+    static constexpr float POST_BASS_Q = 1.1;
+
+    static constexpr float POST_LOW_MID_MIN_FREQUENCY_HZ = 550.0;
+    static constexpr float POST_LOW_MID_MAX_FREQUENCY_HZ = 750.0;
+    static constexpr float POST_LOW_MID_MIN_GAIN_DB = -5.0;
+    static constexpr float POST_LOW_MID_MAX_GAIN_DB = 2.0;
+    static constexpr float POST_LOW_MID_Q = 0.8;
 
     static constexpr float POST_HIGH_MID_MIN_FREQUENCY_HZ = 2200.0;
     static constexpr float POST_HIGH_MID_MAX_FREQUENCY_HZ = 3300.0;
-    static constexpr float POST_HIGH_MID_MIN_GAIN_DB = 6.0;
-    static constexpr float POST_HIGH_MID_MAX_GAIN_DB = 8.0;
+    static constexpr float POST_HIGH_MID_MIN_GAIN_DB = 4.0;
+    static constexpr float POST_HIGH_MID_MAX_GAIN_DB = 7.0;
     static constexpr float POST_HIGH_MID_Q = 1.4;
 
-    static constexpr float POST_LOWPASS_MIN_CUTOFF_HZ = 4500.0;
+    static constexpr float POST_LOWPASS_MIN_CUTOFF_HZ = 5000.0;
     static constexpr float POST_LOWPASS_MAX_CUTOFF_HZ = 6000.0;
     static constexpr float POST_LOWPASS_STAGE1_Q = 0.5411961f;
     static constexpr float POST_LOWPASS_STAGE2_Q = 1.3065630f;
@@ -71,20 +78,15 @@ class HexaAmp {
     static constexpr float PRE_AMP_SHAPE = 2.0;
 
     static constexpr float DRIVE_MIN_DB = 0.0;
-    static constexpr float DRIVE_MAX_DB = 24.0;
-    static constexpr float LEVEL_MIN_DB = -60.0;
-    static constexpr float LEVEL_MAX_DB = 0;
+    static constexpr float DRIVE_MAX_DB = 30.0;
 
     static constexpr float POWER_AMP_SHAPE = 14.0;
-    static constexpr float POWER_AMP_BIAS_MAX = -0.3;
+    static constexpr float POWER_AMP_BIAS_MAX = -0.2;
     static constexpr float POWER_AMP_HEADROOM_MIN = 0.33;
 
-    static constexpr float SQUISH_TH_MIN_DB = -36.0; // dB
-    static constexpr float SQUISH_TH_MAX_DB = -12.0; // dB
-
     // Dynamics
-    static constexpr float COMPRESSOR_RATIO = 4.0;         // Ratio for the compressor
-    static constexpr float COMPRESSOR_KNEE = 6.0;          // Knee width in dB
+    static constexpr float BIAS_MOD_SENSITIVITY = 0.1f;
+    static constexpr float HEADROOM_MOD_SENSITIVITY = 0.1f;
     static constexpr float BIAS_MOD_ATTACK_MS = 15.0;      // Attack time in milliseconds
     static constexpr float BIAS_MOD_RELEASE_MS = 250.0;    // Release time in milliseconds
     static constexpr float HEADROOM_MOD_ATTACK_MS = 5.0;   // Attack time in milliseconds
@@ -154,7 +156,7 @@ class HexaAmp {
     void setSquish(float squishPercent, bool skipSmoothing = false);
 
     /**
-     * @brief Set output level in percent.
+     * @brief Set output level in percent using a squared linear-gain mapping.
      * @param gainPercent Output gain in percent.
      * @param skipSmoothing If true, skip smoothing and set immediately.
      */
@@ -193,6 +195,7 @@ class HexaAmp {
     // PARAMS
     DspParam<float> drive;
     DspParam<float> level;
+    DspParam<float> squish;
 
     // FILTERS
     BiquadFilter<float> preFilter;
@@ -202,8 +205,6 @@ class HexaAmp {
     // DYNAMICS
     EnvelopeFollower<float, EnvelopeType::RMS> biasEnvelopeFollower;
     EnvelopeFollower<float, EnvelopeType::Peak> headroomEnvelopeFollower;
-    GainComputer<float, CompressorPolicy<float>> biasGainComputer;
-    GainComputer<float, CompressorPolicy<float>> headroomGainComputer;
 
     // NON-LINEAR PROCESSING
     Oversampler<float, OVERSAMPLING_FACTOR> oversampler;

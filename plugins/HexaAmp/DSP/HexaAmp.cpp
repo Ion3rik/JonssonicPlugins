@@ -30,20 +30,22 @@ void HexaAmp::prepare(size_t newMaxBlockSize, float newSampleRate) {
     midBooster.setQ(MID_BOOST_Q);
     midBooster.setFrequency(Frequency<float>::Hertz(MID_BOOST_FREQUENCY_HZ));
 
-    // Prepare post-filter sections for color control (highpass, low-mid, high-mid, lowpassx2)
-    postFilter.prepare(1, sampleRate, 5);
+    // Prepare post-filter sections for color control (highpass, bass, low-mid, high-mid, lowpassx2)
+    postFilter.prepare(1, sampleRate, 6);
     postFilter.section(0).setResponse(Response::Highpass);
-    postFilter.section(0).setFrequency(Frequency<float>::Hertz(POST_HIGH_PASS_CUTOFF_HZ));
+    postFilter.section(0).setQ(0.7071068f);
     postFilter.section(1).setResponse(Response::Peak);
     postFilter.section(2).setResponse(Response::Peak);
-    postFilter.section(1).setQ(POST_LOW_MID_Q);
-    postFilter.section(2).setQ(POST_HIGH_MID_Q);
+    postFilter.section(3).setResponse(Response::Peak);
+    postFilter.section(1).setQ(POST_BASS_Q);
+    postFilter.section(2).setQ(POST_LOW_MID_Q);
+    postFilter.section(3).setQ(POST_HIGH_MID_Q);
 
     // 4th order butterworth
-    postFilter.section(3).setResponse(Response::Lowpass);
     postFilter.section(4).setResponse(Response::Lowpass);
-    postFilter.section(3).setQ(POST_LOWPASS_STAGE1_Q);
-    postFilter.section(4).setQ(POST_LOWPASS_STAGE2_Q);
+    postFilter.section(5).setResponse(Response::Lowpass);
+    postFilter.section(4).setQ(POST_LOWPASS_STAGE1_Q);
+    postFilter.section(5).setQ(POST_LOWPASS_STAGE2_Q);
 
     // Prepare envelope followers
     biasEnvelopeFollower.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
@@ -53,19 +55,14 @@ void HexaAmp::prepare(size_t newMaxBlockSize, float newSampleRate) {
     headroomEnvelopeFollower.setAttackTime(Time<float>::Milliseconds(HEADROOM_MOD_ATTACK_MS), true);
     headroomEnvelopeFollower.setReleaseTime(Time<float>::Milliseconds(HEADROOM_MOD_RELEASE_MS), true);
 
-    // Prepare gain computers
-    biasGainComputer.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
-    biasGainComputer.setRatio(COMPRESSOR_RATIO, true);
-    biasGainComputer.setKnee(COMPRESSOR_KNEE, true);
-    headroomGainComputer.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
-    headroomGainComputer.setRatio(COMPRESSOR_RATIO, true);
-    headroomGainComputer.setKnee(COMPRESSOR_KNEE, true);
-
     // SET DSP PARAM SMOOTHING
     drive.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
     level.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
+    squish.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
+    squish.setBounds(0.0f, 1.0f);
     drive.setSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
     level.setSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
+    squish.setSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
 
     // Set Default Parameters
     setDrive(50.0, true);  // 50% drive
@@ -109,29 +106,28 @@ void HexaAmp::processBlock(const float* input, float* output, size_t numSamples)
         // Mid Boost
         float midBoosted = midBooster.processSample(0, preAmpOutput);
 
+        const float squishAmount = squish.getNextValue(0);
+
         // Process bias mod envelope follower
         float biasEnv = biasEnvelopeFollower.processSample(0, midBoosted);
-        float biasModGain = biasGainComputer.processSample(0, biasEnv);
-        biasModGain = utils::dB2Mag(biasModGain);
-        float bias = (1.0 - biasModGain) * POWER_AMP_BIAS_MAX;
+        float biasMod = squishAmount * biasEnv / (biasEnv + BIAS_MOD_SENSITIVITY);
+        float bias = biasMod * POWER_AMP_BIAS_MAX;
 
         // Process headroom mod envelope follower
         float headroomEnv = headroomEnvelopeFollower.processSample(0, midBoosted);
-        float headroomModGain = headroomGainComputer.processSample(0, headroomEnv);
-        headroomModGain = utils::dB2Mag(headroomModGain);
-        float headroom = POWER_AMP_HEADROOM_MIN + (1.0 - POWER_AMP_HEADROOM_MIN) * headroomModGain;
+        float headroomMod = squishAmount * headroomEnv / (headroomEnv + HEADROOM_MOD_SENSITIVITY);
+        float headroom = 1.0f - (1.0f - POWER_AMP_HEADROOM_MIN) * headroomMod;
 
         // Process the biased sample through the waveshaper with current headroom
-        float driveGain = utils::dB2Mag(drive.getNextValue(0));
+        float driveGain = drive.getNextValue(0);
         float driven = midBoosted * driveGain;
-        float headroomScaled = driven * 1.0 / headroom;
+        float powerAmpIn = driven / headroom;
 
-        oversampledBuffer[0][n] =
-            std::sqrt(headroom) * (waveshaper.processSample(headroomScaled + bias, POWER_AMP_SHAPE) -
-                                   waveshaper.processSample(bias, POWER_AMP_SHAPE));
+        oversampledBuffer[0][n] = std::sqrt(headroom) * (waveshaper.processSample(powerAmpIn + bias, POWER_AMP_SHAPE) -
+                                                         waveshaper.processSample(bias, POWER_AMP_SHAPE));
 
         // Apply level gain
-        oversampledBuffer[0][n] *= utils::dB2Mag(level.getNextValue(0));
+        oversampledBuffer[0][n] *= level.getNextValue(0);
     }
 
     // Downsample
@@ -143,8 +139,9 @@ void HexaAmp::processBlock(const float* input, float* output, size_t numSamples)
 
 void HexaAmp::setDrive(float drivePercent, bool skipSmoothing) {
     // Implementation for setting drive
-    float driveDb = DRIVE_MIN_DB + (DRIVE_MAX_DB - DRIVE_MIN_DB) * (drivePercent * 0.01);
-    drive.setTarget(driveDb, skipSmoothing);
+    float t = std::clamp(drivePercent * 0.01f, 0.0f, 1.0f);
+    float driveDb = DRIVE_MIN_DB + (DRIVE_MAX_DB - DRIVE_MIN_DB) * t;
+    drive.setTarget(utils::dB2Mag(driveDb), skipSmoothing);
 }
 
 void HexaAmp::setBite(float bitePercent, bool skipSmoothing) {
@@ -155,41 +152,39 @@ void HexaAmp::setBite(float bitePercent, bool skipSmoothing) {
 
 void HexaAmp::setSquish(float squishPercent, bool skipSmoothing) {
     // Implementation for setting squish
-    float squishDb = SQUISH_TH_MAX_DB + (SQUISH_TH_MIN_DB - SQUISH_TH_MAX_DB) * (squishPercent * 0.01);
-    biasGainComputer.setThreshold(squishDb, skipSmoothing);
-    headroomGainComputer.setThreshold(squishDb, skipSmoothing);
+    float amount = std::clamp(squishPercent * 0.01f, 0.0f, 1.0f);
+    squish.setTarget(amount, skipSmoothing);
 }
 
 void HexaAmp::setLevel(float gainPercent, bool skipSmoothing) {
     // Implementation for setting level
-    float levelDb = LEVEL_MIN_DB + (LEVEL_MAX_DB - LEVEL_MIN_DB) * (gainPercent * 0.01);
-    level.setTarget(levelDb, skipSmoothing);
+    float t = std::clamp(gainPercent * 0.01f, 0.0f, 1.0f);
+    level.setTarget(t * t, skipSmoothing);
 }
 
 void HexaAmp::setColor(float colorPercent, bool skipSmoothing) {
-    // Implementation for setting color
-    float lowMidDb =
-        POST_LOW_MID_MIN_GAIN_DB + (POST_LOW_MID_MAX_GAIN_DB - POST_LOW_MID_MIN_GAIN_DB) * (1.0 - colorPercent * 0.01);
+    const float t = std::clamp(colorPercent * 0.01f, 0.0f, 1.0f);
+    const auto frequency = [t](float start, float end) { return start * std::pow(end / start, t); };
+    const auto gain = [t](float start, float end) { return start + (end - start) * t; };
 
-    float lowMidFreq = POST_LOW_MID_MIN_FREQUENCY_HZ +
-                       (POST_LOW_MID_MAX_FREQUENCY_HZ - POST_LOW_MID_MIN_FREQUENCY_HZ) * (colorPercent * 0.01);
+    postFilter.section(0).setFrequency(
+        Frequency<float>::Hertz(frequency(POST_HIGH_PASS_MIN_CUTOFF_HZ, POST_HIGH_PASS_MAX_CUTOFF_HZ)));
 
-    postFilter.section(1).setGain(Gain<float>::Decibels(lowMidDb));
-    postFilter.section(1).setFrequency(Frequency<float>::Hertz(lowMidFreq));
+    postFilter.section(1).setGain(Gain<float>::Decibels(gain(POST_BASS_MAX_GAIN_DB, POST_BASS_MIN_GAIN_DB)));
+    postFilter.section(1).setFrequency(
+        Frequency<float>::Hertz(frequency(POST_BASS_MIN_FREQUENCY_HZ, POST_BASS_MAX_FREQUENCY_HZ)));
 
-    float highMidDb =
-        POST_HIGH_MID_MIN_GAIN_DB + (POST_HIGH_MID_MAX_GAIN_DB - POST_HIGH_MID_MIN_GAIN_DB) * (colorPercent * 0.01);
+    postFilter.section(2).setGain(Gain<float>::Decibels(gain(POST_LOW_MID_MAX_GAIN_DB, POST_LOW_MID_MIN_GAIN_DB)));
+    postFilter.section(2).setFrequency(
+        Frequency<float>::Hertz(frequency(POST_LOW_MID_MIN_FREQUENCY_HZ, POST_LOW_MID_MAX_FREQUENCY_HZ)));
 
-    float highMidFreq = POST_HIGH_MID_MIN_FREQUENCY_HZ +
-                        (POST_HIGH_MID_MAX_FREQUENCY_HZ - POST_HIGH_MID_MIN_FREQUENCY_HZ) * (colorPercent * 0.01);
+    postFilter.section(3).setGain(Gain<float>::Decibels(gain(POST_HIGH_MID_MIN_GAIN_DB, POST_HIGH_MID_MAX_GAIN_DB)));
+    postFilter.section(3).setFrequency(
+        Frequency<float>::Hertz(frequency(POST_HIGH_MID_MIN_FREQUENCY_HZ, POST_HIGH_MID_MAX_FREQUENCY_HZ)));
 
-    postFilter.section(2).setGain(Gain<float>::Decibels(highMidDb));
-    postFilter.section(2).setFrequency(Frequency<float>::Hertz(highMidFreq));
-
-    const float lowpassFreq =
-        POST_LOWPASS_MIN_CUTOFF_HZ + (POST_LOWPASS_MAX_CUTOFF_HZ - POST_LOWPASS_MIN_CUTOFF_HZ) * (colorPercent * 0.01f);
-    postFilter.section(3).setFrequency(Frequency<float>::Hertz(lowpassFreq));
+    const float lowpassFreq = frequency(POST_LOWPASS_MIN_CUTOFF_HZ, POST_LOWPASS_MAX_CUTOFF_HZ);
     postFilter.section(4).setFrequency(Frequency<float>::Hertz(lowpassFreq));
+    postFilter.section(5).setFrequency(Frequency<float>::Hertz(lowpassFreq));
 }
 
 void HexaAmp::setTilt(float tiltPercent, bool skipSmoothing) {
