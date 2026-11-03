@@ -86,6 +86,14 @@ class ParameterSet {
      */
     bool has(IDType id) const { return indexMap.find(id) != indexMap.end(); }
 
+    /// Optionally describe a parameter for GUI tooltips.
+    void setTooltip(IDType id, std::string text) {
+        auto it = indexMap.find(id);
+        if (it == indexMap.end())
+            throw std::runtime_error("Parameter ID not found");
+        std::visit([&text](auto& parameter) { parameter.tooltip = std::move(text); }, params[it->second]);
+    }
+
     /**
      * @brief Get all parameters
      * @return Const reference to vector of all parameter variants.

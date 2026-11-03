@@ -26,9 +26,13 @@ struct FloatParam {
     float defaultValue;
     std::string unit = "";
     float skew = 1.0f;
+    bool automatable = true;
+    std::string tooltip;
 
-    FloatParam(IDType id, std::string name, float min, float max, float def, std::string unit = "", float skew = 1.0f)
-        : id(id), name(std::move(name)), min(min), max(max), defaultValue(def), unit(std::move(unit)), skew(skew) {}
+    FloatParam(IDType id, std::string name, float min, float max, float def, std::string unit = "", float skew = 1.0f,
+               bool automatable = true, std::string tooltip = "")
+        : id(id), name(std::move(name)), min(min), max(max), defaultValue(def), unit(std::move(unit)), skew(skew),
+          automatable(automatable), tooltip(std::move(tooltip)) {}
 };
 
 /**
@@ -44,9 +48,11 @@ struct IntParam {
     int max;
     int defaultValue;
     std::string unit = "";
+    std::string tooltip;
 
-    IntParam(IDType id, std::string name, int min, int max, int def, std::string unit = "")
-        : id(id), name(std::move(name)), min(min), max(max), defaultValue(def), unit(std::move(unit)) {}
+    IntParam(IDType id, std::string name, int min, int max, int def, std::string unit = "", std::string tooltip = "")
+        : id(id), name(std::move(name)), min(min), max(max), defaultValue(def), unit(std::move(unit)),
+          tooltip(std::move(tooltip)) {}
 };
 
 /**
@@ -61,10 +67,12 @@ struct BoolParam {
     bool defaultValue;
     std::string trueLabel;
     std::string falseLabel;
+    std::string tooltip;
 
-    BoolParam(IDType id, std::string name, bool def, std::string trueLabel = "On", std::string falseLabel = "Off")
+    BoolParam(IDType id, std::string name, bool def, std::string trueLabel = "On", std::string falseLabel = "Off",
+              std::string tooltip = "")
         : id(id), name(std::move(name)), defaultValue(def), trueLabel(std::move(trueLabel)),
-          falseLabel(std::move(falseLabel)) {}
+          falseLabel(std::move(falseLabel)), tooltip(std::move(tooltip)) {}
 };
 
 /**
@@ -78,9 +86,10 @@ struct ChoiceParam {
     std::string name;
     std::vector<std::string> choices;
     int defaultIndex;
+    std::string tooltip;
 
-    ChoiceParam(IDType id, std::string name, std::vector<std::string> choices, int def)
-        : id(id), name(std::move(name)), choices(std::move(choices)), defaultIndex(def) {}
+    ChoiceParam(IDType id, std::string name, std::vector<std::string> choices, int def, std::string tooltip = "")
+        : id(id), name(std::move(name)), choices(std::move(choices)), defaultIndex(def), tooltip(std::move(tooltip)) {}
 };
 
 } // namespace jnsc::juce_interface

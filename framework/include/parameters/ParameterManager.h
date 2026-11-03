@@ -8,6 +8,7 @@
 
 #include "ParameterIdUtils.h"
 #include "ParameterSet.h"
+#include "ParameterTooltip.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include <functional>
@@ -339,32 +340,28 @@ ParameterManager<IDType>::createJuceParameter(const typename ParameterSet<IDType
             const juce::String juceIdStr = idToString(param.id);
 
             if constexpr (std::is_same_v<T, FloatParam<IDType>>) {
-                return std::make_unique<juce::AudioParameterFloat>(
+                return std::make_unique<ParameterWithTooltip<juce::AudioParameterFloat>>(
+                    juce::String(param.tooltip),
                     juce::ParameterID{juceIdStr, 1},
                     param.name,
                     juce::NormalisableRange<float>(param.min, param.max, 0.01f, param.skew),
                     param.defaultValue,
-                    param.unit);
+                    juce::AudioParameterFloatAttributes().withLabel(param.unit).withAutomatable(param.automatable));
             } else if constexpr (std::is_same_v<T, IntParam<IDType>>) {
-                return std::make_unique<juce::AudioParameterInt>(juce::ParameterID{juceIdStr, 1},
-                                                                 param.name,
-                                                                 param.min,
-                                                                 param.max,
-                                                                 param.defaultValue,
-                                                                 param.unit);
+                return std::make_unique<ParameterWithTooltip<juce::AudioParameterInt>>(
+                    juce::String(param.tooltip), juce::ParameterID{juceIdStr, 1},
+                    param.name, param.min, param.max, param.defaultValue,
+                    juce::AudioParameterIntAttributes().withLabel(param.unit));
             } else if constexpr (std::is_same_v<T, BoolParam<IDType>>) {
-                return std::make_unique<juce::AudioParameterBool>(juce::ParameterID{juceIdStr, 1},
-                                                                  param.name,
-                                                                  param.defaultValue);
+                return std::make_unique<ParameterWithTooltip<juce::AudioParameterBool>>(
+                    juce::String(param.tooltip), juce::ParameterID{juceIdStr, 1}, param.name, param.defaultValue);
             } else if constexpr (std::is_same_v<T, ChoiceParam<IDType>>) {
                 juce::StringArray choices;
                 for (const auto& choice : param.choices) {
                     choices.add(choice);
                 }
-                return std::make_unique<juce::AudioParameterChoice>(juce::ParameterID{juceIdStr, 1},
-                                                                    param.name,
-                                                                    choices,
-                                                                    param.defaultIndex);
+                return std::make_unique<ParameterWithTooltip<juce::AudioParameterChoice>>(
+                    juce::String(param.tooltip), juce::ParameterID{juceIdStr, 1}, param.name, choices, param.defaultIndex);
             }
         },
         paramVariant);

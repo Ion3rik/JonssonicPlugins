@@ -45,6 +45,50 @@ HexaAmpAudioProcessor::HexaAmpAudioProcessor()
         if (effectPrepared)
             hexaAmp.setTilt(value, skipSmoothing);
     });
+    parameterManager.on(ID::PreAmpCompressorAttack, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPreAmpCompressorAttack(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PreAmpCompressorRelease, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPreAmpCompressorRelease(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PowerAmpCompressorAttack, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPowerAmpCompressorAttack(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PowerAmpCompressorRelease, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPowerAmpCompressorRelease(value, skipSmoothing);
+    });
+    parameterManager.on(ID::MidBoostFrequency, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setMidBoostFrequency(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PowerAmpShape, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPowerAmpShape(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PreAmpCompressorThresholdMin, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPreAmpCompressorThresholdMin(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PreAmpCompressorThresholdMax, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPreAmpCompressorThresholdMax(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PowerAmpCompressorThresholdMin, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPowerAmpCompressorThresholdMin(value, skipSmoothing);
+    });
+    parameterManager.on(ID::PowerAmpCompressorThresholdMax, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setPowerAmpCompressorThresholdMax(value, skipSmoothing);
+    });
+    parameterManager.on(ID::Makeup, [this](float value, bool skipSmoothing) {
+        if (effectPrepared)
+            hexaAmp.setMakeup(value, skipSmoothing);
+    });
 }
 
 HexaAmpAudioProcessor::~HexaAmpAudioProcessor() {}

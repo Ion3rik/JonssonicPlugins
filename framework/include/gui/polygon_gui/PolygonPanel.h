@@ -10,6 +10,7 @@
 #include <cmath>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <parameters/ParameterTooltip.h>
 
 namespace jnsc::juce_interface {
 
@@ -20,12 +21,13 @@ namespace jnsc::juce_interface {
  * slider as an edge in a regular polygon. The center display shows the brand,
  * plugin name, and the last interacted parameter value.
  */
-class PolygonPanel : public juce::Component {
+class PolygonPanel : public juce::Component, public juce::TooltipClient {
   public:
     PolygonPanel(juce::AudioProcessorValueTreeState& newApvts,
                  juce::String newPluginName,
-                 juce::String newBrandText = "J O N S S O N I C")
-        : apvts(newApvts) {
+                 juce::String newBrandText = "J O N S S O N I C",
+                 juce::String newVersionText = {})
+        : apvts(newApvts), versionText(std::move(newVersionText)) {
         centralDisplay.setPluginName(newPluginName);
         centralDisplay.setBrandText(newBrandText);
         addAndMakeVisible(centralDisplay);
@@ -36,9 +38,10 @@ class PolygonPanel : public juce::Component {
                  juce::String newPluginName,
                  std::vector<juce::String> newOrderedParamIDs,
                  juce::String newBrandText = "J O N S S O N I C",
-                 juce::StringArray newExcludedParamIDs = {})
+                 juce::StringArray newExcludedParamIDs = {},
+                 juce::String newVersionText = {})
         : apvts(newApvts), orderedParamIDs(std::move(newOrderedParamIDs)),
-          excludedParamIDs(std::move(newExcludedParamIDs)) {
+          excludedParamIDs(std::move(newExcludedParamIDs)), versionText(std::move(newVersionText)) {
         centralDisplay.setPluginName(newPluginName);
         centralDisplay.setBrandText(newBrandText);
         addAndMakeVisible(centralDisplay);
@@ -47,9 +50,27 @@ class PolygonPanel : public juce::Component {
 
     ~PolygonPanel() override = default;
 
-    void paint(juce::Graphics&) override {}
+    void paint(juce::Graphics& g) override {
+        if (versionText.isEmpty())
+            return;
+
+        g.setColour(centralDisplay.getBrandColour().withAlpha(0.6f));
+        g.setFont(12.0f);
+        g.drawText(versionText, getWidth() - 112, 16, 96, 20, juce::Justification::centredRight);
+    }
 
     void resized() override { layoutControls(); }
+
+    void parentHierarchyChanged() override { updateTooltipWindow(); }
+
+    juce::String getTooltip() override {
+        const auto position = getMouseXYRelative();
+        for (const auto& segment : segments) {
+            if (segment.label != nullptr && segment.label->getBounds().contains(position))
+                return segment.slider->getTooltip();
+        }
+        return {};
+    }
 
     PolygonCentralDisplay& getCentralDisplay() noexcept { return centralDisplay; }
 
@@ -100,8 +121,29 @@ class PolygonPanel : public juce::Component {
     std::vector<SegmentInfo> segments;
     std::vector<juce::String> orderedParamIDs;
     juce::StringArray excludedParamIDs;
+    juce::String versionText;
     PolygonSegmentSlider* activeSegment = nullptr;
     bool processingEnabled = true;
+    bool hasParameterTooltips = false;
+    juce::Component::SafePointer<juce::Component> tooltipParent;
+    std::unique_ptr<juce::TooltipWindow> tooltipWindow;
+
+    void updateTooltipWindow() {
+        if (!hasParameterTooltips || getParentComponent() == nullptr) {
+            tooltipWindow.reset();
+            tooltipParent = nullptr;
+            return;
+        }
+
+        auto* parent = static_cast<juce::Component*>(findParentComponentOfClass<juce::AudioProcessorEditor>());
+        if (parent == nullptr)
+            parent = getTopLevelComponent();
+        if (tooltipWindow != nullptr && tooltipParent.getComponent() == parent)
+            return;
+        tooltipWindow.reset();
+        tooltipParent = parent;
+        tooltipWindow = std::make_unique<juce::TooltipWindow>(parent, 2000);
+    }
 
     float polygonRadiusInset = 58.0f;
     // Larger interaction height makes dragging easier without changing track thickness.
@@ -113,6 +155,14 @@ class PolygonPanel : public juce::Component {
     int sideLabelLetterBaseline = 1;
 
     void buildControls() {
+        hasParameterTooltips = false;
+        for (const auto* parameter : apvts.processor.getParameters()) {
+            if (getParameterTooltip(*parameter).trim().isNotEmpty()) {
+                hasParameterTooltips = true;
+                break;
+            }
+        }
+        updateTooltipWindow();
         ownedSliders.clear();
         ownedLabels.clear();
         sliderAttachments.clear();
@@ -172,6 +222,7 @@ class PolygonPanel : public juce::Component {
             auto slider = std::make_unique<PolygonSegmentSlider>();
             auto* sliderPtr = slider.get();
             sliderPtr->setName(paramBase->getName(64));
+            sliderPtr->setTooltip(getParameterTooltip(*paramBase));
 
             const auto range = rangedParam->getNormalisableRange();
             const double interval = range.interval > 0.0f ? static_cast<double>(range.interval) : 0.0;
@@ -183,6 +234,7 @@ class PolygonPanel : public juce::Component {
             auto label = std::make_unique<juce::Label>();
             auto* labelPtr = label.get();
             labelPtr->setInterceptsMouseClicks(false, false);
+            labelPtr->setTooltip(getParameterTooltip(*paramBase));
             labelPtr->setJustificationType(juce::Justification::centred);
             labelPtr->setColour(juce::Label::textColourId, juce::Colour::fromRGB(162, 146, 118).withAlpha(0.56f));
             sliderPtr->onHighlightChange = [labelPtr](float amount) {
@@ -290,9 +342,9 @@ class PolygonPanel : public juce::Component {
             const auto labelCenter = mid + normal * outwardOffset;
 
             segment.label->setBounds(juce::Rectangle<int>(static_cast<int>(labelCenter.x - labelWidth * 0.5f),
-                                     static_cast<int>(labelCenter.y - labelHeight * 0.5f),
-                                     static_cast<int>(labelWidth),
-                                     static_cast<int>(labelHeight)));
+                                                          static_cast<int>(labelCenter.y - labelHeight * 0.5f),
+                                                          static_cast<int>(labelWidth),
+                                                          static_cast<int>(labelHeight)));
         }
 
         const float centralDiameter = juce::jmax(140.0f, outerRadius * 1.12f);
@@ -327,7 +379,6 @@ class PolygonPanel : public juce::Component {
 
             if (segment.slider != nullptr)
                 segment.slider->setHighlighted(isActive);
-
         }
     }
 
