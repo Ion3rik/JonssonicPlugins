@@ -58,24 +58,12 @@ struct HexaAmpParams {
         params.add(FloatParam<ID>{ID::PowerAmpCompressorThresholdMax, "Power Amp Compressor TH Max", -60.0f, 0.0f, 0.0f, "dB", 1.0f, false});
         params.add(FloatParam<ID>{ID::Makeup, "Makeup", 0.0f, 48.0f, 18.0f, "dB", 1.0f, false});
         // Optional descriptions shared by the main GUI and internal trims.
-        params.setTooltip(ID::Drive, "Sets the gain feeding the power stage. Higher settings increase saturation.");
-        params.setTooltip(ID::Bite, "Boosts or cuts the interstage mids before power-stage distortion.");
-        params.setTooltip(ID::Squish, "Controls pre amp peak and power amp RMS compression before the power amp. Zero is neutral.");
+        params.setTooltip(ID::Drive, "Sets the drive gain into the power stage.");
+        params.setTooltip(ID::Bite, "Boosts or cuts the mids before drive.");
+        params.setTooltip(ID::Squish, "Controls amount of compression.");
         params.setTooltip(ID::Level, "Sets output volume.");
-        params.setTooltip(ID::Color, "Morphs the fitted cabinet response from full/dark at 0% to lean/bright at 100%.");
+        params.setTooltip(ID::Color, "Morphs a parametric cabinet filter from full/dark at 0% to lean/bright at 100%.");
         params.setTooltip(ID::Tilt, "Tilts the preamp tone: lower values are darker, higher values are brighter.");
-        params.setTooltip(ID::Bypass, "Toggles effect processing on or off.");
-        params.setTooltip(ID::PreAmpCompressorAttack, "Pre amp compressor attack; detects signal immediately before the preamp.");
-        params.setTooltip(ID::PreAmpCompressorRelease, "Pre amp compressor release; detects signal immediately before the preamp.");
-        params.setTooltip(ID::PowerAmpCompressorAttack, "How quickly RMS level at the power amp waveshaper output reduces its input gain. Uses one oversampled sample of feedback delay.");
-        params.setTooltip(ID::PowerAmpCompressorRelease, "How quickly compressor gain recovers after the RMS level falls.");
-        params.setTooltip(ID::MidBoostFrequency, "Sets the center frequency of the Bite boost or cut.");
-        params.setTooltip(ID::PowerAmpShape, "Sets the clipping knee: low values are softer; high values are sharper.");
-        params.setTooltip(ID::PreAmpCompressorThresholdMin, "Pre amp compressor threshold at maximum Squish.");
-        params.setTooltip(ID::PreAmpCompressorThresholdMax, "Pre amp compressor threshold at minimum Squish.");
-        params.setTooltip(ID::PowerAmpCompressorThresholdMin, "RMS compressor threshold at +100 Squish.");
-        params.setTooltip(ID::PowerAmpCompressorThresholdMax, "RMS compressor threshold near neutral Squish.");
-        params.setTooltip(ID::Makeup, "Combined makeup before the power amp waveshaper, reached at maximum Squish.");
         return params;
     }
 };

@@ -29,8 +29,7 @@ class PolygonCentralDisplay : public juce::Component {
 
         auto content = bounds.reduced(10.0f);
 
-        // Center the full text stack vertically:
-        // [JONSSONIC + plugin] ...gap... [param name + param value]
+        // Anchor the heading at the panel center; details extend below it.
         const float nameRowHeight = paramNameFontHeight + 6.0f;
         const float valueRowHeight = paramValueFontHeight + 6.0f;
         const float interRowGap = 2.0f;
@@ -38,15 +37,13 @@ class PolygonCentralDisplay : public juce::Component {
         const float separatorBottomPad = 4.0f;
         const float separatorThickness = 1.2f;
 
-        const float topGroupHeight = content.getHeight() * 0.28f;
-        const float middleGap = content.getHeight() * 0.10f;
+        const float topGroupHeight = content.getWidth() * 0.28f;
+        const float middleGap = content.getWidth() * 0.10f;
         const float bottomGroupHeight =
             separatorTopPad + separatorThickness + separatorBottomPad + nameRowHeight + interRowGap + valueRowHeight;
-        const float stackHeight = topGroupHeight + middleGap + bottomGroupHeight;
 
         const float targetTopGroupCenterY = content.getCentreY();
-        float stackTopY = targetTopGroupCenterY - (topGroupHeight * 0.5f);
-        stackTopY = juce::jlimit(content.getY(), content.getBottom() - stackHeight, stackTopY);
+        const float stackTopY = targetTopGroupCenterY - (topGroupHeight * 0.5f);
 
         auto topGroupArea = juce::Rectangle<float>(content.getX(), stackTopY, content.getWidth(), topGroupHeight);
         auto bottomGroupArea = juce::Rectangle<float>(content.getX(),
@@ -64,7 +61,7 @@ class PolygonCentralDisplay : public juce::Component {
         }
 
         if (g.clipRegionIntersects(pluginArea.getSmallestIntegerContainer())) {
-            g.setColour(subTextColour.withAlpha(0.66f));
+            g.setColour(subTextColour);
             auto pluginFont = juce::Font(juce::FontOptions("Avenir", pluginFontHeight, juce::Font::plain));
             pluginFont.setTypefaceStyle("Light");
             g.setFont(pluginFont);
@@ -74,11 +71,8 @@ class PolygonCentralDisplay : public juce::Component {
         if (!parameterDetailsVisible)
             return;
 
-        juce::Graphics::ScopedSaveState detailsState(g);
-        g.setOpacity(parameterDetailsOpacity);
-
         const auto separatorY = bottomGroupArea.getY() + separatorTopPad;
-        g.setColour(subTextColour.withAlpha(0.45f));
+        g.setColour(subTextColour);
         g.drawLine(bottomGroupArea.getCentreX() - 12.0f,
                    separatorY,
                    bottomGroupArea.getCentreX() + 12.0f,
@@ -90,24 +84,42 @@ class PolygonCentralDisplay : public juce::Component {
         auto paramNameArea = paramArea.removeFromTop(nameRowHeight);
         paramArea.removeFromTop(interRowGap);
         auto paramValueArea = paramArea.removeFromTop(valueRowHeight);
-        valueRepaintBounds = paramValueArea.getSmallestIntegerContainer().expanded(1);
+        const auto valueContentArea = helpText.isEmpty()
+                                          ? paramValueArea
+                                          : paramValueArea.withHeight(juce::jmax(64.0f, content.getWidth() * 0.34f));
+        valueRepaintBounds = valueContentArea.getSmallestIntegerContainer().expanded(1);
 
         if (g.clipRegionIntersects(paramNameArea.getSmallestIntegerContainer())) {
-            g.setColour(textColour.withAlpha(0.95f));
+            g.setColour(textColour);
             auto paramNameFont = juce::Font(juce::FontOptions("Avenir", paramNameFontHeight, juce::Font::plain));
             paramNameFont.setTypefaceStyle("Light");
             g.setFont(paramNameFont);
             g.drawFittedText(activeParameterName, paramNameArea.toNearestInt(), juce::Justification::centred, 1);
         }
 
-        if (g.clipRegionIntersects(paramValueArea.getSmallestIntegerContainer())) {
-            g.setColour(textColour.withAlpha(0.98f));
-            g.setFont(juce::Font(juce::FontOptions("Avenir", paramValueFontHeight, juce::Font::plain)));
-            g.drawFittedText(activeParameterValue, paramValueArea.toNearestInt(), juce::Justification::centred, 1);
+        if (g.clipRegionIntersects(valueContentArea.getSmallestIntegerContainer())) {
+            g.setColour(textColour);
+            if (helpText.isNotEmpty()) {
+                auto helpFont = juce::Font(juce::FontOptions("Avenir", 14.0f, juce::Font::plain));
+                helpFont.setTypefaceStyle("Light");
+                g.setFont(helpFont);
+                g.drawFittedText(helpText, valueContentArea.toNearestInt(), juce::Justification::centredTop, 5, 0.85f);
+            } else {
+                g.setFont(juce::Font(juce::FontOptions("Avenir", paramValueFontHeight, juce::Font::plain)));
+                g.drawFittedText(activeParameterValue, paramValueArea.toNearestInt(), juce::Justification::centred, 1);
+            }
         }
     }
 
     void resized() override { valueRepaintBounds = {}; }
+
+    void setHelpText(const juce::String& text) {
+        if (helpText == text)
+            return;
+        helpText = text;
+        valueRepaintBounds = {};
+        repaint();
+    }
 
     void setParameterDetailsVisible(bool visible) {
         if (parameterDetailsVisible == visible)
@@ -116,12 +128,7 @@ class PolygonCentralDisplay : public juce::Component {
         repaint();
     }
 
-    void setParameterDetailsOpacity(float opacity) {
-        parameterDetailsOpacity = opacity;
-        repaint();
-    }
-
-    juce::Colour getBrandColour() const noexcept { return textColour.withAlpha(0.95f); }
+    juce::Colour getBrandColour() const noexcept { return textColour; }
 
     void setBrandText(const juce::String& newBrandText) {
         const auto spaced = toSpacedLetters(newBrandText, true);
@@ -180,9 +187,9 @@ class PolygonCentralDisplay : public juce::Component {
 
   private:
     bool parameterDetailsVisible = true;
-    float parameterDetailsOpacity = 1.0f;
     juce::Rectangle<int> valueRepaintBounds;
     juce::String lastParameterName;
+    juce::String helpText;
 
     static juce::String toSpacedLetters(const juce::String& source, bool uppercase) {
         juce::String text = source.trim();
@@ -214,9 +221,9 @@ class PolygonCentralDisplay : public juce::Component {
     juce::String activeParameterName = defaultParameterName;
     juce::String activeParameterValue = defaultParameterValue;
 
-    juce::Colour textColour = juce::Colour::fromRGB(242, 205, 168);
-    juce::Colour subTextColour = juce::Colour::fromRGB(176, 163, 140);
-    juce::Colour outlineColour = juce::Colour::fromRGB(120, 110, 92);
+    juce::Colour textColour = juce::Colours::white;
+    juce::Colour subTextColour = juce::Colours::white;
+    juce::Colour outlineColour = juce::Colours::white;
 
     float panelAlpha = 0.12f;
 

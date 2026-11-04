@@ -29,35 +29,28 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     addAndMakeVisible(polygonPanel);
     setSize(512, 512);
     loadLogoImage();
-    logoButton.mask = logoImage;
-    logoButton.colour = polygonPanel.getCentralDisplay().getBrandColour();
-    addAndMakeVisible(logoButton);
+    logoDisplay.mask = logoImage;
+    logoDisplay.colour = polygonPanel.getCentralDisplay().getBrandColour();
+    addAndMakeVisible(logoDisplay);
     auto* bypass = audioProcessor.getAPVTS().getParameter(jnsc::juce_interface::idToString(HexaAmpParams::ID::Bypass));
-    bypassAttachment = std::make_unique<juce::ParameterAttachment>(
+    bypassStateAttachment = std::make_unique<juce::ParameterAttachment>(
         *bypass,
-        [this, bypass](float value) {
-            const bool enabled = value < 0.5f;
-            logoButton.setToggleState(enabled, juce::dontSendNotification);
-            const auto tooltip = jnsc::juce_interface::getParameterTooltip(*bypass);
-            logoButton.setTooltip(tooltip.isNotEmpty() ? tooltip : (enabled ? "Turn effect off" : "Turn effect on"));
-            setPowerState(enabled);
-        },
+        [this](float value) { setPowerState(value < 0.5f); },
         nullptr);
-    logoButton.onClick = [this] {
-        bypassAttachment->setValueAsCompleteGesture(logoButton.getToggleState() ? 0.0f : 1.0f);
-    };
-    bypassAttachment->sendInitialUpdate();
+    bypassStateAttachment->sendInitialUpdate();
 
     addChildComponent(developmentViewport);
     developmentViewport.setViewedComponent(&developmentPanel, false);
     developmentViewport.setScrollBarsShown(true, false);
+    developmentViewport.setScrollBarThickness(12);
+    developmentViewport.getVerticalScrollBar().setLookAndFeel(&trimmerLookAndFeel);
     developmentVersion.setText("v0.0.1", juce::dontSendNotification);
     developmentVersion.setFont(juce::Font(juce::FontOptions(12.0f)));
     developmentVersion.setJustificationType(juce::Justification::centredRight);
     developmentVersion.setBorderSize(juce::BorderSize<int>(0));
     addChildComponent(developmentVersion);
     const auto developmentColour = polygonPanel.getCentralDisplay().getBrandColour();
-    developmentVersion.setColour(juce::Label::textColourId, developmentColour.withAlpha(0.6f));
+    developmentVersion.setColour(juce::Label::textColourId, developmentColour);
     using ID = HexaAmpParams::ID;
     const std::array<ID, 11> trimIDs{
         ID::PreAmpCompressorAttack, ID::PreAmpCompressorRelease, ID::PreAmpCompressorThresholdMin, ID::PreAmpCompressorThresholdMax,
@@ -75,7 +68,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
         developmentPanel.addAndMakeVisible(label);
         slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
         slider.setLookAndFeel(&trimmerLookAndFeel);
-        slider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 110, 24);
+        slider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 90, 24);
         slider.setRotaryParameters(juce::MathConstants<float>::pi * 1.25f,
                                    juce::MathConstants<float>::pi * 2.75f, true);
         const auto unit = parameter->getLabel();
@@ -85,8 +78,8 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
         slider.setMouseDragSensitivity(400);
         slider.setColour(juce::Slider::rotarySliderFillColourId, developmentColour);
         slider.setColour(juce::Slider::textBoxTextColourId, developmentColour);
-        slider.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colour::fromRGB(12, 16, 14));
-        slider.setColour(juce::Slider::textBoxOutlineColourId, developmentColour.withAlpha(0.2f));
+        slider.setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::black);
+        slider.setColour(juce::Slider::textBoxOutlineColourId, developmentColour);
         const auto tooltip = jnsc::juce_interface::getParameterTooltip(*parameter);
         slider.setTooltip(tooltip);
         label.setTooltip(tooltip);
@@ -95,79 +88,69 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
             audioProcessor.getAPVTS(), paramID, slider);
     }
     addAndMakeVisible(versionHotspot);
+    addAndMakeVisible(themeToggle);
+    themeToggle.onClick = [this] { darkMode = !darkMode; applyMonochrome(); };
+    applyMonochrome();
     resized();
 }
 
 HexaAmpAudioProcessorEditor::~HexaAmpAudioProcessorEditor() {
+    developmentViewport.getVerticalScrollBar().setLookAndFeel(nullptr);
     for (auto& slider : developmentSliders)
         slider.setLookAndFeel(nullptr);
 }
 
-void HexaAmpAudioProcessorEditor::applyPowerVisuals(float amount) {
-    powerAmount = amount;
-    polygonPanel.setPowerVisualAmount(amount);
-    logoButton.setPowerAmount(amount);
-}
-
 void HexaAmpAudioProcessorEditor::setPowerState(bool enabled) {
     polygonPanel.setProcessingEnabled(enabled);
-    const float target = enabled ? 1.0f : 0.0f;
-    if (!powerInitialised || !isShowing()) {
-        powerInitialised = true;
-        powerTargetAmount = target;
-        stopTimer();
-        applyPowerVisuals(target);
-        return;
-    }
-    if (powerTargetAmount == target)
-        return;
-    powerTargetAmount = target;
-    powerStartAmount = powerAmount;
-    powerStartTime = juce::Time::getMillisecondCounterHiRes();
-    startTimerHz(60);
-}
-
-void HexaAmpAudioProcessorEditor::timerCallback() {
-    const float progress =
-        juce::jlimit(0.0f,
-                     1.0f,
-                     static_cast<float>((juce::Time::getMillisecondCounterHiRes() - powerStartTime) / 220.0));
-    if (progress >= 1.0f || !isShowing()) {
-        stopTimer();
-        applyPowerVisuals(powerTargetAmount);
-        return;
-    }
-    const float eased = progress * progress * (3.0f - 2.0f * progress);
-    applyPowerVisuals(powerStartAmount + (powerTargetAmount - powerStartAmount) * eased);
+    polygonPanel.setPowerVisualAmount(enabled ? 1.0f : 0.0f);
 }
 
 //==============================================================================
 void HexaAmpAudioProcessorEditor::paint(juce::Graphics& g) {
-    if (!cachedBackground.isValid())
-        regenerateBackgroundTexture(getWidth(), getHeight());
+    g.fillAll(darkMode ? juce::Colours::black : juce::Colours::white);
+}
 
-    if (cachedBackground.isValid()) {
-        g.drawImageAt(cachedBackground, 0, 0);
-        return;
+void HexaAmpAudioProcessorEditor::applyMonochrome() {
+    const auto ink = darkMode ? juce::Colours::white : juce::Colours::black;
+    const auto paper = darkMode ? juce::Colours::black : juce::Colours::white;
+    polygonPanel.setMonochrome(darkMode);
+    logoDisplay.colour = ink;
+    logoDisplay.repaint();
+    developmentVersion.setColour(juce::Label::textColourId, ink);
+    for (size_t i = 0; i < developmentSliders.size(); ++i) {
+        developmentLabels[i].setColour(juce::Label::textColourId, ink);
+        developmentSliders[i].setColour(juce::Slider::rotarySliderFillColourId, ink);
+        developmentSliders[i].setColour(juce::Slider::textBoxTextColourId, ink);
+        developmentSliders[i].setColour(juce::Slider::textBoxBackgroundColourId, paper);
+        developmentSliders[i].setColour(juce::Slider::textBoxOutlineColourId, ink);
     }
-
-    g.fillAll(juce::Colour::fromRGB(12, 16, 14));
+    developmentViewport.getVerticalScrollBar().setColour(juce::ScrollBar::thumbColourId, ink);
+    developmentViewport.getVerticalScrollBar().setColour(juce::ScrollBar::backgroundColourId, paper);
+    themeToggle.setDark(darkMode);
+    repaint();
 }
 
 void HexaAmpAudioProcessorEditor::resized() {
-    cachedBackground = {};
+    themeToggle.setBounds(getWidth() - 48, getHeight() - 48, 32, 32);
+    themeToggle.toFront(false);
     polygonPanel.setBounds(getLocalBounds());
-    logoButton.setBounds(0, 0, 86, 86); // 54px logo with 16px of halo space on each side.
-    developmentViewport.setBounds(24, 52, getWidth() - 48, getHeight() - 68);
-    developmentPanel.setSize(developmentViewport.getWidth() - developmentViewport.getScrollBarThickness(),
+    logoDisplay.setBounds(0, 0, 86, 86); // 54px logo with 16px of padding on each side.
+    developmentViewport.setBounds(24, 52, getWidth() - 48, getHeight() - 100);
+    developmentPanel.setSize(developmentViewport.getWidth() - developmentViewport.getScrollBarThickness() - 12,
                              static_cast<int>(developmentSliders.size()) * 40);
     developmentVersion.setBounds(getWidth() - 112, 16, 96, 20);
     const int rowHeight = 40;
     const int panelWidth = developmentPanel.getWidth();
+    int labelWidth = 0;
+    for (const auto& label : developmentLabels)
+        labelWidth = juce::jmax(labelWidth, juce::GlyphArrangement::getStringWidthInt(label.getFont(), label.getText()));
+    labelWidth = juce::jmin(labelWidth + 2, panelWidth - 166);
+    const int sliderX = 8 + labelWidth + 8;
     for (size_t i = 0; i < developmentSliders.size(); ++i) {
         const int y = static_cast<int>(i) * rowHeight;
-        developmentLabels[i].setBounds(8, y, panelWidth / 2 - 8, rowHeight);
-        developmentSliders[i].setBounds(panelWidth / 2, y + 2, panelWidth / 2, rowHeight - 4);
+        developmentLabels[i].setBorderSize(juce::BorderSize<int>(0));
+        developmentLabels[i].setBounds(8, y, labelWidth, rowHeight);
+        developmentSliders[i].setBounds(sliderX, y + 2, 142, rowHeight - 4);
     }
     versionHotspot.setBounds(getWidth() - 112, 16, 96, 20);
 }
@@ -175,7 +158,7 @@ void HexaAmpAudioProcessorEditor::resized() {
 void HexaAmpAudioProcessorEditor::toggleDevelopmentPanel() {
     developmentVisible = !developmentVisible;
     polygonPanel.setVisible(!developmentVisible);
-    logoButton.setVisible(!developmentVisible);
+    logoDisplay.setVisible(!developmentVisible);
     developmentViewport.setVisible(developmentVisible);
     developmentVersion.setVisible(developmentVisible);
     versionHotspot.toFront(false);
@@ -222,44 +205,5 @@ void HexaAmpAudioProcessorEditor::loadLogoImage() {
             return result;
         };
         logoImage = roundMask(roundMask(mask, true), false);
-    }
-}
-
-void HexaAmpAudioProcessorEditor::regenerateBackgroundTexture(int width, int height) {
-    if (width <= 0 || height <= 0)
-        return;
-
-    cachedBackground = juce::Image(juce::Image::ARGB, width, height, true);
-    juce::Graphics g(cachedBackground);
-
-    const auto bounds = juce::Rectangle<float>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height));
-
-    const auto centerX = bounds.getCentreX();
-    const auto centerY = bounds.getCentreY();
-    juce::Colour center = juce::Colour::fromRGB(18, 27, 22);
-    juce::Colour edge = juce::Colour::fromRGB(6, 9, 8);
-    juce::ColourGradient bg(center, centerX, centerY, edge, bounds.getRight(), bounds.getBottom(), true);
-    g.setGradientFill(bg);
-    g.fillRect(bounds);
-
-    // Matte micro-grain: small, subtle speckles instead of coarse grain.
-    juce::Random rng(0x5EEDu);
-    for (int i = 0; i < (width * height) / 3; ++i) {
-        const float x = rng.nextFloat() * width;
-        const float y = rng.nextFloat() * height;
-        const float a = 0.004f + 0.010f * rng.nextFloat();
-        const float w = 0.28f + 0.68f * rng.nextFloat();
-        g.setColour(juce::Colours::white.withAlpha(a));
-        g.fillEllipse(x, y, w, w);
-    }
-
-    // Counter-tone dark grain adds matte depth without visible chunky dots.
-    for (int i = 0; i < (width * height) / 4; ++i) {
-        const float x = rng.nextFloat() * width;
-        const float y = rng.nextFloat() * height;
-        const float a = 0.003f + 0.008f * rng.nextFloat();
-        const float w = 0.22f + 0.62f * rng.nextFloat();
-        g.setColour(juce::Colours::black.withAlpha(a));
-        g.fillEllipse(x, y, w, w);
     }
 }

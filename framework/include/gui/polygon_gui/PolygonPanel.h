@@ -21,7 +21,7 @@ namespace jnsc::juce_interface {
  * slider as an edge in a regular polygon. The center display shows the brand,
  * plugin name, and the last interacted parameter value.
  */
-class PolygonPanel : public juce::Component, public juce::TooltipClient {
+class PolygonPanel : public juce::Component, private juce::Timer {
   public:
     PolygonPanel(juce::AudioProcessorValueTreeState& newApvts,
                  juce::String newPluginName,
@@ -48,13 +48,13 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
         buildControls();
     }
 
-    ~PolygonPanel() override = default;
+    ~PolygonPanel() override { stopTimer(); }
 
     void paint(juce::Graphics& g) override {
         if (versionText.isEmpty())
             return;
 
-        g.setColour(centralDisplay.getBrandColour().withAlpha(0.6f));
+        g.setColour(centralDisplay.getBrandColour());
         g.setFont(12.0f);
         g.drawText(versionText, getWidth() - 112, 16, 96, 20, juce::Justification::centredRight);
     }
@@ -63,13 +63,14 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
 
     void parentHierarchyChanged() override { updateTooltipWindow(); }
 
-    juce::String getTooltip() override {
-        const auto position = getMouseXYRelative();
-        for (const auto& segment : segments) {
-            if (segment.label != nullptr && segment.label->getBounds().contains(position))
-                return segment.slider->getTooltip();
+    void setMonochrome(bool dark) {
+        const auto ink = dark ? juce::Colours::white : juce::Colours::black;
+        centralDisplay.setPalette(ink, ink, ink);
+        for (auto& segment : segments) {
+            segment.slider->setFillColour(ink);
+            segment.label->setColour(juce::Label::textColourId, ink);
         }
-        return {};
+        repaint();
     }
 
     PolygonCentralDisplay& getCentralDisplay() noexcept { return centralDisplay; }
@@ -88,11 +89,8 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
     }
 
     void setPowerVisualAmount(float amount) {
-        setAlpha(0.35f + 0.65f * amount);
+        setAlpha(1.0f);
         centralDisplay.setParameterDetailsVisible(amount > 0.0f);
-        centralDisplay.setParameterDetailsOpacity(amount);
-        for (auto& slider : ownedSliders)
-            slider->setPowerGlowAmount(amount);
     }
 
     PolygonSegmentSlider* getSegmentForParam(const juce::String& paramID) noexcept {
@@ -104,10 +102,21 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
     }
 
   private:
+    class ParameterLabel : public juce::Label {
+      public:
+        void paint(juce::Graphics& g) override {
+            g.setColour(findColour(juce::Label::textColourId));
+            g.setFont(getFont());
+            g.drawFittedText(getText(), getBorderSize().subtractedFrom(getLocalBounds()),
+                             getJustificationType(), 1, getMinimumHorizontalScale());
+        }
+    };
+
     struct SegmentInfo {
         juce::String paramID;
         juce::String paramName;
         juce::String paramUnit;
+        juce::String helpText;
         PolygonSegmentSlider* slider = nullptr;
         juce::Label* label = nullptr;
     };
@@ -124,9 +133,38 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
     juce::String versionText;
     PolygonSegmentSlider* activeSegment = nullptr;
     bool processingEnabled = true;
+    PolygonSegmentSlider* helpCandidate = nullptr;
+    double helpHoverStarted = 0.0;
     bool hasParameterTooltips = false;
     juce::Component::SafePointer<juce::Component> tooltipParent;
     std::unique_ptr<juce::TooltipWindow> tooltipWindow;
+
+    void timerCallback() override {
+        SegmentInfo* hovered = nullptr;
+        if (isShowing() && isEnabled() && processingEnabled && isMouseOver(true) &&
+            !juce::ModifierKeys::getCurrentModifiersRealtime().isAnyMouseButtonDown()) {
+            const auto position = getMouseXYRelative();
+            auto* component = getComponentAt(position);
+            for (auto& segment : segments) {
+                if (component == segment.slider || segment.label->getBounds().contains(position)) {
+                    hovered = &segment;
+                    break;
+                }
+            }
+        }
+        if (hovered == nullptr || hovered->helpText.trim().isEmpty()) {
+            helpCandidate = nullptr;
+            centralDisplay.setHelpText({});
+            return;
+        }
+        if (helpCandidate != hovered->slider) {
+            publishActiveValue(*hovered->slider, hovered->paramName);
+            helpCandidate = hovered->slider;
+            helpHoverStarted = juce::Time::getMillisecondCounterHiRes();
+        }
+        if (juce::Time::getMillisecondCounterHiRes() - helpHoverStarted >= 2000.0)
+            centralDisplay.setHelpText(hovered->helpText);
+    }
 
     void updateTooltipWindow() {
         if (!hasParameterTooltips || getParentComponent() == nullptr) {
@@ -222,7 +260,6 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
             auto slider = std::make_unique<PolygonSegmentSlider>();
             auto* sliderPtr = slider.get();
             sliderPtr->setName(paramBase->getName(64));
-            sliderPtr->setTooltip(getParameterTooltip(*paramBase));
 
             const auto range = rangedParam->getNormalisableRange();
             const double interval = range.interval > 0.0f ? static_cast<double>(range.interval) : 0.0;
@@ -231,17 +268,11 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
             sliderPtr->setValue(rangedParam->convertFrom0to1(rangedParam->getValue()), juce::dontSendNotification);
             sliderPtr->setTextValueSuffix(" " + rangedParam->getLabel());
 
-            auto label = std::make_unique<juce::Label>();
+            auto label = std::make_unique<ParameterLabel>();
             auto* labelPtr = label.get();
             labelPtr->setInterceptsMouseClicks(false, false);
-            labelPtr->setTooltip(getParameterTooltip(*paramBase));
             labelPtr->setJustificationType(juce::Justification::centred);
-            labelPtr->setColour(juce::Label::textColourId, juce::Colour::fromRGB(162, 146, 118).withAlpha(0.56f));
-            sliderPtr->onHighlightChange = [labelPtr](float amount) {
-                const auto inactive = juce::Colour::fromRGB(162, 146, 118).withAlpha(0.56f);
-                const auto active = juce::Colour::fromRGB(252, 232, 199);
-                labelPtr->setColour(juce::Label::textColourId, inactive.interpolatedWith(active, amount));
-            };
+            labelPtr->setColour(juce::Label::textColourId, juce::Colours::white);
             labelPtr->setText(toSpacedLetters(paramBase->getName(36), true), juce::dontSendNotification);
             auto labelFont = juce::Font(juce::FontOptions("Avenir", 19.0f, juce::Font::plain));
             labelFont.setTypefaceStyle("Light");
@@ -263,13 +294,17 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
             sliderAttachments.emplace_back(
                 std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramID, *sliderPtr));
 
-            segments.push_back({paramID, paramName, paramUnit, sliderPtr, labelPtr});
+            segments.push_back({paramID, paramName, paramUnit, getParameterTooltip(*paramBase), sliderPtr, labelPtr});
             ownedSliders.push_back(std::move(slider));
             ownedLabels.push_back(std::move(label));
         }
 
         if (!segments.empty())
             publishActiveValue(*segments.front().slider, segments.front().paramName);
+        if (hasParameterTooltips)
+            startTimerHz(30);
+        else
+            stopTimer();
     }
 
     void layoutControls() {
@@ -313,8 +348,8 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
             const float edgeLength = juce::jmax(24.0f, std::sqrt(dx * dx + dy * dy));
             const float edgeAngle = std::atan2(dy, dx);
 
-            // Extend the component for the halo while preserving the original track length.
-            const int sliderWidth = static_cast<int>(edgeLength) + 2 * PolygonSegmentSlider::glowEndPadding;
+            // Preserve the track length and interaction padding.
+            const int sliderWidth = static_cast<int>(edgeLength) + 2 * PolygonSegmentSlider::endPadding;
             const float sliderCentreX = static_cast<float>(sliderWidth) * 0.5f;
             segment.slider->setBounds(0, 0, sliderWidth, static_cast<int>(segmentVisualHeight));
             segment.slider->setTransform(
@@ -349,15 +384,17 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
 
         const float centralDiameter = juce::jmax(140.0f, outerRadius * 1.12f);
         centralDisplay.setBounds(static_cast<int>(center.x - centralDiameter * 0.5f),
-                                 static_cast<int>(center.y - centralDiameter * 0.5f),
+                                 0,
                                  static_cast<int>(centralDiameter),
-                                 static_cast<int>(centralDiameter));
+                                 getHeight());
         centralDisplay.toBack();
     }
 
     void publishActiveValue(juce::Slider& slider, const juce::String& paramName) {
         if (!processingEnabled || !isEnabled())
             return;
+        helpCandidate = nullptr;
+        centralDisplay.setHelpText({});
         const double value = slider.getValue();
         juce::String valueText(static_cast<int>(std::round(value)));
 
@@ -374,12 +411,7 @@ class PolygonPanel : public juce::Component, public juce::TooltipClient {
             return;
         activeSegment = slider;
 
-        for (auto& segment : segments) {
-            const bool isActive = (segment.slider == activeSegment);
 
-            if (segment.slider != nullptr)
-                segment.slider->setHighlighted(isActive);
-        }
     }
 
     static juce::String toSpacedLetters(const juce::String& source, bool uppercase) {
