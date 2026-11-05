@@ -5,7 +5,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     : AudioProcessorEditor(p), audioProcessor(p),
       polygonPanel(
           audioProcessor.getAPVTS(),
-          "Hexa-Amp",
+          "HEXA-GUITAR",
           std::vector<juce::String>{jnsc::juce_interface::idToString(HexaAmpParams::ID::Drive),
                                     jnsc::juce_interface::idToString(HexaAmpParams::ID::Bite),
                                     jnsc::juce_interface::idToString(HexaAmpParams::ID::Squish),
@@ -145,7 +145,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     polygonPanel.addFooterHelp(paletteButton,
                                "Palette",
                                "Click to cycle colors. Right-click to open the color picker.");
-    polygonPanel.addFooterHelp(themeToggle, "Dark/Light", "Toggle betweeen dark and light modes.");
+    polygonPanel.addFooterHelp(themeToggle, "Appearance", "Toggle betweeen dark and light modes.");
     applyMonochrome();
     resized();
 }
