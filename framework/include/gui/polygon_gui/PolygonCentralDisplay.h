@@ -63,7 +63,6 @@ class PolygonCentralDisplay : public juce::Component {
         if (g.clipRegionIntersects(pluginArea.getSmallestIntegerContainer())) {
             g.setColour(subTextColour);
             auto pluginFont = juce::Font(juce::FontOptions("Avenir", pluginFontHeight, juce::Font::plain));
-            pluginFont.setTypefaceStyle("Light");
             g.setFont(pluginFont);
             g.drawFittedText(pluginName, pluginArea.toNearestInt(), juce::Justification::centred, 1);
         }
@@ -92,16 +91,14 @@ class PolygonCentralDisplay : public juce::Component {
         if (g.clipRegionIntersects(paramNameArea.getSmallestIntegerContainer())) {
             g.setColour(textColour);
             auto paramNameFont = juce::Font(juce::FontOptions("Avenir", paramNameFontHeight, juce::Font::plain));
-            paramNameFont.setTypefaceStyle("Light");
             g.setFont(paramNameFont);
-            g.drawFittedText(activeParameterName, paramNameArea.toNearestInt(), juce::Justification::centred, 1);
+            g.drawFittedText(helpTitle.isEmpty() ? activeParameterName : helpTitle, paramNameArea.toNearestInt(), juce::Justification::centred, 1);
         }
 
         if (g.clipRegionIntersects(valueContentArea.getSmallestIntegerContainer())) {
             g.setColour(textColour);
             if (helpText.isNotEmpty()) {
                 auto helpFont = juce::Font(juce::FontOptions("Avenir", 14.0f, juce::Font::plain));
-                helpFont.setTypefaceStyle("Light");
                 g.setFont(helpFont);
                 g.drawFittedText(helpText, valueContentArea.toNearestInt(), juce::Justification::centredTop, 5, 0.85f);
             } else {
@@ -113,10 +110,12 @@ class PolygonCentralDisplay : public juce::Component {
 
     void resized() override { valueRepaintBounds = {}; }
 
-    void setHelpText(const juce::String& text) {
-        if (helpText == text)
+    void setHelpText(const juce::String& text, const juce::String& title = {}) {
+        const auto resolvedTitle = title.isEmpty() ? juce::String{} : toSpacedLetters(title, true);
+        if (helpText == text && helpTitle == resolvedTitle)
             return;
         helpText = text;
+        helpTitle = resolvedTitle;
         valueRepaintBounds = {};
         repaint();
     }
@@ -174,14 +173,9 @@ class PolygonCentralDisplay : public juce::Component {
     }
 
     void setPalette(juce::Colour newTextColour, juce::Colour newSubTextColour, juce::Colour newOutlineColour) {
-        textColour = newTextColour;
-        subTextColour = newSubTextColour;
-        outlineColour = newOutlineColour;
-        repaint();
-    }
-
-    void setPanelAlpha(float newAlpha) {
-        panelAlpha = juce::jlimit(0.0f, 1.0f, newAlpha);
+        textColour = newTextColour.withAlpha(1.0f);
+        subTextColour = newSubTextColour.withAlpha(1.0f);
+        outlineColour = newOutlineColour.withAlpha(1.0f);
         repaint();
     }
 
@@ -190,6 +184,7 @@ class PolygonCentralDisplay : public juce::Component {
     juce::Rectangle<int> valueRepaintBounds;
     juce::String lastParameterName;
     juce::String helpText;
+    juce::String helpTitle;
 
     static juce::String toSpacedLetters(const juce::String& source, bool uppercase) {
         juce::String text = source.trim();
@@ -224,8 +219,6 @@ class PolygonCentralDisplay : public juce::Component {
     juce::Colour textColour = juce::Colours::white;
     juce::Colour subTextColour = juce::Colours::white;
     juce::Colour outlineColour = juce::Colours::white;
-
-    float panelAlpha = 0.12f;
 
     float brandFontHeight = 31.0f;
     float pluginFontHeight = 18.0f;

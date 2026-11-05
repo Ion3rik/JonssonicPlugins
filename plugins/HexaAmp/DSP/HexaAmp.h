@@ -41,14 +41,14 @@ class HexaAmp {
 
     // INTERSTAGE FILTER
 
-    static constexpr float INTERSTAGE_HIGHPASS_CUTOFF_HZ = 40.0f;
+    static constexpr float INTERSTAGE_HIGHPASS_CUTOFF_HZ = 50.0f;
     static constexpr float INTERSTAGE_HIGHPASS_Q = 0.7071068f;
-    static constexpr float INTERSTAGE_LOWPASS_CUTOFF_HZ = 10000.0f;
+    static constexpr float INTERSTAGE_LOWPASS_CUTOFF_HZ = 15000.0f;
     static constexpr float INTERSTAGE_LOWPASS_Q = 0.7071068f;
 
     static constexpr float MID_BOOST_FREQUENCY_HZ = 900.0;
     static constexpr float MID_BOOST_Q = 0.7;
-    static constexpr float MID_BOOST_MIN_DB = -9.0;
+    static constexpr float MID_BOOST_MIN_DB = -16.0;
     static constexpr float MID_BOOST_MAX_DB = 16.0;
 
     static constexpr float PRE_AMP_GAIN_LIN = 1.5;
@@ -56,7 +56,7 @@ class HexaAmp {
     static constexpr float PRE_AMP_SHAPE = 2.0;
 
     static constexpr float DRIVE_MIN_DB = 0.0;
-    static constexpr float DRIVE_MAX_DB = 24.0;
+    static constexpr float DRIVE_MAX_DB = 32.0;
 
     static constexpr float POWER_AMP_SHAPE_MIN = 2.0f;
     static constexpr float POWER_AMP_SHAPE_MAX = 20.0f;
@@ -193,7 +193,6 @@ class HexaAmp {
     AudioBuffer<float> oversampledBuffer;
 
     // PARAMS
-    DspParam<float> squish;
     DspParam<float> drive;
     DspParam<float> level;
     DspParam<float> makeupGain;

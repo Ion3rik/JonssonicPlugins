@@ -75,9 +75,6 @@ void HexaAmp::prepare(size_t newMaxBlockSize, float newSampleRate) {
     powerAmpCompressorGainComputer.setControlSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
 
     // SET DSP PARAM SMOOTHING
-    squish.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
-    squish.setBounds(0.0f, 1.0f);
-    squish.setSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
     drive.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
     level.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
     makeupGain.prepare(1, OVERSAMPLING_FACTOR * sampleRate);
@@ -135,15 +132,14 @@ void HexaAmp::processBlock(const float* input, float* output, size_t numSamples)
         // Interstage filtering
         float interstageOutput = interstageFilter.processSample(0, preAmpOutput);
 
-        float amount = squish.getNextValue(0);
         float driveGain = drive.getNextValue(0);
         float rms = powerAmpCompressorEnvelopeFollower.processSample(0, previousPowerAmpOutput);
         float fastReductionDb = preAmpCompressorGainComputer.processSample(0, peak);
         float slowReductionDb = powerAmpCompressorGainComputer.processSample(0, rms);
 
-        float compressed = interstageOutput * utils::dB2Mag(amount * fastReductionDb);
+        float compressed = interstageOutput * utils::dB2Mag(fastReductionDb);
         compressed *= driveGain;
-        compressed *= utils::dB2Mag(amount * slowReductionDb);
+        compressed *= utils::dB2Mag(slowReductionDb);
         compressed *= makeupGain.getNextValue(0);
 
         // Process the power stage
@@ -179,7 +175,6 @@ void HexaAmp::setBite(float bitePercent, bool skipSmoothing) {
 
 void HexaAmp::setSquish(float squishPercent, bool skipSmoothing) {
     squishAmount = std::clamp(squishPercent * 0.01f, 0.0f, 1.0f);
-    squish.setTarget(squishAmount, skipSmoothing);
     updateDynamicsThresholds(skipSmoothing);
     setMakeup(makeupDb, skipSmoothing);
 }

@@ -55,7 +55,7 @@ class PolygonPanel : public juce::Component, private juce::Timer {
             return;
 
         g.setColour(centralDisplay.getBrandColour());
-        g.setFont(12.0f);
+        g.setFont(juce::Font(juce::FontOptions("Avenir", 12.0f, juce::Font::plain)));
         g.drawText(versionText, getWidth() - 112, 16, 96, 20, juce::Justification::centredRight);
     }
 
@@ -63,14 +63,19 @@ class PolygonPanel : public juce::Component, private juce::Timer {
 
     void parentHierarchyChanged() override { updateTooltipWindow(); }
 
-    void setMonochrome(bool dark) {
-        const auto ink = dark ? juce::Colours::white : juce::Colours::black;
+    void setMonochrome(bool dark, juce::Colour light = juce::Colours::white) {
+        const auto ink = dark ? light : juce::Colours::black;
         centralDisplay.setPalette(ink, ink, ink);
         for (auto& segment : segments) {
             segment.slider->setFillColour(ink);
             segment.label->setColour(juce::Label::textColourId, ink);
         }
         repaint();
+    }
+
+    void addFooterHelp(juce::Component& component, juce::String title, juce::String text) {
+        footerHelp.push_back({&component, std::move(title), std::move(text)});
+        startTimerHz(30);
     }
 
     PolygonCentralDisplay& getCentralDisplay() noexcept { return centralDisplay; }
@@ -133,13 +138,32 @@ class PolygonPanel : public juce::Component, private juce::Timer {
     juce::String versionText;
     PolygonSegmentSlider* activeSegment = nullptr;
     bool processingEnabled = true;
-    PolygonSegmentSlider* helpCandidate = nullptr;
+    struct FooterHelp {
+        juce::Component::SafePointer<juce::Component> component;
+        juce::String title, text;
+    };
+    std::vector<FooterHelp> footerHelp;
+    juce::Component* helpCandidate = nullptr;
     double helpHoverStarted = 0.0;
     bool hasParameterTooltips = false;
     juce::Component::SafePointer<juce::Component> tooltipParent;
     std::unique_ptr<juce::TooltipWindow> tooltipWindow;
 
     void timerCallback() override {
+        if (isShowing() && !juce::ModifierKeys::getCurrentModifiersRealtime().isAnyMouseButtonDown()) {
+            for (const auto& help : footerHelp) {
+                if (help.component != nullptr && help.component->isMouseOver(true)) {
+                    if (helpCandidate != help.component.getComponent()) {
+                        centralDisplay.setHelpText({});
+                        helpCandidate = help.component.getComponent();
+                        helpHoverStarted = juce::Time::getMillisecondCounterHiRes();
+                    }
+                    if (juce::Time::getMillisecondCounterHiRes() - helpHoverStarted >= 2000.0)
+                        centralDisplay.setHelpText(help.text, help.title);
+                    return;
+                }
+            }
+        }
         SegmentInfo* hovered = nullptr;
         if (isShowing() && isEnabled() && processingEnabled && isMouseOver(true) &&
             !juce::ModifierKeys::getCurrentModifiersRealtime().isAnyMouseButtonDown()) {
@@ -275,7 +299,6 @@ class PolygonPanel : public juce::Component, private juce::Timer {
             labelPtr->setColour(juce::Label::textColourId, juce::Colours::white);
             labelPtr->setText(toSpacedLetters(paramBase->getName(36), true), juce::dontSendNotification);
             auto labelFont = juce::Font(juce::FontOptions("Avenir", 19.0f, juce::Font::plain));
-            labelFont.setTypefaceStyle("Light");
             labelPtr->setFont(labelFont);
 
             addAndMakeVisible(*sliderPtr);
@@ -287,7 +310,10 @@ class PolygonPanel : public juce::Component, private juce::Timer {
 
             sliderPtr->onDragStart = [this, sliderPtr, paramName] { publishActiveValue(*sliderPtr, paramName); };
 
-            sliderPtr->onValueChange = [this, sliderPtr, paramName] { publishActiveValue(*sliderPtr, paramName); };
+            sliderPtr->onValueChange = [this, sliderPtr, paramName] {
+                if (activeSegment == sliderPtr)
+                    publishActiveValue(*sliderPtr, paramName);
+            };
 
             sliderPtr->onHover = [this, sliderPtr, paramName] { publishActiveValue(*sliderPtr, paramName); };
 
