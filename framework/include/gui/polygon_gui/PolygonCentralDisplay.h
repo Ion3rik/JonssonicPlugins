@@ -22,6 +22,12 @@ class PolygonCentralDisplay : public juce::Component {
 
     ~PolygonCentralDisplay() override = default;
 
+    void setTypefaces(juce::Typeface::Ptr regular, juce::Typeface::Ptr bold) {
+        regularTypeface = std::move(regular);
+        boldTypeface = std::move(bold);
+        repaint();
+    }
+
     void paint(juce::Graphics& g) override {
         auto bounds = getLocalBounds().toFloat();
         if (bounds.isEmpty())
@@ -54,7 +60,7 @@ class PolygonCentralDisplay : public juce::Component {
 
         if (g.clipRegionIntersects(brandArea.getSmallestIntegerContainer())) {
             g.setColour(getBrandColour());
-            g.setFont(juce::Font(juce::FontOptions("Avenir", brandFontHeight, juce::Font::plain)));
+            g.setFont(juce::Font(fontOptions(brandFontHeight)));
             g.drawFittedText(brandText, brandArea.toNearestInt(), juce::Justification::centred, 1);
         }
 
@@ -63,7 +69,7 @@ class PolygonCentralDisplay : public juce::Component {
             if (useHexaWordmark) {
                 drawHexaWordmark(g, pluginArea);
             } else {
-                g.setFont(juce::Font(juce::FontOptions("Avenir", pluginFontHeight, juce::Font::plain)));
+                g.setFont(juce::Font(fontOptions(pluginFontHeight)));
                 g.drawFittedText(pluginName, pluginArea.toNearestInt(), juce::Justification::centred, 1);
             }
         }
@@ -83,7 +89,7 @@ class PolygonCentralDisplay : public juce::Component {
 
         if (g.clipRegionIntersects(paramNameArea.getSmallestIntegerContainer())) {
             g.setColour(textColour);
-            auto paramNameFont = juce::Font(juce::FontOptions("Avenir", paramNameFontHeight, juce::Font::plain));
+            auto paramNameFont = juce::Font(fontOptions(paramNameFontHeight));
             g.setFont(paramNameFont);
             g.drawFittedText(helpTitle.isEmpty() ? activeParameterName : helpTitle, paramNameArea.toNearestInt(), juce::Justification::centred, 1);
         }
@@ -91,11 +97,11 @@ class PolygonCentralDisplay : public juce::Component {
         if (g.clipRegionIntersects(valueContentArea.getSmallestIntegerContainer())) {
             g.setColour(textColour);
             if (helpText.isNotEmpty()) {
-                auto helpFont = juce::Font(juce::FontOptions("Avenir", 14.0f, juce::Font::plain));
+                auto helpFont = juce::Font(fontOptions(14.0f));
                 g.setFont(helpFont);
                 g.drawFittedText(helpText, valueContentArea.toNearestInt(), juce::Justification::centredTop, 5, 0.85f);
             } else {
-                g.setFont(juce::Font(juce::FontOptions("Avenir", paramValueFontHeight, juce::Font::plain)));
+                g.setFont(juce::Font(fontOptions(paramValueFontHeight)));
                 g.drawFittedText(activeParameterValue, paramValueArea.toNearestInt(), juce::Justification::centred, 1);
             }
         }
@@ -177,9 +183,19 @@ class PolygonCentralDisplay : public juce::Component {
     }
 
   private:
+    juce::FontOptions fontOptions(float height, bool useBold = false) const {
+        const auto& typeface = useBold ? boldTypeface : regularTypeface;
+        if (typeface != nullptr)
+            return juce::FontOptions(typeface).withHeight(height);
+        return juce::FontOptions("Avenir", height, useBold ? juce::Font::bold : juce::Font::plain);
+    }
+
+    juce::Typeface::Ptr regularTypeface;
+    juce::Typeface::Ptr boldTypeface;
+
     void drawHexaWordmark(juce::Graphics& g, juce::Rectangle<float> area) {
-        const juce::Font familyFont(juce::FontOptions("Avenir", pluginFontHeight, juce::Font::plain));
-        const juce::Font productFont(juce::FontOptions("Avenir", pluginFontHeight, juce::Font::bold));
+        const juce::Font familyFont(fontOptions(pluginFontHeight, true));
+        const juce::Font productFont(fontOptions(pluginFontHeight, true));
         juce::GlyphArrangement lettering;
         lettering.addLineOfText(familyFont, "HEXA ", 0.0f, 0.0f);
         const float familyWidth = juce::GlyphArrangement::getStringWidth(familyFont, "HEXA ");
@@ -234,8 +250,8 @@ class PolygonCentralDisplay : public juce::Component {
     juce::Colour subTextColour = juce::Colours::white;
     juce::Colour outlineColour = juce::Colours::white;
 
-    float brandFontHeight = 22.0f;
-    float pluginFontHeight = 28.0f;
+    float brandFontHeight = 26.0f;
+    float pluginFontHeight = 34.0f;
     float paramNameFontHeight = 19.0f;
     float paramValueFontHeight = 19.0f;
 

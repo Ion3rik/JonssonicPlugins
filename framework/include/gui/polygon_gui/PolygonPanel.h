@@ -50,12 +50,21 @@ class PolygonPanel : public juce::Component, private juce::Timer {
 
     ~PolygonPanel() override { stopTimer(); }
 
+    void setTypefaces(juce::Typeface::Ptr regular, juce::Typeface::Ptr bold) {
+        regularTypeface = regular;
+        centralDisplay.setTypefaces(std::move(regular), std::move(bold));
+        for (auto& label : ownedLabels)
+            label->setFont(juce::Font(fontOptions(19.0f)));
+        layoutControls();
+        repaint();
+    }
+
     void paint(juce::Graphics& g) override {
         if (versionText.isEmpty())
             return;
 
         g.setColour(centralDisplay.getBrandColour());
-        g.setFont(juce::Font(juce::FontOptions("Avenir", 12.0f, juce::Font::plain)));
+        g.setFont(juce::Font(fontOptions(12.0f)));
         g.drawText(versionText, getWidth() - 112, 16, 96, 20, juce::Justification::centredRight);
     }
 
@@ -107,6 +116,14 @@ class PolygonPanel : public juce::Component, private juce::Timer {
     }
 
   private:
+    juce::FontOptions fontOptions(float height) const {
+        if (regularTypeface != nullptr)
+            return juce::FontOptions(regularTypeface).withHeight(height);
+        return juce::FontOptions("Avenir", height, juce::Font::plain);
+    }
+
+    juce::Typeface::Ptr regularTypeface;
+
     class ParameterLabel : public juce::Label {
       public:
         void paint(juce::Graphics& g) override {
@@ -298,7 +315,7 @@ class PolygonPanel : public juce::Component, private juce::Timer {
             labelPtr->setJustificationType(juce::Justification::centred);
             labelPtr->setColour(juce::Label::textColourId, juce::Colours::white);
             labelPtr->setText(toSpacedLetters(paramBase->getName(36), true), juce::dontSendNotification);
-            auto labelFont = juce::Font(juce::FontOptions("Avenir", 19.0f, juce::Font::plain));
+            auto labelFont = juce::Font(fontOptions(19.0f));
             labelPtr->setFont(labelFont);
 
             addAndMakeVisible(*sliderPtr);

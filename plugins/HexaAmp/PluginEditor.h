@@ -2,6 +2,7 @@
 #include <array>
 
 #include "PluginProcessor.h"
+#include "HexaAmpFonts.h"
 #include <MinimalJuceHeader.h>
 #include <gui/polygon_gui/PolygonPanel.h>
 #include <parameters/ParameterIdUtils.h>
@@ -176,7 +177,7 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
         }
 
         juce::Font getLabelFont(juce::Label&) override {
-            return juce::Font(juce::FontOptions("Avenir", 14.0f, juce::Font::plain));
+            return HexaAmpFonts::font(14.0f);
         }
 
         bool areScrollbarButtonsVisible() override { return false; }

@@ -1,0 +1,5 @@
+Source: https://github.com/indestructible-type/Jost
+Commit: 35f141c970538f1ed0f235789c19156b3ce2a762
+Regular: fonts/ttf/Jost-400-Book.ttf
+Bold: fonts/ttf/Jost-700-Bold.ttf
+License: SIL Open Font License 1.1 (see OFL.txt)

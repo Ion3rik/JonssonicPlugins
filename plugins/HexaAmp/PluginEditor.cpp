@@ -26,6 +26,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
                             jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorThresholdMax),
                             jnsc::juce_interface::idToString(HexaAmpParams::ID::Makeup)},
           juce::String("v") + JucePlugin_VersionString) {
+    polygonPanel.setTypefaces(HexaAmpFonts::regular(), HexaAmpFonts::bold());
     setOpaque(true);
     addAndMakeVisible(polygonPanel);
     setSize(512, 512);
@@ -46,7 +47,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     developmentViewport.setScrollBarThickness(12);
     developmentViewport.getVerticalScrollBar().setLookAndFeel(&trimmerLookAndFeel);
     developmentVersion.setText(juce::String("v") + JucePlugin_VersionString, juce::dontSendNotification);
-    developmentVersion.setFont(juce::Font(juce::FontOptions("Avenir", 12.0f, juce::Font::plain)));
+    developmentVersion.setFont(HexaAmpFonts::font(12.0f));
     developmentVersion.setJustificationType(juce::Justification::centredRight);
     developmentVersion.setBorderSize(juce::BorderSize<int>(0));
     addChildComponent(developmentVersion);
@@ -70,7 +71,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
         auto& label = developmentLabels[i];
         auto& slider = developmentSliders[i];
         label.setText(parameter->getName(64), juce::dontSendNotification);
-        label.setFont(juce::Font(juce::FontOptions("Avenir", 13.0f, juce::Font::plain)));
+        label.setFont(HexaAmpFonts::font(14.0f));
         label.setJustificationType(juce::Justification::centredLeft);
         label.setColour(juce::Label::textColourId, developmentColour);
         developmentPanel.addAndMakeVisible(label);
