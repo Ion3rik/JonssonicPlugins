@@ -1,5 +1,4 @@
 #pragma once
-#include "Version.h"
 #include <array>
 
 #include "PluginProcessor.h"

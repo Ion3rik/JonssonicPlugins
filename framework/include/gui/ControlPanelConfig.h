@@ -45,6 +45,9 @@ struct ControlPanelConfig {
     /** Spacing between controls in pixels. */
     int spacing;
 
+    /** Plugin version displayed in the panel. */
+    juce::String version;
+
     /** Main title text for the panel. */
     juce::String title;
     /** Height of the title area in pixels. */

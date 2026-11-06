@@ -1,6 +1,7 @@
 # Plugin-specific CMake for BiquadDemo plugin
 
 add_plugin(BiquadDemo
+    VERSION 0.3.0
     PLUGIN_NAME "BiquadDemo"
     PROD_NAME "BiquadDemo"
     PROD_CODE BqDm

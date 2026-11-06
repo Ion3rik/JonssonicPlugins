@@ -4,6 +4,7 @@
 CompressorAudioProcessorEditor::CompressorAudioProcessorEditor(CompressorAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p), controlPanelConfig([] {
           jnsc::juce_interface::ControlPanelConfig c;
+          c.version = JucePlugin_VersionString;
           c.columns = 3;             // Number of columns in the control panel
           c.panelMarginRight = 50;   // Extra right margin for meter
           c.showValueBoxes = true;   // Show value boxes for sliders

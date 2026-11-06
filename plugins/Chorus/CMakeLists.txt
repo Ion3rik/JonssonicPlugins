@@ -1,5 +1,6 @@
 # Plugin-specific CMake for Chorus plugin
 add_plugin(Chorus
+    VERSION 0.3.0
     PLUGIN_NAME "Chorus"
     PROD_NAME "Chorus"
     PROD_CODE CHOR

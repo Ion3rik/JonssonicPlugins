@@ -4,6 +4,12 @@ A plugin development framework and collection of audio effects built with [Jonss
 ## Example Plugins
 - Delay, Flanger, Reverb, EQ, Compressor, Distortion.
 
+## Versioning
+
+Each plugin and demo defines its own `VERSION` in its `CMakeLists.txt`. JUCE uses that version for the plugin and app metadata, and the editor displays the same version. New plugins inherit an explicit version from `plugins/_Template/CMakeLists.txt`.
+
+The root `project(JonssonicPlugins VERSION ...)` identifies the suite release independently. For a combined installer containing different plugin versions, pass the suite version to `tools/make_installer.py` using `--version`.
+
 ## Framework
 
 This project includes the **jnsc::juce_interface** - a lightweight framework that simplifies plugin development with JUCE by providing:

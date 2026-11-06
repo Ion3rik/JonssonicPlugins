@@ -25,7 +25,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
                             jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorThresholdMin),
                             jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorThresholdMax),
                             jnsc::juce_interface::idToString(HexaAmpParams::ID::Makeup)},
-          "v0.0.1") {
+          juce::String("v") + JucePlugin_VersionString) {
     setOpaque(true);
     addAndMakeVisible(polygonPanel);
     setSize(512, 512);
@@ -45,7 +45,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     developmentViewport.setScrollBarsShown(true, false);
     developmentViewport.setScrollBarThickness(12);
     developmentViewport.getVerticalScrollBar().setLookAndFeel(&trimmerLookAndFeel);
-    developmentVersion.setText("v0.0.1", juce::dontSendNotification);
+    developmentVersion.setText(juce::String("v") + JucePlugin_VersionString, juce::dontSendNotification);
     developmentVersion.setFont(juce::Font(juce::FontOptions("Avenir", 12.0f, juce::Font::plain)));
     developmentVersion.setJustificationType(juce::Justification::centredRight);
     developmentVersion.setBorderSize(juce::BorderSize<int>(0));

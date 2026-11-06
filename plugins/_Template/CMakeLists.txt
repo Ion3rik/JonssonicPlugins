@@ -1,5 +1,6 @@
 # Plugin-specific CMake for Template plugin
 add_plugin(Template
+    VERSION 0.3.0
     PLUGIN_NAME "Template"
     PROD_NAME "Template"
     PROD_CODE TEMP

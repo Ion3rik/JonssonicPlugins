@@ -4,6 +4,7 @@
 BiquadDemoAudioProcessorEditor::BiquadDemoAudioProcessorEditor(BiquadDemoAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p), controlPanelConfig([] {
           jnsc::juce_interface::ControlPanelConfig c;
+          c.version = JucePlugin_VersionString;
           c.columns = 4;           // Number of columns in the control panel
           c.showValueBoxes = true; // Show value boxes for sliders
           c.controlHeight = 100;   // Height of each control in pixels

@@ -15,8 +15,8 @@ cmake_policy(SET CMP0175 NEW)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE)
 
 
-# Project version setup
-project(JonssonicPlugins VERSION 0.2.1)
+# Suite version setup
+project(JonssonicPlugins VERSION 0.3.0)
 configure_file(
     ${CMAKE_SOURCE_DIR}/framework/include/Version.h.in
     ${CMAKE_BINARY_DIR}/generated/Version.h
@@ -117,9 +117,8 @@ function(add_plugin target)
     set(multi_value_args SOURCES INCLUDE_DIRS RESOURCES)
     cmake_parse_arguments(AP "" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    # Default to project version if not specified
     if(NOT AP_VERSION)
-        set(AP_VERSION ${PROJECT_VERSION})
+        message(FATAL_ERROR "${target}: specify VERSION in the plugin's CMakeLists.txt")
     endif()
 
     message(STATUS "Adding JUCE plugin target: ${target}")

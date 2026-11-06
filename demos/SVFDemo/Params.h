@@ -23,7 +23,7 @@ struct SVFDemoParams {
         params.add(FloatParam<ID>{ID::Frequency,    "Frequency",     20.0f,  20000.0f,   440.0f,    "Hz",    1.0f});
         params.add(FloatParam<ID>{ID::Q,            "Q",             0.1f,   10.0f,   1.0f,    "",    1.0f});
         // Choice parameter       ↓ id              ↓ name           ↓ choices
-        params.add(ChoiceParam<ID>{ID::Response,     "Response",      {"Low Pass", "High Pass", "Band Pass" }, 0});
+        params.add(ChoiceParam<ID>{ID::Response,     "Response",      {"Low Pass", "High Pass", "Band Pass", "All Pass" }, 0});
 
         // clang-format on
         return params;

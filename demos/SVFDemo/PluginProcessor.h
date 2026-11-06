@@ -36,8 +36,13 @@ class SVFDemoAudioProcessor : public juce::AudioProcessor {
     juce::AudioProcessorValueTreeState& getAPVTS() { return parameterManager.getAPVTS(); }
 
   private:
+    enum class Response { Lowpass, Highpass, Bandpass, Allpass };
+
     // DSP objects and buffers
     jnsc::StateVariableFilter<float> svf;
+    float frequencyHz = 440.0f;
+    float qualityFactor = 1.0f;
+    Response response = Response::Lowpass;
 
     // Parameter manager
     jnsc::juce_interface::ParameterManager<SVFDemoParams::ID> parameterManager;

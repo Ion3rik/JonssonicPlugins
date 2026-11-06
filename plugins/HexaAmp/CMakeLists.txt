@@ -1,5 +1,6 @@
 # Plugin-specific CMake for HexaAmp plugin
 add_plugin(HexaAmp
+    VERSION 0.1.0
     PLUGIN_NAME "HexaAmp"
     PROD_NAME "HexaAmp"
     PROD_CODE HEXA

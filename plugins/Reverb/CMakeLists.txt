@@ -1,5 +1,6 @@
 # Plugin-specific CMake for Reverb plugin
 add_plugin(Reverb
+    VERSION 0.3.0
     PLUGIN_NAME "Reverb"
     PROD_NAME "Reverb"
     PROD_CODE REVE

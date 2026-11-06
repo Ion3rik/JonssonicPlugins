@@ -19,22 +19,21 @@ SVFDemoAudioProcessor::SVFDemoAudioProcessor() : parameterManager(SVFDemoParams(
 
     // Register callbacks for parameter changes
     using ID = SVFDemoParams::ID;
-    using ResponseType = jnsc::StateVariableFilter<float>::Response;
+    using ResponseType = Response;
 
     parameterManager.on(ID::Frequency, [this](float newValue, bool skipSmoothing) {
         // Update the filter frequency immediately (no smoothing for demo purposes)
-        svf.setFrequency(jnsc::Frequency<float>::Hertz(newValue));
+        frequencyHz = newValue;
     });
 
     parameterManager.on(ID::Q, [this](float newValue, bool skipSmoothing) {
         // Update the filter Q immediately (no smoothing for demo purposes)
-        svf.setQ(newValue);
+        qualityFactor = newValue;
     });
 
     parameterManager.on(ID::Response, [this](int newValue, bool skipSmoothing) {
         // Update the filter type immediately based on the selected response
-        ResponseType response = static_cast<ResponseType>(newValue);
-        svf.setResponse(response);
+        response = static_cast<ResponseType>(newValue);
     });
 }
 
@@ -78,9 +77,12 @@ void SVFDemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
                                     numSamples);
 
     // Process the audio through the state variable filter
-    svf.processBlock(buffer.getArrayOfReadPointers(),
-                     buffer.getArrayOfWritePointers(),
-                     static_cast<size_t>(numSamples));
+    for (int ch = 0; ch < numOutputChannels; ++ch) {
+        auto* samples = buffer.getWritePointer(ch);
+        for (int n = 0; n < numSamples; ++n)
+            samples[n] = svf.processSample(static_cast<size_t>(ch), samples[n], frequencyHz, qualityFactor)[
+                static_cast<size_t>(response)];
+    }
 }
 
 void SVFDemoAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {

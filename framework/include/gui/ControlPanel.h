@@ -4,7 +4,6 @@
 
 #pragma once
 #include "ControlPanelConfig.h"
-#include "Version.h"
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <parameters/ParameterIdUtils.h>
@@ -86,7 +85,7 @@ class ControlPanel : public juce::Component {
 
             // Draw version string in top right corner
             constexpr int margin = 8;
-            juce::String versionStr = "v" JONSSONIC_PLUGINS_VERSION_STRING;
+            juce::String versionStr = config.version.isEmpty() ? juce::String() : "v" + config.version;
             g.setColour(juce::Colours::lightgrey.withAlpha(0.7f));
             g.setFont(juce::Font(juce::FontOptions(config.fontName, 14.0f, juce::Font::plain)));
             juce::GlyphArrangement glyphs;

@@ -1,5 +1,4 @@
 #pragma once
-#include "Version.h"
 
 #include "PluginLookAndFeel.h"
 #include "PluginProcessor.h"

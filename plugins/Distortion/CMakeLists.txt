@@ -1,5 +1,6 @@
 # Plugin-specific CMake for Distortion plugin
 add_plugin(Distortion
+    VERSION 0.3.0
     PLUGIN_NAME "Distortion"
     PROD_NAME "Distortion"
     PROD_CODE DIST
