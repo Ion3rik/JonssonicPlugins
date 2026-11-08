@@ -15,6 +15,6 @@ add_plugin(Template
     INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/../common_includes  # if any shared headers exist, otherwise omit
     RESOURCES
-        logos/Jonssonic_logo.png
+        logos/jonssonic_logo.svg
         knobs/JonssonicRotarySlider.png
 )

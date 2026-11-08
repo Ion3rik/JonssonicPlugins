@@ -1,8 +1,8 @@
-#include "HexaAmp.h"
+#include "HexaGuitar.h"
 #include "color_data.h"
 
-namespace jnsc::hexa_amp {
-void HexaAmp::prepare(size_t newMaxBlockSize, float newSampleRate) {
+namespace jnsc::hexa_guitar {
+void HexaGuitar::prepare(size_t newMaxBlockSize, float newSampleRate) {
     using Response = BiquadFilter<float>::Response;
 
     // Store global parameters
@@ -86,17 +86,17 @@ void HexaAmp::prepare(size_t newMaxBlockSize, float newSampleRate) {
     powerAmpShape.setSmoothingTime(Time<float>::Milliseconds(PARAM_SMOOTH_TIME_MS));
 
     // Set Default Parameters
-    setDrive(50.0, true);  // 50% drive
-    setBite(50.0, true);   // 50% bite
-    setSquish(0.0, true);  // No compression
-    setLevel(50.0, true);  // 50% level
-    setColor(50.0, true);  // 50% color
+    setDrive(50.0, true); // 50% drive
+    setBite(50.0, true);  // 50% bite
+    setSquish(0.0, true); // No compression
+    setLevel(50.0, true); // 50% level
+    setColor(50.0, true); // 50% color
     setPowerAmpShape(POWER_AMP_SHAPE_DEFAULT, true);
     setMidBoostFrequency(MID_BOOST_FREQUENCY_HZ, true);
-    setTilt(50.0, true);   // 50% body
+    setTilt(50.0, true); // 50% body
 }
 
-void HexaAmp::reset() {
+void HexaGuitar::reset() {
     previousPowerAmpOutput = 0.0f;
     preFilter.reset();
     oversampler.reset();
@@ -107,7 +107,7 @@ void HexaAmp::reset() {
     oversampledBuffer.clear();
 }
 
-void HexaAmp::processBlock(const float* input, float* output, size_t numSamples) {
+void HexaGuitar::processBlock(const float* input, float* output, size_t numSamples) {
     const float* inputs[] = {input};
     float* outputs[] = {output};
 
@@ -160,105 +160,110 @@ void HexaAmp::processBlock(const float* input, float* output, size_t numSamples)
     cabinetFilter.processBlock(outputs, outputs, numSamples);
 }
 
-void HexaAmp::setDrive(float drivePercent, bool skipSmoothing) {
+void HexaGuitar::setDrive(float drivePercent, bool skipSmoothing) {
     // Implementation for setting drive
     float t = std::clamp(drivePercent * 0.01f, 0.0f, 1.0f);
     float driveDb = DRIVE_MIN_DB + (DRIVE_MAX_DB - DRIVE_MIN_DB) * t;
     drive.setTarget(utils::dB2Mag(driveDb), skipSmoothing);
 }
 
-void HexaAmp::setBite(float bitePercent, bool skipSmoothing) {
+void HexaGuitar::setBite(float bitePercent, bool skipSmoothing) {
     // Implementation for setting bite
     float biteDb = MID_BOOST_MIN_DB + (MID_BOOST_MAX_DB - MID_BOOST_MIN_DB) * (bitePercent * 0.01);
     interstageFilter.section(2).setGain(Gain<float>::Decibels(biteDb));
 }
 
-void HexaAmp::setSquish(float squishPercent, bool skipSmoothing) {
+void HexaGuitar::setSquish(float squishPercent, bool skipSmoothing) {
     squishAmount = std::clamp(squishPercent * 0.01f, 0.0f, 1.0f);
     updateDynamicsThresholds(skipSmoothing);
     setMakeup(makeupDb, skipSmoothing);
 }
 
-void HexaAmp::setPreAmpCompressorThresholdMin(float decibels, bool skipSmoothing) {
+void HexaGuitar::setPreAmpCompressorThresholdMin(float decibels, bool skipSmoothing) {
     preAmpCompressorThresholdMinDb = std::clamp(decibels, -60.0f, 0.0f);
     updateDynamicsThresholds(skipSmoothing);
 }
 
-void HexaAmp::setPreAmpCompressorThresholdMax(float decibels, bool skipSmoothing) {
+void HexaGuitar::setPreAmpCompressorThresholdMax(float decibels, bool skipSmoothing) {
     preAmpCompressorThresholdMaxDb = std::clamp(decibels, -60.0f, 0.0f);
     updateDynamicsThresholds(skipSmoothing);
 }
 
-void HexaAmp::updateDynamicsThresholds(bool skipSmoothing) {
+void HexaGuitar::updateDynamicsThresholds(bool skipSmoothing) {
     float low = std::min(preAmpCompressorThresholdMinDb, preAmpCompressorThresholdMaxDb);
     float high = std::max(preAmpCompressorThresholdMinDb, preAmpCompressorThresholdMaxDb);
     float thresholdDb = high + (low - high) * squishAmount;
     preAmpCompressorGainComputer.setThreshold(thresholdDb, skipSmoothing);
     float powerAmpCompressorLow = std::min(powerAmpCompressorThresholdMinDb, powerAmpCompressorThresholdMaxDb);
     float powerAmpCompressorHigh = std::max(powerAmpCompressorThresholdMinDb, powerAmpCompressorThresholdMaxDb);
-    powerAmpCompressorGainComputer.setThreshold(powerAmpCompressorHigh + (powerAmpCompressorLow - powerAmpCompressorHigh) * squishAmount, skipSmoothing);
+    powerAmpCompressorGainComputer.setThreshold(powerAmpCompressorHigh +
+                                                    (powerAmpCompressorLow - powerAmpCompressorHigh) * squishAmount,
+                                                skipSmoothing);
 }
 
-void HexaAmp::setLevel(float gainPercent, bool skipSmoothing) {
+void HexaGuitar::setLevel(float gainPercent, bool skipSmoothing) {
     // Implementation for setting level
     float t = std::clamp(gainPercent * 0.01f, 0.0f, 1.0f);
     level.setTarget(t * t, skipSmoothing);
 }
 
-void HexaAmp::setPreAmpCompressorAttack(float milliseconds, bool skipSmoothing) {
-    preAmpCompressorEnvelopeFollower.setAttackTime(Time<float>::Milliseconds(std::clamp(milliseconds, 0.1f, 100.0f)), skipSmoothing);
+void HexaGuitar::setPreAmpCompressorAttack(float milliseconds, bool skipSmoothing) {
+    preAmpCompressorEnvelopeFollower.setAttackTime(Time<float>::Milliseconds(std::clamp(milliseconds, 0.1f, 100.0f)),
+                                                   skipSmoothing);
 }
 
-void HexaAmp::setPreAmpCompressorRelease(float milliseconds, bool skipSmoothing) {
-    preAmpCompressorEnvelopeFollower.setReleaseTime(Time<float>::Milliseconds(std::clamp(milliseconds, 5.0f, 1500.0f)), skipSmoothing);
+void HexaGuitar::setPreAmpCompressorRelease(float milliseconds, bool skipSmoothing) {
+    preAmpCompressorEnvelopeFollower.setReleaseTime(Time<float>::Milliseconds(std::clamp(milliseconds, 5.0f, 1500.0f)),
+                                                    skipSmoothing);
 }
 
-void HexaAmp::setPowerAmpCompressorAttack(float milliseconds, bool skipSmoothing) {
-    powerAmpCompressorEnvelopeFollower.setAttackTime(Time<float>::Milliseconds(std::clamp(milliseconds, 0.1f, 200.0f)), skipSmoothing);
+void HexaGuitar::setPowerAmpCompressorAttack(float milliseconds, bool skipSmoothing) {
+    powerAmpCompressorEnvelopeFollower.setAttackTime(Time<float>::Milliseconds(std::clamp(milliseconds, 0.1f, 200.0f)),
+                                                     skipSmoothing);
 }
 
-void HexaAmp::setPowerAmpCompressorRelease(float milliseconds, bool skipSmoothing) {
-    powerAmpCompressorEnvelopeFollower.setReleaseTime(Time<float>::Milliseconds(std::clamp(milliseconds, 5.0f, 2000.0f)), skipSmoothing);
+void HexaGuitar::setPowerAmpCompressorRelease(float milliseconds, bool skipSmoothing) {
+    powerAmpCompressorEnvelopeFollower.setReleaseTime(
+        Time<float>::Milliseconds(std::clamp(milliseconds, 5.0f, 2000.0f)),
+        skipSmoothing);
 }
 
-void HexaAmp::setMidBoostFrequency(float hertz, bool /*skipSmoothing*/) {
+void HexaGuitar::setMidBoostFrequency(float hertz, bool /*skipSmoothing*/) {
     float frequency = std::clamp(hertz, 200.0f, 3000.0f);
     interstageFilter.section(2).setFrequency(Frequency<float>::Hertz(frequency));
 }
 
-void HexaAmp::setPowerAmpCompressorThresholdMin(float decibels, bool skipSmoothing) {
+void HexaGuitar::setPowerAmpCompressorThresholdMin(float decibels, bool skipSmoothing) {
     powerAmpCompressorThresholdMinDb = std::clamp(decibels, -60.0f, 0.0f);
     updateDynamicsThresholds(skipSmoothing);
 }
 
-void HexaAmp::setPowerAmpCompressorThresholdMax(float decibels, bool skipSmoothing) {
+void HexaGuitar::setPowerAmpCompressorThresholdMax(float decibels, bool skipSmoothing) {
     powerAmpCompressorThresholdMaxDb = std::clamp(decibels, -60.0f, 0.0f);
     updateDynamicsThresholds(skipSmoothing);
 }
 
-void HexaAmp::setMakeup(float decibels, bool skipSmoothing) {
+void HexaGuitar::setMakeup(float decibels, bool skipSmoothing) {
     makeupDb = std::clamp(decibels, 0.0f, 48.0f);
     makeupGain.setTarget(utils::dB2Mag(makeupDb * squishAmount), skipSmoothing);
 }
 
-void HexaAmp::setPowerAmpShape(float shape, bool skipSmoothing) {
+void HexaGuitar::setPowerAmpShape(float shape, bool skipSmoothing) {
     powerAmpShape.setTarget(std::clamp(shape, POWER_AMP_SHAPE_MIN, POWER_AMP_SHAPE_MAX), skipSmoothing);
 }
 
-void HexaAmp::setColor(float colorPercent, bool /*skipSmoothing*/) {
+void HexaGuitar::setColor(float colorPercent, bool /*skipSmoothing*/) {
     const float t = std::clamp(colorPercent * 0.01f, 0.0f, 1.0f);
     const auto gain = [t](float a, float b) { return a + t * (b - a); };
-    const auto geometric = [t](float a, float b) {
-        return std::exp(std::log(a) + t * (std::log(b) - std::log(a)));
-    };
+    const auto geometric = [t](float a, float b) { return std::exp(std::log(a) + t * (std::log(b) - std::log(a))); };
     for (size_t i = 0; i < 8; ++i) {
         const auto& p = color_data::peaks[i];
         cabinetFilter.section(i).setGain(Gain<float>::Decibels(gain(p[0], p[1])));
         cabinetFilter.section(i).setFrequency(Frequency<float>::Hertz(geometric(p[2], p[3])));
         cabinetFilter.section(i).setQ(geometric(p[4], p[5]));
     }
-    cabinetFilter.section(8).setFrequency(Frequency<float>::Hertz(
-        geometric(color_data::highpassFrequencyHz[0], color_data::highpassFrequencyHz[1])));
+    cabinetFilter.section(8).setFrequency(
+        Frequency<float>::Hertz(geometric(color_data::highpassFrequencyHz[0], color_data::highpassFrequencyHz[1])));
     const float shelfFrequency = geometric(color_data::shelfFrequencyHz[0], color_data::shelfFrequencyHz[1]);
     const float shelfGain = gain(color_data::shelfGainDb[0], color_data::shelfGainDb[1]);
     for (size_t i = 9; i < 11; ++i) {
@@ -268,13 +273,12 @@ void HexaAmp::setColor(float colorPercent, bool /*skipSmoothing*/) {
     const float lowpassFrequency = geometric(color_data::lowpassFrequencyHz[0], color_data::lowpassFrequencyHz[1]);
     cabinetFilter.section(11).setFrequency(Frequency<float>::Hertz(lowpassFrequency));
     cabinetFilter.section(12).setFrequency(Frequency<float>::Hertz(lowpassFrequency));
-
 }
 
-void HexaAmp::setTilt(float tiltPercent, bool skipSmoothing) {
+void HexaGuitar::setTilt(float tiltPercent, bool skipSmoothing) {
     // Implementation for setting body
     float tiltDb = PRE_TILT_MIN_DB + (PRE_TILT_MAX_DB - PRE_TILT_MIN_DB) * (tiltPercent * 0.01);
     preFilter.section(1).setGain(Gain<float>::Decibels(tiltDb));
 }
 
-} // namespace jnsc::hexa_amp
+} // namespace jnsc::hexa_guitar

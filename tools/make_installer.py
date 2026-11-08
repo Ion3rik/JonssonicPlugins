@@ -34,7 +34,7 @@ def main():
             plugins[match.group(1)] = cmake.parent.name
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("plugins", nargs="*", help="Plugin targets, e.g. HexaAmp Reverb")
+    parser.add_argument("plugins", nargs="*", help="Plugin targets, e.g. HexaGuitar Reverb")
     parser.add_argument("--all", action="store_true", help="Include all plugins")
     parser.add_argument("--list", action="store_true", help="List available plugins")
     parser.add_argument("--formats", nargs="+", choices=FORMATS, default=["AU", "VST3"])

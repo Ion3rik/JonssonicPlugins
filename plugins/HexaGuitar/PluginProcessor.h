@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Params.h"
-#include "DSP/HexaAmp.h"
+#include "DSP/HexaGuitar.h"
 #include <MinimalJuceHeader.h>
 #include <parameters/ParameterManager.h>
 
-class HexaAmpAudioProcessor : public juce::AudioProcessor {
+class HexaGuitarAudioProcessor : public juce::AudioProcessor {
   public:
-    HexaAmpAudioProcessor();
-    ~HexaAmpAudioProcessor() override;
+    HexaGuitarAudioProcessor();
+    ~HexaGuitarAudioProcessor() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
@@ -39,12 +39,12 @@ class HexaAmpAudioProcessor : public juce::AudioProcessor {
 
   private:
     // DSP objects and buffers
-    jnsc::hexa_amp::HexaAmp hexaAmp; // Amp effect processor
+    jnsc::hexa_guitar::HexaGuitar hexaGuitar; // Amp effect processor
     bool effectPrepared = false;
 
     // Parameter manager
-    jnsc::juce_interface::ParameterManager<HexaAmpParams::ID> parameterManager;
+    jnsc::juce_interface::ParameterManager<HexaGuitarParams::ID> parameterManager;
     juce::RangedAudioParameter* bypassParameter = nullptr;
     bool bypassed = false;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HexaAmpAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HexaGuitarAudioProcessor)
 };

@@ -3,8 +3,8 @@
 Run from the repository root (requires Python 3 and Apple's command-line tools):
 
 ```sh
-python3 tools/make_installer.py HexaAmp --build-dir build/local-release
-python3 tools/make_installer.py HexaAmp Reverb Delay --build-dir build/local-release
+python3 tools/make_installer.py HexaGuitar --build-dir build/local-release
+python3 tools/make_installer.py HexaGuitar Reverb Delay --build-dir build/local-release
 python3 tools/make_installer.py --all --build-dir build/local-release
 python3 tools/make_installer.py --list
 ```
@@ -12,7 +12,7 @@ python3 tools/make_installer.py --list
 AU and VST3 are included by default. To choose formats:
 
 ```sh
-python3 tools/make_installer.py HexaAmp --build-dir build/local-release --formats AU VST3 Standalone
+python3 tools/make_installer.py HexaGuitar --build-dir build/local-release --formats AU VST3 Standalone
 ```
 
 The helper only packages existing Release binaries. `--build-dir` is mandatory
@@ -28,7 +28,7 @@ Installer destinations are `/Library/Audio/Plug-Ins/Components`,
 To package only AU from an existing build:
 
 ```sh
-python3 tools/make_installer.py HexaAmp --build-dir build/local-release --formats AU
+python3 tools/make_installer.py HexaGuitar --build-dir build/local-release --formats AU
 ```
 
 The installer version comes from the built bundles. Use `--version 0.2.1` to

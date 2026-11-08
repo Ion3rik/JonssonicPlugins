@@ -2,15 +2,15 @@
 #include <array>
 
 #include "PluginProcessor.h"
-#include "HexaAmpFonts.h"
+#include "HexaGuitarFonts.h"
 #include <MinimalJuceHeader.h>
 #include <gui/polygon_gui/PolygonPanel.h>
 #include <parameters/ParameterIdUtils.h>
 
-class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
+class HexaGuitarAudioProcessorEditor : public juce::AudioProcessorEditor {
   public:
-    HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor&);
-    ~HexaAmpAudioProcessorEditor() override;
+    HexaGuitarAudioProcessorEditor(HexaGuitarAudioProcessor&);
+    ~HexaGuitarAudioProcessorEditor() override;
     void paint(juce::Graphics&) override;
     void resized() override;
 
@@ -158,11 +158,11 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
 
     class VersionHotspot : public juce::Component {
       public:
-        explicit VersionHotspot(HexaAmpAudioProcessorEditor& editor) : editor(editor) {}
+        explicit VersionHotspot(HexaGuitarAudioProcessorEditor& editor) : editor(editor) {}
         void mouseDoubleClick(const juce::MouseEvent&) override { editor.toggleDevelopmentPanel(); }
 
       private:
-        HexaAmpAudioProcessorEditor& editor;
+        HexaGuitarAudioProcessorEditor& editor;
     };
 
     class TrimmerLookAndFeel : public juce::LookAndFeel_V4 {
@@ -177,7 +177,7 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
         }
 
         juce::Font getLabelFont(juce::Label&) override {
-            return HexaAmpFonts::font(14.0f);
+            return HexaGuitarFonts::font(14.0f);
         }
 
         bool areScrollbarButtonsVisible() override { return false; }
@@ -220,14 +220,18 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
         LogoDisplay() { setInterceptsMouseClicks(false, false); }
 
         void paint(juce::Graphics& g) override {
-            if (!mask.isValid() || getWidth() <= 32 || getHeight() <= 32)
+            if (drawable == nullptr || getWidth() <= 32 || getHeight() <= 32)
                 return;
-            g.setColour(colour);
-            g.drawImage(mask, getLocalBounds().reduced(16).toFloat(),
-                        juce::RectanglePlacement::centred, true);
+            if (colour != drawableColour) {
+                drawable->replaceColour(drawableColour, colour);
+                drawableColour = colour;
+            }
+            drawable->drawWithin(g, getLocalBounds().toFloat().withSizeKeepingCentre(42.0f, 42.0f),
+                                 juce::RectanglePlacement::centred, 1.0f);
         }
 
-        juce::Image mask;
+        std::unique_ptr<juce::Drawable> drawable;
+        juce::Colour drawableColour = juce::Colours::black;
         juce::Colour colour;
 
     };
@@ -239,17 +243,16 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
     DiceButton diceButton;
     juce::Component::SafePointer<juce::CallOutBox> palettePopup;
     ThemeButton themeToggle;
-    void loadLogoImage();
+    void loadLogo();
     void setPowerState(bool enabled);
     void toggleDevelopmentPanel();
 
     // We need a reference to the processor object in order to access its parameters
-    HexaAmpAudioProcessor& audioProcessor;
+    HexaGuitarAudioProcessor& audioProcessor;
 
     // Polygon parameter panel
     jnsc::juce_interface::PolygonPanel polygonPanel;
 
-    juce::Image logoImage;
     LogoDisplay logoDisplay;
     std::unique_ptr<juce::ParameterAttachment> bypassStateAttachment;
     juce::Component developmentPanel;
@@ -262,5 +265,5 @@ class HexaAmpAudioProcessorEditor : public juce::AudioProcessorEditor {
     std::array<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>, 11> developmentAttachments;
     bool developmentVisible = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HexaAmpAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HexaGuitarAudioProcessorEditor)
 };

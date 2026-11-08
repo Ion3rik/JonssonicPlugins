@@ -4,7 +4,7 @@
 #include <gui/CustomLookAndFeel.h>
 
 /**
- * @brief Look and Feel class for the HexaAmp plugin.
+ * @brief Look and Feel class for the HexaGuitar plugin.
  * Inherits from CustomLookAndFeel and customizes the appearance
  * of the plugin's user interface elements.
  * @note Currently, it overrides the knob strip image with a plugin-specific one if available.

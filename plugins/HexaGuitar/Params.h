@@ -1,5 +1,5 @@
 //==============================================================================
-// Jonssonic HexaAmp Plugin Parameters
+// Jonssonic HexaGuitar Plugin Parameters
 //==============================================================================
 
 #pragma once
@@ -8,7 +8,7 @@
 #include <parameters/ParameterSet.h>
 #include <parameters/ParameterTypes.h>
 
-struct HexaAmpParams {
+struct HexaGuitarParams {
 
     // Parameter IDs as enum
     enum class ID {

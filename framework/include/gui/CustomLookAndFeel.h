@@ -27,14 +27,16 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         numFrames = knobStrip.isValid() ? knobStrip.getHeight() / knobStrip.getWidth() : 0;
 
         // Load the logo from the plugin bundle's Resources folder at runtime
-        juce::File logoFile = getResourceFile("logos/Jonssonic_logo.png");
+        juce::File logoFile = getResourceFile("logos/jonssonic_logo.svg");
         if (logoFile.existsAsFile()) {
-            logo = juce::ImageFileFormat::loadFrom(logoFile);
+            logo = juce::Drawable::createFromSVGFile(logoFile);
+            if (logo != nullptr)
+                logo->replaceColour(juce::Colours::black, juce::Colours::white);
         }
     }
 
     /**
-     * @brief Generates the main background with gradient, noise overlay, and logo.
+     * @brief Generates the main background with gradient and noise overlay.
      * Caches the generated background for efficient redrawing.
      * @param width Width of the area to draw.
      * @param height Height of the area to draw.
@@ -67,9 +69,21 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
         g.setOpacity(0.20f);
         g.drawImageAt(noise, 0, 0);
         g.setOpacity(1.0f);
+    }
 
+    /**
+     * @brief Draws the cached main background onto the provided Graphics context.
+     * @param g Graphics context to draw onto.
+     * @note Call this from the JUCE component's paint() method.
+     */
+    void drawCachedMainBackground(juce::Graphics& g) {
+        if (!cachedBackground.isValid())
+            return;
+        g.drawImageAt(cachedBackground, 0, 0);
+        const int width = cachedBackground.getWidth();
+        const int height = cachedBackground.getHeight();
         // Draw logo with configurable placement
-        if (logo.isValid() && config) {
+        if (logo != nullptr && config) {
             const float logoOpacity = 1.0f;
             int logoHeight = static_cast<int>(config->logoHeight);
             int logoWidth = logoHeight; // Always square for now
@@ -99,30 +113,10 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
                 logoY = height - logoHeight - config->logoMarginY;
                 break;
             }
-            g.setOpacity(logoOpacity);
-            // Draw logo with exact dimensions, ignoring aspect ratio
-            g.drawImage(logo,
-                        (float)logoX,
-                        (float)logoY,
-                        (float)logoWidth,
-                        (float)logoHeight,
-                        0,
-                        0,
-                        logo.getWidth(),
-                        logo.getHeight(),
-                        false);
-            g.setOpacity(1.0f);
+            logo->drawWithin(g, juce::Rectangle<float>((float)logoX, (float)logoY,
+                                                       (float)logoWidth, (float)logoHeight),
+                             juce::RectanglePlacement::centred, logoOpacity);
         }
-    }
-
-    /**
-     * @brief Draws the cached main background onto the provided Graphics context.
-     * @param g Graphics context to draw onto.
-     * @note Call this from the JUCE component's paint() method.
-     */
-    void drawCachedMainBackground(juce::Graphics& g) {
-        if (cachedBackground.isValid())
-            g.drawImageAt(cachedBackground, 0, 0);
     }
 
     /**
@@ -216,7 +210,7 @@ class CustomLookAndFeel : public juce::LookAndFeel_V4 {
     const ControlPanelConfig* config = nullptr;
     juce::Image knobStrip;
     int numFrames = 0;
-    juce::Image logo;
+    std::unique_ptr<juce::Drawable> logo;
     juce::Image cachedBackground;
 };
 } // namespace jnsc::juce_interface

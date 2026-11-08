@@ -8,7 +8,7 @@ namespace jnsc::juce_interface {
 
 /**
  * @brief Get resource file path within the plugin bundle
- * @param relativePath Relative path within Resources folder (e.g., "logos/Jonssonic_logo.png")
+ * @param relativePath Relative path within Resources folder (e.g., "logos/jonssonic_logo.svg")
  * @return juce::File pointing to the resource
  */
 inline juce::File getResourceFile(const juce::String& relativePath) {

@@ -1,40 +1,39 @@
 #include "PluginEditor.h"
 #include <utils/ResourceUtils.h>
 
-HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& p)
+HexaGuitarAudioProcessorEditor::HexaGuitarAudioProcessorEditor(HexaGuitarAudioProcessor& p)
     : AudioProcessorEditor(p), audioProcessor(p),
       polygonPanel(
           audioProcessor.getAPVTS(),
           "HEXA-GUITAR",
-          std::vector<juce::String>{jnsc::juce_interface::idToString(HexaAmpParams::ID::Drive),
-                                    jnsc::juce_interface::idToString(HexaAmpParams::ID::Bite),
-                                    jnsc::juce_interface::idToString(HexaAmpParams::ID::Squish),
-                                    jnsc::juce_interface::idToString(HexaAmpParams::ID::Level),
-                                    jnsc::juce_interface::idToString(HexaAmpParams::ID::Color),
-                                    jnsc::juce_interface::idToString(HexaAmpParams::ID::Tilt)},
+          std::vector<juce::String>{jnsc::juce_interface::idToString(HexaGuitarParams::ID::Drive),
+                                    jnsc::juce_interface::idToString(HexaGuitarParams::ID::Bite),
+                                    jnsc::juce_interface::idToString(HexaGuitarParams::ID::Squish),
+                                    jnsc::juce_interface::idToString(HexaGuitarParams::ID::Level),
+                                    jnsc::juce_interface::idToString(HexaGuitarParams::ID::Color),
+                                    jnsc::juce_interface::idToString(HexaGuitarParams::ID::Tilt)},
           "J O N S S O N I C",
-          juce::StringArray{jnsc::juce_interface::idToString(HexaAmpParams::ID::Bypass),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PreAmpCompressorAttack),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PreAmpCompressorRelease),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorAttack),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorRelease),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::MidBoostFrequency),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpShape),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PreAmpCompressorThresholdMin),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PreAmpCompressorThresholdMax),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorThresholdMin),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::PowerAmpCompressorThresholdMax),
-                            jnsc::juce_interface::idToString(HexaAmpParams::ID::Makeup)},
+          juce::StringArray{jnsc::juce_interface::idToString(HexaGuitarParams::ID::Bypass),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PreAmpCompressorAttack),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PreAmpCompressorRelease),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PowerAmpCompressorAttack),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PowerAmpCompressorRelease),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::MidBoostFrequency),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PowerAmpShape),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PreAmpCompressorThresholdMin),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PreAmpCompressorThresholdMax),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PowerAmpCompressorThresholdMin),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::PowerAmpCompressorThresholdMax),
+                            jnsc::juce_interface::idToString(HexaGuitarParams::ID::Makeup)},
           juce::String("v") + JucePlugin_VersionString) {
-    polygonPanel.setTypefaces(HexaAmpFonts::regular(), HexaAmpFonts::bold());
+    polygonPanel.setTypefaces(HexaGuitarFonts::regular(), HexaGuitarFonts::bold());
     setOpaque(true);
     addAndMakeVisible(polygonPanel);
     setSize(512, 512);
-    loadLogoImage();
-    logoDisplay.mask = logoImage;
+    loadLogo();
     logoDisplay.colour = polygonPanel.getCentralDisplay().getBrandColour();
     addAndMakeVisible(logoDisplay);
-    auto* bypass = audioProcessor.getAPVTS().getParameter(jnsc::juce_interface::idToString(HexaAmpParams::ID::Bypass));
+    auto* bypass = audioProcessor.getAPVTS().getParameter(jnsc::juce_interface::idToString(HexaGuitarParams::ID::Bypass));
     bypassStateAttachment = std::make_unique<juce::ParameterAttachment>(
         *bypass,
         [this](float value) { setPowerState(value < 0.5f); },
@@ -47,13 +46,13 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     developmentViewport.setScrollBarThickness(12);
     developmentViewport.getVerticalScrollBar().setLookAndFeel(&trimmerLookAndFeel);
     developmentVersion.setText(juce::String("v") + JucePlugin_VersionString, juce::dontSendNotification);
-    developmentVersion.setFont(HexaAmpFonts::font(12.0f));
+    developmentVersion.setFont(HexaGuitarFonts::font(12.0f));
     developmentVersion.setJustificationType(juce::Justification::centredRight);
     developmentVersion.setBorderSize(juce::BorderSize<int>(0));
     addChildComponent(developmentVersion);
     const auto developmentColour = polygonPanel.getCentralDisplay().getBrandColour();
     developmentVersion.setColour(juce::Label::textColourId, developmentColour);
-    using ID = HexaAmpParams::ID;
+    using ID = HexaGuitarParams::ID;
     const std::array<ID, 11> trimIDs{ID::PreAmpCompressorAttack,
                                      ID::PreAmpCompressorRelease,
                                      ID::PreAmpCompressorThresholdMin,
@@ -71,7 +70,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
         auto& label = developmentLabels[i];
         auto& slider = developmentSliders[i];
         label.setText(parameter->getName(64), juce::dontSendNotification);
-        label.setFont(HexaAmpFonts::font(14.0f));
+        label.setFont(HexaGuitarFonts::font(14.0f));
         label.setJustificationType(juce::Justification::centredLeft);
         label.setColour(juce::Label::textColourId, developmentColour);
         developmentPanel.addAndMakeVisible(label);
@@ -102,7 +101,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     addAndMakeVisible(versionHotspot);
     addAndMakeVisible(diceButton);
     diceButton.onClick = [this] {
-        using ID = HexaAmpParams::ID;
+        using ID = HexaGuitarParams::ID;
         for (auto id : {ID::Drive, ID::Bite, ID::Squish, ID::Color, ID::Tilt}) {
             auto* parameter = audioProcessor.getAPVTS().getParameter(jnsc::juce_interface::idToString(id));
             parameter->beginChangeGesture();
@@ -121,7 +120,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
         applyMonochrome();
     };
     paletteButton.onPopup = [this] {
-        auto safe = juce::Component::SafePointer<HexaAmpAudioProcessorEditor>(this);
+        auto safe = juce::Component::SafePointer<HexaGuitarAudioProcessorEditor>(this);
         const auto ink = darkMode ? selectedColour : juce::Colours::black;
         const auto paper = darkMode ? juce::Colours::black : selectedColour;
         auto choices = std::make_unique<PaletteChoices>(selectedColour, ink, paper, [safe](juce::Colour color) {
@@ -151,7 +150,7 @@ HexaAmpAudioProcessorEditor::HexaAmpAudioProcessorEditor(HexaAmpAudioProcessor& 
     resized();
 }
 
-HexaAmpAudioProcessorEditor::~HexaAmpAudioProcessorEditor() {
+HexaGuitarAudioProcessorEditor::~HexaGuitarAudioProcessorEditor() {
     if (palettePopup != nullptr) {
         palettePopup->setLookAndFeel(nullptr);
         palettePopup->dismiss();
@@ -161,17 +160,17 @@ HexaAmpAudioProcessorEditor::~HexaAmpAudioProcessorEditor() {
         slider.setLookAndFeel(nullptr);
 }
 
-void HexaAmpAudioProcessorEditor::setPowerState(bool enabled) {
+void HexaGuitarAudioProcessorEditor::setPowerState(bool enabled) {
     polygonPanel.setProcessingEnabled(enabled);
     polygonPanel.setPowerVisualAmount(enabled ? 1.0f : 0.0f);
 }
 
 //==============================================================================
-void HexaAmpAudioProcessorEditor::paint(juce::Graphics& g) {
+void HexaGuitarAudioProcessorEditor::paint(juce::Graphics& g) {
     g.fillAll(darkMode ? juce::Colours::black : selectedColour);
 }
 
-void HexaAmpAudioProcessorEditor::applyMonochrome() {
+void HexaGuitarAudioProcessorEditor::applyMonochrome() {
     const auto ink = darkMode ? selectedColour : juce::Colours::black;
     const auto paper = darkMode ? juce::Colours::black : selectedColour;
     polygonPanel.setMonochrome(darkMode, selectedColour);
@@ -196,7 +195,7 @@ void HexaAmpAudioProcessorEditor::applyMonochrome() {
     repaint();
 }
 
-void HexaAmpAudioProcessorEditor::resized() {
+void HexaGuitarAudioProcessorEditor::resized() {
     diceButton.setBounds(getWidth() - 128, getHeight() - 48, 32, 32);
     paletteButton.setBounds(getWidth() - 88, getHeight() - 48, 32, 32);
     themeToggle.setBounds(getWidth() - 48, getHeight() - 48, 32, 32);
@@ -225,7 +224,7 @@ void HexaAmpAudioProcessorEditor::resized() {
     versionHotspot.setBounds(getWidth() - 112, 16, 96, 20);
 }
 
-void HexaAmpAudioProcessorEditor::toggleDevelopmentPanel() {
+void HexaGuitarAudioProcessorEditor::toggleDevelopmentPanel() {
     developmentVisible = !developmentVisible;
     polygonPanel.setVisible(!developmentVisible);
     logoDisplay.setVisible(!developmentVisible);
@@ -234,46 +233,11 @@ void HexaAmpAudioProcessorEditor::toggleDevelopmentPanel() {
     versionHotspot.toFront(false);
 }
 
-void HexaAmpAudioProcessorEditor::loadLogoImage() {
-    auto logoFile = jnsc::juce_interface::getResourceFile("logos/Jonssonic_logo.png");
-    if (logoFile.existsAsFile())
-        logoImage = juce::ImageFileFormat::loadFrom(logoFile);
+void HexaGuitarAudioProcessorEditor::loadLogo() {
+    const auto logoFile = jnsc::juce_interface::getResourceFile("logos/jonssonic_logo.svg");
+    auto svg = juce::XmlDocument::parse(logoFile);
+    if (svg == nullptr)
+        return;
 
-    if (logoImage.isValid()) {
-        juce::Image mask(juce::Image::SingleChannel, logoImage.getWidth(), logoImage.getHeight(), true);
-        for (int y = 0; y < logoImage.getHeight(); ++y) {
-            for (int x = 0; x < logoImage.getWidth(); ++x) {
-                const auto pixel = logoImage.getPixelAt(x, y);
-                // Black is transparent; white is opaque. Preserve antialiased edges
-                // and any transparency already present in the source image.
-                mask.setPixelAt(x, y, juce::Colours::white.withAlpha(pixel.getBrightness() * pixel.getFloatAlpha()));
-            }
-        }
-        // A circular opening rounds the square stroke ends without blurring
-        // the mask or changing the width of the straight strokes.
-        const int cornerRadius = juce::jmax(1, juce::roundToInt(mask.getWidth() * 0.05f));
-        const auto roundMask = [cornerRadius](const juce::Image& source, bool erode) {
-            juce::Image result(juce::Image::SingleChannel, source.getWidth(), source.getHeight(), true);
-            for (int y = 0; y < source.getHeight(); ++y) {
-                for (int x = 0; x < source.getWidth(); ++x) {
-                    float alpha = erode ? 1.0f : 0.0f;
-                    for (int dy = -cornerRadius; dy <= cornerRadius; ++dy) {
-                        for (int dx = -cornerRadius; dx <= cornerRadius; ++dx) {
-                            if (dx * dx + dy * dy > cornerRadius * cornerRadius)
-                                continue;
-                            const int sampleX = x + dx;
-                            const int sampleY = y + dy;
-                            const float sample = source.getBounds().contains(sampleX, sampleY)
-                                                     ? source.getPixelAt(sampleX, sampleY).getFloatAlpha()
-                                                     : 0.0f;
-                            alpha = erode ? juce::jmin(alpha, sample) : juce::jmax(alpha, sample);
-                        }
-                    }
-                    result.setPixelAt(x, y, juce::Colours::white.withAlpha(alpha));
-                }
-            }
-            return result;
-        };
-        logoImage = roundMask(roundMask(mask, true), false);
-    }
+    logoDisplay.drawable = juce::Drawable::createFromSVG(*svg);
 }

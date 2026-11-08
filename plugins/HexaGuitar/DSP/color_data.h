@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace jnsc::hexa_amp::color_data {
+namespace jnsc::hexa_guitar::color_data {
 
 // Peak columns: gain at 0/100%, frequency at 0/100%, Q at 0/100%.
 inline constexpr float peaks[8][6] = {
@@ -27,4 +27,4 @@ inline constexpr float shelfQ = 0.7071067812f;
 inline constexpr float lowpassFrequencyHz[2] = {17066.778091f, 19175.354557f};
 inline constexpr float lowpassQ[2] = {0.5411961001f, 1.3065629649f};
 
-} // namespace jnsc::hexa_amp::color_data
+} // namespace jnsc::hexa_guitar::color_data

@@ -1,5 +1,5 @@
 // Jonssonic H E X A - A M P
-// Abstract amp-simulation processor for the HexaAmp plugin.
+// Abstract amp-simulation processor for the HexaGuitar plugin.
 // SPDX-License-Identifier: MIT
 
 #pragma once
@@ -13,13 +13,13 @@
 #include <jonssonic/core/oversampling/oversampler.h>
 #include <jonssonic/utils/buffer_utils.h>
 #include <jonssonic/utils/math_utils.h>
-namespace jnsc::hexa_amp {
+namespace jnsc::hexa_guitar {
 /**
- * @brief Abstract Amp-simulation processor for the HexaAmp plugin.
+ * @brief Abstract Amp-simulation processor for the HexaGuitar plugin.
  */
-class HexaAmp {
+class HexaGuitar {
     /**
-     * @brief Tunable constants for the HexaAmp.
+     * @brief Tunable constants for the HexaGuitar.
      * @param OVERSAMPLING_FACTOR Oversampling factor for waveshaping.
      * @param PARAM_SMOOTH_TIME_MS Smoothing time for parameter changes in milliseconds.
      * @param SHAPE_MIN Minimum shape parameter value (soft clipping).
@@ -74,33 +74,33 @@ class HexaAmp {
 
   public:
     /// Default constructor.
-    HexaAmp() = default;
+    HexaGuitar() = default;
 
     /**
      * @brief Parameterized constructor that calls @ref prepare.
      * @param newMaxBlockSize Maximum block size for processing (at base sample rate)
      * @param newSampleRate Sample rate in Hz
      */
-    HexaAmp(size_t newMaxBlockSize, float newSampleRate) { prepare(newMaxBlockSize, newSampleRate); }
+    HexaGuitar(size_t newMaxBlockSize, float newSampleRate) { prepare(newMaxBlockSize, newSampleRate); }
 
     /// Default destructor.
-    ~HexaAmp() = default;
+    ~HexaGuitar() = default;
 
     /// No copy nor move semantics
-    HexaAmp(const HexaAmp&) = delete;
-    HexaAmp& operator=(const HexaAmp&) = delete;
-    HexaAmp(HexaAmp&&) = delete;
-    HexaAmp& operator=(HexaAmp&&) = delete;
+    HexaGuitar(const HexaGuitar&) = delete;
+    HexaGuitar& operator=(const HexaGuitar&) = delete;
+    HexaGuitar(HexaGuitar&&) = delete;
+    HexaGuitar& operator=(HexaGuitar&&) = delete;
 
     /**
-     * @brief Prepare the HexaAmp effect for processing.
+     * @brief Prepare the HexaGuitar effect for processing.
      * @param newMaxBlockSize Maximum block size for processing (at base sample rate)
      * @param newSampleRate Sample rate in Hz
      */
     void prepare(size_t newMaxBlockSize, float newSampleRate);
 
     /**
-     * @brief Reset the HexaAmp effect to its initial state.
+     * @brief Reset the HexaGuitar effect to its initial state.
      */
     void reset();
 
@@ -214,4 +214,4 @@ class HexaAmp {
     WaveShaper<float, WaveShaperType::Dynamic> waveshaper;
 };
 
-} // namespace jnsc::hexa_amp
+} // namespace jnsc::hexa_guitar
